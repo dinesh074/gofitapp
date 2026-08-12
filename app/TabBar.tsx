@@ -18,8 +18,9 @@ const RIGHT_TABS: { key: TabKey; icon: IconName; iconOff: IconName; label: strin
 type Props = {
   active: TabKey;
   onChange: (t: TabKey) => void;
-  // Center action button -- jumps to Home and opens the camera immediately,
-  // same as tapping "Scan food" there, but reachable from any tab in one tap.
+  // Center action button -- jumps to Home and opens the AddFoodSheet (camera
+  // / gallery / barcode / describe, all in one place) immediately, reachable
+  // from any tab in one tap instead of having to first land on Home.
   onScanPress: () => void;
 };
 

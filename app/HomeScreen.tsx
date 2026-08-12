@@ -15,6 +15,7 @@ import * as Sharing from "expo-sharing";
 import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
+import AddFoodSheet from "./AddFoodSheet";
 import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { GoalTargets, Profile } from "./nutrition";
@@ -99,6 +100,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [showBudget, setShowBudget] = useState(false);
   const [showDescribe, setShowDescribe] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
@@ -112,7 +114,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     if (scanTrigger === undefined) return;
     if (scanTrigger === lastScanTrigger.current) return;
     lastScanTrigger.current = scanTrigger;
-    void pick(true);
+    setShowAddSheet(true);
   }, [scanTrigger]);
 
   const isPro = !!account?.isPro;
@@ -239,6 +241,35 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     setPhoto(uri);
     setResult(null);
     runAnalyze(uri);
+  }
+
+  // Single dispatcher for every option in AddFoodSheet -- one gate (auth +
+  // paywall) shared across all four entry points instead of each button
+  // repeating its own copy of the same two checks.
+  function handleAddOption(option: "camera" | "gallery" | "barcode" | "describe") {
+    setShowAddSheet(false);
+    if (!account) {
+      onRequireAuth();
+      return;
+    }
+    if (option === "camera") {
+      void pick(true);
+      return;
+    }
+    if (option === "gallery") {
+      void pick(false);
+      return;
+    }
+    if (option === "barcode") {
+      setShowBarcode(true);
+      return;
+    }
+    // describe
+    if (!isPro && (scansLeft ?? 0) <= 0) {
+      setShowPaywall(true);
+      return;
+    }
+    setShowDescribe(true);
   }
 
   // Shared between the photo path and the text-description path (and, once
@@ -469,37 +500,14 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           <Icon name="chevronRight" size={20} color={colors.faint} />
         </PressableScale>
 
-        <View style={styles.row}>
-          <PressableScale containerStyle={{ flex: 1 }} style={[styles.btn, styles.btnPrimary]} onPress={() => pick(true)}>
-            <Icon name="camera" size={18} color="#fff" />
-            <Text style={styles.btnPrimaryText}>Scan food</Text>
-          </PressableScale>
-          <PressableScale containerStyle={{ flex: 1 }} style={[styles.btn, styles.btnGhost]} onPress={() => pick(false)}>
-            <Icon name="gallery" size={18} color={colors.green} />
-            <Text style={styles.btnGhostText}>Gallery</Text>
-          </PressableScale>
-        </View>
-        <PressableScale
-          style={[styles.btn, styles.btnGhost, styles.barcodeBtn]}
-          onPress={() => {
-            if (!account) { onRequireAuth(); return; }
-            setShowBarcode(true);
-          }}
-        >
-          <Icon name="barcode" size={18} color={colors.green} />
-          <Text style={styles.btnGhostText}>Scan barcode (packaged food)</Text>
+        {/* One button, one sheet (AddFoodSheet) -- camera, gallery, barcode
+            and describe used to each get their own row on this screen, which
+            just meant hunting for the right one. The center TabBar button
+            (via scanTrigger) opens the exact same sheet. */}
+        <PressableScale style={[styles.btn, styles.btnPrimary, styles.addFoodBtn]} onPress={() => setShowAddSheet(true)}>
+          <Icon name="camera" size={18} color="#fff" />
+          <Text style={styles.btnPrimaryText}>Add food</Text>
         </PressableScale>
-        <Pressable
-          style={styles.describeLink}
-          onPress={() => {
-            if (!account) { onRequireAuth(); return; }
-            if (!isPro && (scansLeft ?? 0) <= 0) { setShowPaywall(true); return; }
-            setShowDescribe(true);
-          }}
-        >
-          <Icon name="edit" size={13} color={colors.mute} />
-          <Text style={styles.describeLinkText}>No photo? Describe your meal instead</Text>
-        </Pressable>
 
         {account && !isPro && (
           <Pressable style={styles.trialChip} onPress={() => (scansLeft && scansLeft > 0 ? null : setShowPaywall(true))}>
@@ -634,6 +642,14 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           way to scroll to it (that's what made the Budget sheet unreachable —
           its content rendered ~720px below the fold). Unmounting when closed
           removes that phantom offset entirely. */}
+      {showAddSheet && (
+        <AddFoodSheet
+          visible={showAddSheet}
+          onClose={() => setShowAddSheet(false)}
+          onPick={handleAddOption}
+        />
+      )}
+
       {showPaywall && (
         <Paywall
           visible={showPaywall}
@@ -740,13 +756,10 @@ const styles = StyleSheet.create({
   shareBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: colors.greenTint, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
   shareBtnText: { color: colors.green, fontWeight: "800", fontSize: 13 },
   offscreen: { position: "absolute", left: -1000, top: 0, opacity: 0 },
-  row: { flexDirection: "row", gap: 12, marginBottom: 16 },
   btn: { flex: 1, flexDirection: "row", gap: 8, borderRadius: 16, paddingVertical: 15, alignItems: "center", justifyContent: "center" },
   btnPrimary: { backgroundColor: colors.green, ...elevation.sm },
   btnPrimaryText: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  btnGhost: { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.hairline },
-  btnGhostText: { color: colors.green, fontWeight: "800", fontSize: 15 },
-  barcodeBtn: { flexDirection: "row", gap: 8, marginBottom: 16, marginTop: -4 },
+  addFoodBtn: { marginBottom: 16 },
   wellRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
   wellCard: { flex: 1, backgroundColor: colors.card, borderRadius: 18, padding: 14, ...elevation.sm },
   wellHead: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 },
@@ -758,8 +771,6 @@ const styles = StyleSheet.create({
   wellBtns: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 },
   wellStep: { width: 34, height: 34, borderRadius: 10, borderWidth: 1.5, borderColor: colors.hairline, alignItems: "center", justifyContent: "center" },
   wellStepLabel: { color: colors.mute, fontWeight: "700", fontSize: 12 },
-  describeLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12 },
-  describeLinkText: { color: colors.mute, fontWeight: "700", fontSize: 12.5 },
   trialChip: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 16 },
   trialText: { color: colors.green, fontWeight: "800", fontSize: 12.5 },
   budgetCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, ...elevation.sm },
