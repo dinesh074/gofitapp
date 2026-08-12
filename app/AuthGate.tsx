@@ -8,8 +8,12 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
+import {
+  GoogleSignin,
+  isSuccessResponse,
+  isErrorWithCode,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import Svg, { Path } from "react-native-svg";
 import { googleLogin, devLogin } from "./api";
 import { AuthState } from "./auth";
@@ -18,9 +22,6 @@ import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS } from "./c
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
 import { initGoogleWeb, renderGoogleButton, currentOrigin } from "./googleWeb";
-
-// Required so the OAuth popup/redirect can hand control back to the app.
-WebBrowser.maybeCompleteAuthSession();
 
 type Props = {
   onAuthed: (state: AuthState) => void;
@@ -55,30 +56,59 @@ export default function AuthGate({ onAuthed }: Props) {
   const webBtnRef = useRef<View>(null);
   const isWeb = Platform.OS === "web";
 
-  // Native only: expo-auth-session popup flow.
-  const [gRequest, gResponse, gPrompt] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_CLIENT_IDS.expo,
-    iosClientId: GOOGLE_CLIENT_IDS.ios,
-    androidClientId: GOOGLE_CLIENT_IDS.android,
-    webClientId: GOOGLE_CLIENT_IDS.web,
-  });
-
+  // Native only: Google's own Sign-In SDK (Play Services / Credential Manager on
+  // Android) -- NOT a browser redirect. This replaced an expo-auth-session-based
+  // flow that opened a system-browser popup and redirected back via the app's
+  // custom URL scheme (gofit:///): Google has tightened restrictions on that
+  // pattern for "Android"-type OAuth clients ("Custom scheme URI is not enabled
+  // for the Android client" -- a real error hit in testing), and even once
+  // that's worked around, the redirect intent can land in a fresh app instance
+  // on some Android versions/OEMs, losing the in-memory hook state and leaving
+  // the sign-in spinner stuck with no error. The native SDK has neither problem:
+  // no browser, no redirect, no custom scheme -- it verifies via the app's
+  // package name + signing certificate (the SAME Android OAuth client already
+  // registered in Google Cloud Console), matching what "Android" client types
+  // are actually designed for.
   useEffect(() => {
-    if (gResponse?.type === "success") {
-      const idToken = gResponse.params?.id_token;
-      if (idToken) void handleGoogle(idToken);
-      else {
-        setError("Google didn't return a sign-in token. Please try again.");
+    if (Platform.OS === "web") return;
+    GoogleSignin.configure({ webClientId: GOOGLE_CLIENT_IDS.web });
+  }, []);
+
+  async function nativeGoogleSignIn() {
+    setError(null);
+    if (!GOOGLE_CONFIGURED) {
+      setError("Google login isn't set up yet — add your OAuth client ID in config.ts.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        const idToken = response.data.idToken;
+        if (idToken) {
+          await handleGoogle(idToken);
+        } else {
+          setError("Google didn't return a sign-in token. Please try again.");
+          setBusy(false);
+        }
+      } else {
+        // type === "cancelled" -- user backed out, no error to show.
         setBusy(false);
       }
-    } else if (gResponse?.type === "error") {
-      setError("Google sign-in was cancelled or failed. Please try again.");
-      setBusy(false);
-    } else if (gResponse?.type === "dismiss" || gResponse?.type === "cancel") {
+    } catch (e: any) {
+      if (isErrorWithCode(e) && e.code === statusCodes.SIGN_IN_CANCELLED) {
+        setBusy(false);
+        return;
+      }
+      if (isErrorWithCode(e) && e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setError("Google Play Services isn't available on this device.");
+      } else {
+        setError(e?.message || "Google sign-in failed. Please try again.");
+      }
       setBusy(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gResponse]);
+  }
 
   // TEST MODE: skip Google entirely and sign in as the shared Tester account.
   useEffect(() => {
@@ -139,16 +169,6 @@ export default function AuthGate({ onAuthed }: Props) {
     }
   }
 
-  function onGooglePress() {
-    setError(null);
-    if (!GOOGLE_CONFIGURED) {
-      setError("Google login isn't set up yet — add your OAuth client ID in config.ts.");
-      return;
-    }
-    setBusy(true);
-    gPrompt().catch(() => setBusy(false));
-  }
-
   return (
     <LinearGradient colors={gradients.brandDeep} style={styles.root}>
       <View style={styles.hero}>
@@ -186,8 +206,8 @@ export default function AuthGate({ onAuthed }: Props) {
         ) : (
           <Pressable
             style={[styles.googleBtn, busy && styles.googleBtnBusy]}
-            onPress={onGooglePress}
-            disabled={busy || !gRequest}
+            onPress={nativeGoogleSignIn}
+            disabled={busy}
           >
             {busy ? (
               <ActivityIndicator color={colors.ink} />

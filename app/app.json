@@ -2,6 +2,7 @@
   "expo": {
     "name": "gofit.today",
     "slug": "gofit-today",
+    "owner": "gofit_today",
     "version": "1.0.0",
     "scheme": "gofit",
     "orientation": "portrait",
@@ -29,7 +30,8 @@
         "backgroundColor": "#0B7A4B"
       },
       "permissions": [
-        "CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -60,7 +62,12 @@
       "expo-asset",
       "expo-font",
       "expo-secure-store",
-      "expo-build-properties"
-    ]
+      "@react-native-google-signin/google-signin"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6fda3d0b-4acb-4d4d-bc7d-0b2d528da4d9"
+      }
+    }
   }
 }
