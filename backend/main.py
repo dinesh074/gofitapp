@@ -41,6 +41,7 @@ import db
 import payments
 import blob_storage
 import audit
+import feedback
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -121,6 +122,10 @@ app.include_router(payments.router)
 # can be gated by ADMIN_KEY rather than the mobile app's APP_API_KEY.
 audit.init_db()
 app.include_router(audit.router)
+
+# In-app feedback / feature requests (POST /feedback, GET /admin/feedback).
+feedback.init_db()
+app.include_router(feedback.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key

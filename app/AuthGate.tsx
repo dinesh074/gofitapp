@@ -22,6 +22,7 @@ import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS } from "./c
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
 import { initGoogleWeb, renderGoogleButton, currentOrigin } from "./googleWeb";
+import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
 
 type Props = {
   onAuthed: (state: AuthState) => void;
@@ -231,8 +232,15 @@ export default function AuthGate({ onAuthed }: Props) {
         )}
 
         <Text style={styles.legal}>
-          By continuing you agree to track your meals with gofit.today. We never post
-          without your permission.
+          By continuing you agree to our{" "}
+          <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
+            Terms
+          </Text>{" "}
+          and{" "}
+          <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
+            Privacy Policy
+          </Text>
+          . We never post without your permission.
         </Text>
         </View>
       )}
@@ -305,4 +313,5 @@ const styles = StyleSheet.create({
   originHint: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 14, lineHeight: 16 },
   originMono: { color: colors.mute, fontWeight: "800" },
   legal: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 18, lineHeight: 16 },
+  legalLink: { color: colors.mute, fontWeight: "800", textDecorationLine: "underline" },
 });

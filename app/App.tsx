@@ -8,6 +8,7 @@ import ProgressScreen from "./ProgressScreen";
 import CommunityScreen from "./CommunityScreen";
 import ProfileScreen from "./ProfileScreen";
 import AuthGate from "./AuthGate";
+import CookieBanner from "./CookieBanner";
 import TabBar, { TabKey } from "./TabBar";
 import { computeGoal, Profile } from "./nutrition";
 import { colors } from "./theme";
@@ -125,21 +126,34 @@ export default function App() {
   // Google-only gate: no account means no access — you can't create or edit any
   // details until you sign in.
   if (!auth) {
-    return <AuthGate onAuthed={onAuthed} />;
+    return (
+      <>
+        <AuthGate onAuthed={onAuthed} />
+        <CookieBanner />
+      </>
+    );
   }
 
   if (!profile || !goal) {
-    return <Onboarding onComplete={completeOnboarding} />;
+    return (
+      <>
+        <Onboarding onComplete={completeOnboarding} />
+        <CookieBanner />
+      </>
+    );
   }
 
   if (showSettings) {
     return (
-      <Settings
-        profile={profile}
-        onSave={saveSettings}
-        onClose={() => setShowSettings(false)}
-        onResetAll={resetAll}
-      />
+      <>
+        <Settings
+          profile={profile}
+          onSave={saveSettings}
+          onClose={() => setShowSettings(false)}
+          onResetAll={resetAll}
+        />
+        <CookieBanner />
+      </>
     );
   }
 
@@ -185,10 +199,12 @@ export default function App() {
             onEditProfile={() => setShowSettings(true)}
             onSignIn={requireAuth}
             onSignOut={signOut}
+            onRequireAuth={requireAuth}
           />
         )}
       </View>
       <TabBar active={tab} onChange={setTab} />
+      <CookieBanner />
     </View>
   );
 }

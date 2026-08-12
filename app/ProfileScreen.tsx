@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { APP_NAME } from "./config";
 import {
@@ -14,6 +14,8 @@ import { colors, radius, shadow, gradients } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
 import Avatar from "./Avatar";
+import Feedback from "./Feedback";
+import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
 
 type Props = {
   profile: Profile;
@@ -23,6 +25,7 @@ type Props = {
   onEditProfile: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
+  onRequireAuth: () => void;
 };
 
 const GOAL_LABEL: Record<Goal, string> = {
@@ -47,7 +50,9 @@ export default function ProfileScreen({
   onEditProfile,
   onSignIn,
   onSignOut,
+  onRequireAuth,
 }: Props) {
+  const [showFeedback, setShowFeedback] = useState(false);
   const streak = useMemo(() => computeStreak(logs), [logs]);
   const best = useMemo(() => bestStreak(logs), [logs]);
   const totalMeals = Object.values(logs).reduce((s, d) => s + d.meals.length, 0);
@@ -151,11 +156,38 @@ export default function ProfileScreen({
           <MenuItem icon="settings" label="Settings & data" onPress={onEditProfile} last />
         </View>
 
+        <Text style={styles.section}>Help us improve</Text>
+        <View style={styles.card}>
+          <MenuItem
+            icon="comment"
+            label="Send feedback or a feature idea"
+            onPress={() => (account ? setShowFeedback(true) : onSignIn())}
+            last
+          />
+        </View>
+
+        <Text style={styles.section}>Legal</Text>
+        <View style={styles.card}>
+          <MenuItem icon="info" label="Privacy Policy" onPress={() => void openLegal(privacyUrl())} />
+          <MenuItem icon="edit" label="Terms of Service" onPress={() => void openLegal(termsUrl())} last />
+        </View>
+
         <Text style={styles.foot}>{APP_NAME} · v1.0.0</Text>
         <Text style={styles.disclaimer}>
           Estimates are for guidance only and are not medical advice.
         </Text>
       </ScrollView>
+
+      {showFeedback && (
+        <Feedback
+          visible={showFeedback}
+          onClose={() => setShowFeedback(false)}
+          onRequireAuth={() => {
+            setShowFeedback(false);
+            onRequireAuth();
+          }}
+        />
+      )}
     </View>
   );
 }

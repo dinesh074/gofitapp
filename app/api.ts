@@ -298,6 +298,20 @@ export async function upgradeToPro(): Promise<{ account: Account }> {
   return postAuth("/auth/upgrade", {});
 }
 
+/* ------------------------------ Feedback --------------------------------- */
+
+export type FeedbackCategory = "bug" | "feature" | "general";
+
+// Sends one piece of feedback tied to the signed-in account (the app is
+// Google-only, so there's no anonymous path -- every submission is
+// attributable, which makes following up on it possible).
+export async function submitFeedback(
+  category: FeedbackCategory,
+  message: string
+): Promise<{ ok: boolean; id: number }> {
+  return postAuth("/feedback", { category, message });
+}
+
 /* ------------------------------ Payments -------------------------------- */
 
 export type PayConfig = {
