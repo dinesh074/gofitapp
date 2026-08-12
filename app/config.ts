@@ -19,7 +19,7 @@ export const GOOGLE_CLIENT_IDS = {
   expo: "688551717833-uk0n3or0b09d797pvinrqbf5jch2g4d6.apps.googleusercontent.com",
   web: "688551717833-uk0n3or0b09d797pvinrqbf5jch2g4d6.apps.googleusercontent.com",
   ios: "REPLACE_WITH_IOS_CLIENT_ID.apps.googleusercontent.com",
-  android: "REPLACE_WITH_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+  android: "688551717833-42f2o96676l3e3gkh8bi7t2be7o4v35m.apps.googleusercontent.com",
 };
 
 // Google login is considered configured once the web client ID is real (that's
