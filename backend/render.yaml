@@ -1,7 +1,7 @@
 # Render.com Blueprint -- one concrete, ready-to-use deployment path.
 # DEPLOY.md documents the backend running on "any container/VM host"; this
 # file picks one (Render) so deploying is a few clicks instead of a research
-# project. Railway/Fly.io work too, using the Dockerfile in this directory.
+# project. Native Python runtime, no Docker.
 #
 # To use: push this repo to GitHub, then in the Render dashboard choose
 # "New +" -> "Blueprint" and point it at the repo. Render reads this file and
@@ -44,4 +44,10 @@ services:
       - key: RAZORPAY_KEY_SECRET
         sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
