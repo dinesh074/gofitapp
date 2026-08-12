@@ -1,0 +1,27 @@
+# Node / Expo (app/)
+node_modules/
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Python (backend/) -- backend/.gitignore also covers backend-specific state
+# (secrets, local SQLite, uploads); this catches __pycache__ anywhere.
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

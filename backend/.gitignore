@@ -1,0 +1,19 @@
+# Secrets & local state — never commit these.
+.env
+*.env.local
+
+# Local SQLite dev database
+community.db
+community.db-journal
+community.db-wal
+community.db-shm
+community.db.archived_*
+
+# User-uploaded images
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

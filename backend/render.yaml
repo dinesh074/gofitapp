@@ -1,0 +1,47 @@
+# Render.com Blueprint -- one concrete, ready-to-use deployment path.
+# DEPLOY.md documents the backend running on "any container/VM host"; this
+# file picks one (Render) so deploying is a few clicks instead of a research
+# project. Railway/Fly.io work too, using the Dockerfile in this directory.
+#
+# To use: push this repo to GitHub, then in the Render dashboard choose
+# "New +" -> "Blueprint" and point it at the repo. Render reads this file and
+# creates the service; you still have to paste in the secret env vars
+# yourself (marked sync: false below) -- Render never gets them from this
+# file, which is git-committed and must never contain real secrets.
+services:
+  - type: web
+    name: gofit-backend
+    runtime: python
+    plan: starter
+    region: singapore # closest Render region to Supabase's ap-southeast-1 -- see DEPLOY.md #7 on co-location
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --workers 2
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PG_SCHEMA
+        value: gofit
+      - key: FREE_SCANS
+        value: "3"
+      - key: RATE_PER_MIN
+        value: "20"
+      - key: RATE_PER_DAY
+        value: "200"
+      # Secrets -- set these in the Render dashboard, never commit real values here.
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: APP_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false

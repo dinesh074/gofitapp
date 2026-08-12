@@ -1,0 +1,29 @@
+{
+  "_note": "Per-unit calories for common Indian foods, anchored to IFCT (Indian Food Composition Tables) / standard household portions. 'aliases' help match the model's free-text item names. Used to override the model's kcal_per_unit for consistency.",
+  "foods": [
+    { "key": "idli", "unit": "piece", "kcal_per_unit": 58, "protein_g": 2.0, "carbs_g": 12.0, "fat_g": 0.4, "aliases": ["idli", "idly", "steamed rice cake"] },
+    { "key": "plain_dosa", "unit": "piece", "kcal_per_unit": 133, "protein_g": 2.7, "carbs_g": 18.0, "fat_g": 5.5, "aliases": ["dosa", "plain dosa", "set dosa", "sada dosa"] },
+    { "key": "masala_dosa", "unit": "piece", "kcal_per_unit": 250, "protein_g": 5.0, "carbs_g": 34.0, "fat_g": 10.0, "aliases": ["masala dosa"] },
+    { "key": "vada", "unit": "piece", "kcal_per_unit": 97, "protein_g": 3.0, "carbs_g": 11.0, "fat_g": 5.0, "aliases": ["vada", "medu vada", "urad vada"] },
+    { "key": "samosa", "unit": "piece", "kcal_per_unit": 262, "protein_g": 3.5, "carbs_g": 24.0, "fat_g": 17.0, "aliases": ["samosa"] },
+    { "key": "roti", "unit": "piece", "kcal_per_unit": 85, "protein_g": 2.7, "carbs_g": 18.0, "fat_g": 0.4, "aliases": ["roti", "chapati", "phulka", "chapathi"] },
+    { "key": "paratha", "unit": "piece", "kcal_per_unit": 210, "protein_g": 4.0, "carbs_g": 27.0, "fat_g": 9.0, "aliases": ["paratha", "parantha", "aloo paratha"] },
+    { "key": "puri", "unit": "piece", "kcal_per_unit": 101, "protein_g": 1.8, "carbs_g": 12.0, "fat_g": 5.0, "aliases": ["puri", "poori", "bhatura", "bhature"] },
+    { "key": "naan", "unit": "piece", "kcal_per_unit": 260, "protein_g": 7.0, "carbs_g": 45.0, "fat_g": 5.0, "aliases": ["naan", "butter naan"] },
+    { "key": "cooked_rice", "unit": "katori", "kcal_per_unit": 135, "protein_g": 2.7, "carbs_g": 30.0, "fat_g": 0.3, "aliases": ["rice", "steamed rice", "plain rice", "cooked rice"] },
+    { "key": "biryani", "unit": "plate", "kcal_per_unit": 490, "protein_g": 20.0, "carbs_g": 62.0, "fat_g": 18.0, "aliases": ["biryani", "biriyani", "chicken biryani", "veg biryani", "biryani rice"] },
+    { "key": "dal", "unit": "katori", "kcal_per_unit": 120, "protein_g": 7.0, "carbs_g": 18.0, "fat_g": 2.5, "aliases": ["dal", "daal", "toor dal", "yellow dal", "lentil curry"] },
+    { "key": "chole", "unit": "katori", "kcal_per_unit": 180, "protein_g": 8.0, "carbs_g": 24.0, "fat_g": 6.0, "aliases": ["chole", "chana masala", "chole masala", "chickpea curry", "chana"] },
+    { "key": "rajma", "unit": "katori", "kcal_per_unit": 175, "protein_g": 8.0, "carbs_g": 24.0, "fat_g": 5.0, "aliases": ["rajma", "kidney bean curry"] },
+    { "key": "paneer_curry", "unit": "katori", "kcal_per_unit": 265, "protein_g": 11.0, "carbs_g": 10.0, "fat_g": 20.0, "aliases": ["paneer", "paneer butter masala", "shahi paneer", "kadai paneer", "palak paneer"] },
+    { "key": "chicken_curry", "unit": "katori", "kcal_per_unit": 240, "protein_g": 22.0, "carbs_g": 6.0, "fat_g": 14.0, "aliases": ["chicken curry", "butter chicken", "chicken masala", "chicken gravy"] },
+    { "key": "mixed_sabzi", "unit": "katori", "kcal_per_unit": 110, "protein_g": 3.0, "carbs_g": 12.0, "fat_g": 6.0, "aliases": ["sabzi", "sabji", "vegetable curry", "aloo gobi", "mixed veg", "bhindi"] },
+    { "key": "curd", "unit": "katori", "kcal_per_unit": 60, "protein_g": 3.0, "carbs_g": 5.0, "fat_g": 3.0, "aliases": ["curd", "dahi", "yogurt", "raita"] },
+    { "key": "poha", "unit": "plate", "kcal_per_unit": 250, "protein_g": 5.0, "carbs_g": 45.0, "fat_g": 6.0, "aliases": ["poha", "pohe"] },
+    { "key": "upma", "unit": "plate", "kcal_per_unit": 230, "protein_g": 5.0, "carbs_g": 38.0, "fat_g": 7.0, "aliases": ["upma", "uppma"] },
+    { "key": "gulab_jamun", "unit": "piece", "kcal_per_unit": 150, "protein_g": 2.0, "carbs_g": 22.0, "fat_g": 6.0, "aliases": ["gulab jamun", "gulab jamoon"] },
+    { "key": "jalebi", "unit": "piece", "kcal_per_unit": 150, "protein_g": 1.0, "carbs_g": 25.0, "fat_g": 5.0, "aliases": ["jalebi"] },
+    { "key": "coconut_chutney", "unit": "tbsp", "kcal_per_unit": 35, "protein_g": 0.6, "carbs_g": 1.5, "fat_g": 3.0, "aliases": ["chutney", "coconut chutney"] },
+    { "key": "sambar", "unit": "katori", "kcal_per_unit": 110, "protein_g": 5.0, "carbs_g": 15.0, "fat_g": 3.0, "aliases": ["sambar", "sambhar"] }
+  ]
+}

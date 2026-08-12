@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "gofit.today",
+    "slug": "gofit-today",
+    "version": "1.0.0",
+    "scheme": "gofit",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B7A4B"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "today.gofit.app",
+      "icon": "./assets/icon.png",
+      "infoPlist": {
+        "NSCameraUsageDescription": "We use the camera to scan your food and estimate calories.",
+        "NSPhotoLibraryUsageDescription": "We use your photos to analyze food and estimate calories."
+      }
+    },
+    "android": {
+      "package": "today.gofit.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B7A4B"
+      },
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow gofit.today to use your camera to scan food."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0B7A4B"
+        }
+      ],
+      "expo-asset",
+      "expo-font",
+      "expo-secure-store",
+      "expo-build-properties"
+    ]
+  }
+}
