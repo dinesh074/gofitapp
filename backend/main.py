@@ -686,6 +686,11 @@ async def analyze(request: Request, file: UploadFile = File(...), _: None = Depe
             # Scan was already reserved atomically before this loop started;
             # just surface the now-current quota.
             data["usage"] = auth.usage_for(account["id"])
+            items = data.get("items", [])
+            progress.record_scan(
+                account["id"], success=True, item_count=len(items),
+                total_kcal=data.get("calories_kcal"),
+            )
             return data
         except HTTPException:
             raise
@@ -695,4 +700,5 @@ async def analyze(request: Request, file: UploadFile = File(...), _: None = Depe
     # Every retry failed -- refund the reserved slot so a failed request
     # (not the user's fault) doesn't cost them a real scan.
     auth.release_scan(account["id"])
+    progress.record_scan(account["id"], success=False, error_detail=str(last)[:500] if last else None)
     raise HTTPException(status_code=502, detail="Could not analyze the image. Please try another photo.")

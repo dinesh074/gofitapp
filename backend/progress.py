@@ -15,13 +15,19 @@ pattern as auth.py's account refresh) -- these endpoints are what makes that
 cache eventually correct instead of the only copy that exists.
 
 Endpoints (all Bearer-authenticated):
-  GET  /profile          -> {profile: {...} | null}
+  GET  /profile          -> {profile: {...} | null}, profile.bmi computed live
+                             from height/weight (not stored -- nothing to drift)
   PUT  /profile          -> upsert the caller's profile
   GET  /logs             -> {logs: {"YYYY-MM-DD": {date, meals: [...]}}}
   POST /logs             -> append one meal to a date, returns its id
   DELETE /logs/{id}      -> remove one meal (must belong to the caller)
   GET  /weights          -> {weights: [{kg, at}, ...]}
   POST /weights          -> append one weight check-in
+  GET  /summary          -> cached per-day totals (daily_summary), fast even
+                             as meal_logs grows -- kept correct by
+                             _refresh_daily_summary() on every log add/delete
+  GET  /scans/history    -> every /analyze attempt (scan_history), including
+                             ones that failed or were never logged
 """
 import time
 import logging
@@ -85,6 +91,104 @@ def init_db() -> None:
             """
         )
         c.execute("CREATE INDEX IF NOT EXISTS idx_weight_logs_account ON weight_logs(account_id)")
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS scan_history (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id  INTEGER NOT NULL,
+                success     INTEGER NOT NULL,
+                item_count  INTEGER,
+                total_kcal  REAL,
+                error_detail TEXT,
+                created_at  REAL NOT NULL
+            )
+            """
+        )
+        c.execute("CREATE INDEX IF NOT EXISTS idx_scan_history_account ON scan_history(account_id, created_at)")
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS daily_summary (
+                account_id   INTEGER NOT NULL,
+                date         TEXT NOT NULL,
+                kcal         REAL NOT NULL DEFAULT 0,
+                protein_g    REAL NOT NULL DEFAULT 0,
+                carbs_g      REAL NOT NULL DEFAULT 0,
+                fat_g        REAL NOT NULL DEFAULT 0,
+                meals_count  INTEGER NOT NULL DEFAULT 0,
+                updated_at   REAL NOT NULL,
+                PRIMARY KEY (account_id, date)
+            )
+            """
+        )
+
+
+def record_scan(
+    account_id: int,
+    success: bool,
+    item_count: Optional[int] = None,
+    total_kcal: Optional[float] = None,
+    error_detail: Optional[str] = None,
+) -> None:
+    """Log every /analyze attempt -- not just the ones the user goes on to
+    confirm/log (that's meal_logs' job). Lets us actually answer "how many
+    times has this account scanned, and how often did it fail" instead of
+    only ever knowing about the successes someone chose to keep."""
+    try:
+        with db.write_lock(), db.connect() as c:
+            c.execute(
+                "INSERT INTO scan_history (account_id, success, item_count, total_kcal, error_detail, created_at) "
+                "VALUES (?,?,?,?,?,?)",
+                (account_id, 1 if success else 0, item_count, total_kcal, error_detail, time.time()),
+            )
+    except Exception:
+        log.exception("scan_history write failed for account %s", account_id)
+
+
+def _refresh_daily_summary(c, account_id: int, date_key: str) -> None:
+    """Recompute one account/date's cached totals directly from meal_logs --
+    called after any log add/delete so daily_summary never drifts from the
+    real rows it's summarizing."""
+    row = c.execute(
+        """
+        SELECT COALESCE(SUM(kcal),0) AS kcal, COALESCE(SUM(protein_g),0) AS protein_g,
+               COALESCE(SUM(carbs_g),0) AS carbs_g, COALESCE(SUM(fat_g),0) AS fat_g,
+               COUNT(*) AS n
+        FROM meal_logs WHERE account_id=? AND date=?
+        """,
+        (account_id, date_key),
+    ).fetchone()
+    if row["n"] == 0:
+        c.execute("DELETE FROM daily_summary WHERE account_id=? AND date=?", (account_id, date_key))
+        return
+    c.execute(
+        """
+        INSERT INTO daily_summary (account_id, date, kcal, protein_g, carbs_g, fat_g, meals_count, updated_at)
+        VALUES (?,?,?,?,?,?,?,?)
+        ON CONFLICT(account_id, date) DO UPDATE SET
+            kcal=excluded.kcal, protein_g=excluded.protein_g, carbs_g=excluded.carbs_g,
+            fat_g=excluded.fat_g, meals_count=excluded.meals_count, updated_at=excluded.updated_at
+        """,
+        (account_id, date_key, row["kcal"], row["protein_g"], row["carbs_g"], row["fat_g"], row["n"], time.time()),
+    )
+
+
+def _bmi(height_cm: float, weight_kg: float) -> Optional[dict]:
+    """Standard BMI (kg / m^2) plus the standard WHO category bands. Purely
+    computed from real profile data, not stored -- there's nothing to drift
+    out of sync, so no table needed for this one."""
+    if not height_cm or height_cm <= 0:
+        return None
+    m = height_cm / 100.0
+    value = round(weight_kg / (m * m), 1)
+    if value < 18.5:
+        category = "underweight"
+    elif value < 25:
+        category = "normal"
+    elif value < 30:
+        category = "overweight"
+    else:
+        category = "obese"
+    return {"value": value, "category": category}
 
 
 # --- profile -------------------------------------------------------------- #
@@ -113,6 +217,9 @@ def _row_to_profile(row) -> dict:
         "activity": row["activity"],
         "diet": row["diet"],
         "createdAt": row["created_at"],
+        # Computed, not stored -- always current with whatever weight/height
+        # is on the profile right now, nothing to keep in sync.
+        "bmi": _bmi(row["height_cm"], row["weight_kg"]),
     }
 
 
@@ -209,6 +316,7 @@ def add_log(body: MealBody, request: Request):
             (acct["id"], body.date, body.dish, body.kcal, body.protein_g, body.carbs_g, body.fat_g, at),
         )
         new_id = cur.lastrowid
+        _refresh_daily_summary(c, acct["id"], body.date)
     return {"ok": True, "id": new_id, "at": at}
 
 
@@ -216,7 +324,7 @@ def add_log(body: MealBody, request: Request):
 def delete_log(log_id: int, request: Request):
     acct = auth.require_account(request)
     with db.write_lock(), db.connect() as c:
-        row = c.execute("SELECT account_id FROM meal_logs WHERE id=?", (log_id,)).fetchone()
+        row = c.execute("SELECT account_id, date FROM meal_logs WHERE id=?", (log_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Not found")
         if row["account_id"] != acct["id"]:
@@ -225,7 +333,64 @@ def delete_log(log_id: int, request: Request):
             # an id.
             raise HTTPException(status_code=404, detail="Not found")
         c.execute("DELETE FROM meal_logs WHERE id=?", (log_id,))
+        _refresh_daily_summary(c, acct["id"], row["date"])
     return {"ok": True}
+
+
+# --- daily summary (cache) & scan history ----------------------------------- #
+
+@router.get("/summary")
+def get_summary(request: Request, days: int = 30):
+    """Cached per-day totals from daily_summary -- avoids recomputing from
+    meal_logs on every read as history grows. Kept correct by
+    _refresh_daily_summary(), called on every add/delete above."""
+    acct = auth.require_account(request)
+    days = max(1, min(days, 365))
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT * FROM daily_summary WHERE account_id=? ORDER BY date DESC LIMIT ?",
+            (acct["id"], days),
+        ).fetchall()
+    return {
+        "days": [
+            {
+                "date": r["date"],
+                "kcal": r["kcal"],
+                "protein_g": r["protein_g"],
+                "carbs_g": r["carbs_g"],
+                "fat_g": r["fat_g"],
+                "mealsCount": r["meals_count"],
+            }
+            for r in rows
+        ]
+    }
+
+
+@router.get("/scans/history")
+def get_scan_history(request: Request, limit: int = 50):
+    """Every /analyze attempt for this account, most recent first -- including
+    ones that failed or were never turned into a logged meal. See
+    record_scan(), called from main.py's /analyze."""
+    acct = auth.require_account(request)
+    limit = max(1, min(limit, 200))
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT * FROM scan_history WHERE account_id=? ORDER BY created_at DESC LIMIT ?",
+            (acct["id"], limit),
+        ).fetchall()
+    return {
+        "scans": [
+            {
+                "id": r["id"],
+                "success": bool(r["success"]),
+                "itemCount": r["item_count"],
+                "totalKcal": r["total_kcal"],
+                "error": r["error_detail"],
+                "at": r["created_at"],
+            }
+            for r in rows
+        ]
+    }
 
 
 # --- weight history -------------------------------------------------------- #

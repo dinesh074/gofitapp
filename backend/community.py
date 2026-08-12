@@ -490,17 +490,20 @@ def _notify(
     # Fire a remote push to the recipient's devices (best-effort, non-blocking).
     recipient_id = auth.account_id_from_community(author_id)
     if recipient_id is not None:
-        if kind == "like":
-            title = "New like \u2764\ufe0f"
-            msg = f"{actor['name']} liked your post"
-        else:
-            title = "New comment \U0001f4ac"
-            msg = (
-                f"{actor['name']} commented: {preview[:80]}"
-                if preview
-                else f"{actor['name']} commented on your post"
-            )
-        auth.send_push(recipient_id, title, msg, {"type": kind, "postId": post_id})
+        prefs = auth.get_notification_prefs(recipient_id)
+        wants_it = prefs["pushLikes"] if kind == "like" else prefs["pushComments"]
+        if wants_it:
+            if kind == "like":
+                title = "New like \u2764\ufe0f"
+                msg = f"{actor['name']} liked your post"
+            else:
+                title = "New comment \U0001f4ac"
+                msg = (
+                    f"{actor['name']} commented: {preview[:80]}"
+                    if preview
+                    else f"{actor['name']} commented on your post"
+                )
+            auth.send_push(recipient_id, title, msg, {"type": kind, "postId": post_id})
 
 
 @router.get("/feed")

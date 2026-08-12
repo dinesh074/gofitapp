@@ -10,11 +10,16 @@ An account's community identity is the string `acct-<id>`. Signing in on a new
 device therefore restores the same leaderboard/feed identity.
 
 Endpoints (mounted under /auth):
-  POST /auth/google      {id_token}                 -> {token, account}
-  GET  /auth/me          (Bearer)                   -> {account}
-  POST /auth/logout      (Bearer)                   -> {ok}
-  POST /auth/upgrade     (Bearer)                   -> {account}   (Pro stub)
-  POST /auth/push-token  (Bearer) {token, platform} -> {ok}
+  POST /auth/google              {id_token}                 -> {token, account}
+  GET  /auth/me                 (Bearer)                   -> {account}
+  POST /auth/logout              (Bearer)                   -> {ok}
+  POST /auth/upgrade             (Bearer)                   -> {account}   (Pro stub)
+  POST /auth/push-token          (Bearer) {token, platform} -> {ok}
+  GET  /auth/devices             (Bearer)                   -> {devices: [...]} -- this
+                                  account's sessions (platform/app version/last-active),
+                                  never exposes the real bearer tokens.
+  GET  /auth/notification-prefs  (Bearer)                   -> {prefs}
+  PUT  /auth/notification-prefs  (Bearer) {push_likes, push_comments, push_community}
 """
 import os
 import re
@@ -117,6 +122,36 @@ def _migrate(c: sqlite3.Connection) -> None:
     # pw_hash/pw_salt are NOT NULL; Google-only accounts have no password, so
     # they store empty strings there. Nothing else to migrate.
 
+    # One row per issued session token -- which device/platform/app version
+    # it belongs to, and when it was last actually used. Lets an account see
+    # "signed in on 3 devices" instead of that only being visible by querying
+    # the tokens table directly, and gives us real diagnostic data instead of
+    # guessing when a user reports a device-specific bug.
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS devices (
+            token TEXT PRIMARY KEY,
+            account_id INTEGER NOT NULL,
+            platform TEXT,
+            app_version TEXT,
+            created_at REAL NOT NULL DEFAULT 0,
+            last_active_at REAL NOT NULL DEFAULT 0
+        )
+        """
+    )
+    # Per-account push notification preferences. Absent row = defaults (all on).
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notification_prefs (
+            account_id INTEGER PRIMARY KEY,
+            push_likes INTEGER NOT NULL DEFAULT 1,
+            push_comments INTEGER NOT NULL DEFAULT 1,
+            push_community INTEGER NOT NULL DEFAULT 1,
+            updated_at REAL NOT NULL DEFAULT 0
+        )
+        """
+    )
+
     # Indexes for the hot lookup paths (login dedupe + per-request token auth +
     # push fan-out). Without these Postgres does sequential scans that fall over
     # under load.
@@ -125,6 +160,7 @@ def _migrate(c: sqlite3.Connection) -> None:
         "CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email)",
         "CREATE INDEX IF NOT EXISTS idx_tokens_account ON tokens(account_id)",
         "CREATE INDEX IF NOT EXISTS idx_push_tokens_account ON push_tokens(account_id)",
+        "CREATE INDEX IF NOT EXISTS idx_devices_account ON devices(account_id)",
     ):
         c.execute(stmt)
 
@@ -396,14 +432,82 @@ def require_account(request: Request) -> dict:
 # --- request bodies ----------------------------------------------------------
 
 
-def _issue_token(account_id: int) -> str:
+def _issue_token(account_id: int, platform: str = "", app_version: str = "") -> str:
     token = secrets.token_urlsafe(32)
+    now = time.time()
     with _lock, _conn() as c:
         c.execute(
             "INSERT INTO tokens (token, account_id, created_at) VALUES (?,?,?)",
-            (token, account_id, time.time()),
+            (token, account_id, now),
+        )
+        c.execute(
+            "INSERT INTO devices (token, account_id, platform, app_version, created_at, last_active_at) "
+            "VALUES (?,?,?,?,?,?)",
+            (token, account_id, platform or None, app_version or None, now, now),
         )
     return token
+
+
+def touch_device(token: str) -> None:
+    """Best-effort last-active bump. Called on real request traffic, not on
+    every single request (see account_from_request) -- device presence is a
+    diagnostic aid, not something that needs sub-second precision."""
+    try:
+        with _lock, _conn() as c:
+            c.execute("UPDATE devices SET last_active_at=? WHERE token=?", (time.time(), token))
+    except Exception:
+        pass
+
+
+def devices_for_account(account_id: int) -> list:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT token, platform, app_version, created_at, last_active_at "
+            "FROM devices WHERE account_id=? ORDER BY last_active_at DESC",
+            (account_id,),
+        ).fetchall()
+    return [
+        {
+            # Never expose the real token -- just enough to tell devices
+            # apart in a "signed in on these devices" list.
+            "id": r["token"][:8],
+            "platform": r["platform"],
+            "appVersion": r["app_version"],
+            "createdAt": r["created_at"],
+            "lastActiveAt": r["last_active_at"],
+        }
+        for r in rows
+    ]
+
+
+def get_notification_prefs(account_id: int) -> dict:
+    with _conn() as c:
+        row = c.execute(
+            "SELECT * FROM notification_prefs WHERE account_id=?", (account_id,)
+        ).fetchone()
+    if not row:
+        return {"pushLikes": True, "pushComments": True, "pushCommunity": True}
+    return {
+        "pushLikes": bool(row["push_likes"]),
+        "pushComments": bool(row["push_comments"]),
+        "pushCommunity": bool(row["push_community"]),
+    }
+
+
+def set_notification_prefs(account_id: int, likes: bool, comments: bool, community: bool) -> dict:
+    now = time.time()
+    with _lock, _conn() as c:
+        c.execute(
+            """
+            INSERT INTO notification_prefs (account_id, push_likes, push_comments, push_community, updated_at)
+            VALUES (?,?,?,?,?)
+            ON CONFLICT(account_id) DO UPDATE SET
+                push_likes=excluded.push_likes, push_comments=excluded.push_comments,
+                push_community=excluded.push_community, updated_at=excluded.updated_at
+            """,
+            (account_id, 1 if likes else 0, 1 if comments else 0, 1 if community else 0, now),
+        )
+    return {"pushLikes": likes, "pushComments": comments, "pushCommunity": community}
 
 
 @router.get("/me")
@@ -433,6 +537,8 @@ def logout(request: Request):
 
 class GoogleBody(BaseModel):
     id_token: str = Field(..., min_length=10)
+    platform: str = Field("", max_length=20)
+    app_version: str = Field("", max_length=20)
 
 
 def _verify_google_token(id_token_str: str) -> dict:
@@ -512,7 +618,7 @@ def google_login(body: GoogleBody, request: Request):
             account_id = row["id"]
         row = c.execute("SELECT * FROM accounts WHERE id=?", (account_id,)).fetchone()
 
-    token = _issue_token(account_id)
+    token = _issue_token(account_id, platform=body.platform, app_version=body.app_version)
     audit.record(
         "account_created" if is_new else "account_signin",
         status="success",
@@ -594,3 +700,32 @@ def push_token(body: PushTokenBody, request: Request):
     acct = require_account(request)
     register_push_token(acct["id"], body.token, body.platform)
     return {"ok": True}
+
+
+@router.get("/devices")
+def list_devices(request: Request):
+    """This account's sessions -- which platforms, which app versions, when
+    each was last active. Never exposes the real bearer tokens."""
+    acct = require_account(request)
+    return {"devices": devices_for_account(acct["id"])}
+
+
+class NotificationPrefsBody(BaseModel):
+    push_likes: bool = True
+    push_comments: bool = True
+    push_community: bool = True
+
+
+@router.get("/notification-prefs")
+def notification_prefs(request: Request):
+    acct = require_account(request)
+    return {"prefs": get_notification_prefs(acct["id"])}
+
+
+@router.put("/notification-prefs")
+def update_notification_prefs(body: NotificationPrefsBody, request: Request):
+    acct = require_account(request)
+    prefs = set_notification_prefs(
+        acct["id"], body.push_likes, body.push_comments, body.push_community
+    )
+    return {"prefs": prefs}
