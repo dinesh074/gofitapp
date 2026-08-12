@@ -14,6 +14,7 @@ services:
     runtime: python
     plan: free # no card required; spins down after 15min idle, ~30-60s cold start on the next request. Bump to "starter" later if that's not acceptable.
     region: singapore # closest Render region to Supabase's ap-southeast-1 -- see DEPLOY.md #7 on co-location
+    rootDir: backend # monorepo -- this file lives in backend/ alongside requirements.txt/main.py, but Render's build context defaults to the repo root otherwise.
     buildCommand: pip install -r requirements.txt
     startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --workers 2
     healthCheckPath: /health
