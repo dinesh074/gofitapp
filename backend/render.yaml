@@ -18,6 +18,8 @@ services:
     startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --workers 2
     healthCheckPath: /health
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
       - key: APP_ENV
         value: production
       - key: PG_SCHEMA
