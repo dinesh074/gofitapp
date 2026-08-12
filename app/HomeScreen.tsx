@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,7 +14,6 @@ import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
-import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
@@ -39,7 +37,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
 import MonthStreak from "./MonthStreak";
-import BudgetProtein from "./BudgetProtein";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
 import PressableScale from "./PressableScale";
@@ -96,7 +93,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [showBudget, setShowBudget] = useState(false);
   const [showDescribe, setShowDescribe] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
@@ -447,7 +443,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <Icon name="walk" size={16} color={colors.green} />
               <Text style={styles.wellTitle}>Steps</Text>
             </View>
-            <Text style={styles.wellValue}>{steps.toLocaleString()}</Text>
+            <Text style={styles.wellValue}>
+              {steps.toLocaleString()}
+              <Text style={styles.wellUnit}> / {stepGoal.toLocaleString()}</Text>
+            </Text>
             <View style={styles.wellTrack}>
               <View
                 style={[
@@ -467,17 +466,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             </View>
           </View>
         </View>
-
-        <PressableScale style={styles.budgetCard} onPress={() => setShowBudget(true)}>
-          <View style={styles.budgetIcon}>
-            <Icon name="protein" size={20} color={colors.green} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.budgetTitle}>Budget protein plan</Text>
-            <Text style={styles.budgetSub}>Hit {goal.protein_g}g protein on a student budget</Text>
-          </View>
-          <Icon name="chevronRight" size={20} color={colors.faint} />
-        </PressableScale>
 
         {/* One button, one sheet (AddFoodSheet) -- camera, gallery, barcode
             and describe used to each get their own row on this screen, which
@@ -688,15 +676,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
-      {showBudget && (
-        <BudgetProtein
-          visible={showBudget}
-          onClose={() => setShowBudget(false)}
-          defaultProtein={goal.protein_g}
-          setLogs={setLogs}
-        />
-      )}
-
       {detailsIndex !== null && (
         <NutritionDetails
           visible={detailsIndex !== null}
@@ -740,7 +719,6 @@ const styles = StyleSheet.create({
   daySub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
   shareBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: colors.greenTint, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
   shareBtnText: { color: colors.green, fontWeight: "800", fontSize: 13 },
-  offscreen: { position: "absolute", left: -1000, top: 0, opacity: 0 },
   btn: { flex: 1, flexDirection: "row", gap: 8, borderRadius: 16, paddingVertical: 15, alignItems: "center", justifyContent: "center" },
   btnPrimary: { backgroundColor: colors.green, ...elevation.sm },
   btnPrimaryText: { color: "#fff", fontWeight: "800", fontSize: 15 },
@@ -758,10 +736,6 @@ const styles = StyleSheet.create({
   wellStepLabel: { color: colors.mute, fontWeight: "700", fontSize: 12 },
   trialChip: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 16 },
   trialText: { color: colors.green, fontWeight: "800", fontSize: 12.5 },
-  budgetCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, ...elevation.sm },
-  budgetIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
-  budgetTitle: { color: colors.ink, fontSize: 15, fontWeight: "800" },
-  budgetSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600", marginTop: 2 },
 
   preview: { width: "100%", height: 220, borderRadius: 16, marginBottom: 16 },
   center: { alignItems: "center", paddingVertical: 24 },

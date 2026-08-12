@@ -72,8 +72,7 @@ function Section({ title, keys, micros }: { title: string; keys: [string, string
 
 // Full nutrition-facts breakdown for one scanned item, including the complete
 // vitamin/mineral panel and the app-computed health score. Mounted only while
-// visible (see HomeScreen.tsx's comment on the Paywall/BudgetProtein modals
-// for why -- react-native-web stacks hidden Modals on top of each other).
+// visible (see HomeScreen.tsx's comment on the Paywall modal for why --
 export default function NutritionDetails({ visible, onClose, item }: Props) {
   if (!item) return null;
   const micros = item.micros || {};
