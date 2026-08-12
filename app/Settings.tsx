@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -19,6 +20,8 @@ import {
   Profile,
 } from "./nutrition";
 import { APP_NAME } from "./config";
+import { loadRemindersEnabled } from "./storage";
+import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
 
 const GREEN = "#0B7A4B";
@@ -62,8 +65,20 @@ const ACTIVITY_SHORT: Record<Activity, string> = {
 export default function Settings({ profile, onSave, onClose, onResetAll }: Props) {
   const [d, setD] = useState<Profile>({ ...profile });
   const [confirmReset, setConfirmReset] = useState(false);
+  const [reminders, setReminders] = useState(true);
 
   const goal = useMemo(() => computeGoal(d), [d]);
+
+  useEffect(() => {
+    loadRemindersEnabled().then(setReminders);
+  }, []);
+
+  function toggleReminders(on: boolean) {
+    setReminders(on); // optimistic; setRemindersEnabled persists + (re)schedules
+    setRemindersEnabled(on)
+      .then((applied) => setReminders(applied))
+      .catch(() => {});
+  }
 
   // Keep target sensible: maintain => equals current weight.
   function setGoal(g: Goal) {
@@ -194,6 +209,22 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
             ))}
           </View>
         </Field>
+
+        {/* Reminders */}
+        <View style={styles.reminderCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.reminderTitle}>Daily reminders</Text>
+            <Text style={styles.reminderSub}>
+              Gentle nudges to log meals and water through the day.
+            </Text>
+          </View>
+          <Switch
+            value={reminders}
+            onValueChange={toggleReminders}
+            trackColor={{ false: "#D6DEDA", true: GREEN }}
+            thumbColor="#fff"
+          />
+        </View>
 
         {/* Danger zone */}
         <Text style={styles.dangerHeading}>Danger zone</Text>
@@ -384,6 +415,10 @@ const styles = StyleSheet.create({
   stepCenter: { alignItems: "center", flex: 1 },
   stepInput: { fontSize: 32, fontWeight: "900", color: INK, textAlign: "center", minWidth: 80, padding: 0 },
   stepUnit: { fontSize: 13, color: MUTE, marginTop: -2 },
+
+  reminderCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 12 },
+  reminderTitle: { color: INK, fontWeight: "800", fontSize: 15 },
+  reminderSub: { color: MUTE, fontSize: 12, marginTop: 3, lineHeight: 17 },
 
   dangerHeading: { color: "#C0392B", fontSize: 12, fontWeight: "800", letterSpacing: 0.5, marginTop: 12, marginBottom: 10, textTransform: "uppercase" },
   dangerBtn: { backgroundColor: "#FDECEA", borderRadius: 14, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "#F5C6C0" },

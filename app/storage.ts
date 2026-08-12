@@ -23,6 +23,8 @@ const WATER_KEY = "calai.water.v1";
 const HABITS_KEY = "calai.habits.v1";
 const COMMUNITY_KEY = "calai.community.v1";
 const DEVICE_KEY = "calai.device.v1";
+const RECENTS_KEY = "calai.recents.v1";
+const REMINDERS_KEY = "calai.reminders.v1";
 
 // Stable per-install identity for the community backend (no accounts/passwords).
 export async function getDeviceId(): Promise<string> {
@@ -43,6 +45,92 @@ export async function getDeviceId(): Promise<string> {
 }
 
 export type WeightEntry = { kg: number; at: number };
+
+// --- Quick re-log: recent + favorite meals -------------------------------- //
+// A snapshot of a logged meal so the user can re-add it in one tap without
+// re-scanning. `fav` pins it to the top; `at` is last-used for recency order.
+export type SavedMeal = {
+  dish: string;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fav: boolean;
+  at: number;
+};
+
+const RECENTS_CAP = 24; // keep the list small; favorites are never dropped
+
+export async function loadRecents(): Promise<SavedMeal[]> {
+  try {
+    const raw = await AsyncStorage.getItem(RECENTS_KEY);
+    return raw ? (JSON.parse(raw) as SavedMeal[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveRecents(list: SavedMeal[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(RECENTS_KEY, JSON.stringify(list));
+  } catch {
+    // ignore
+  }
+}
+
+// Order: favorites first, then most-recently used.
+function sortRecents(list: SavedMeal[]): SavedMeal[] {
+  return [...list].sort((a, b) => {
+    if (a.fav !== b.fav) return a.fav ? -1 : 1;
+    return b.at - a.at;
+  });
+}
+
+// Record a meal into the quick-add list. De-dupes on dish name (case-insensitive):
+// re-logging an existing meal just refreshes its numbers + recency and keeps
+// any favorite flag. Trims to RECENTS_CAP but never drops favorites.
+export async function recordRecentMeal(meal: Meal): Promise<SavedMeal[]> {
+  const list = await loadRecents();
+  const key = meal.dish.trim().toLowerCase();
+  const existing = list.find((m) => m.dish.trim().toLowerCase() === key);
+  const rest = list.filter((m) => m.dish.trim().toLowerCase() !== key);
+  const entry: SavedMeal = {
+    dish: meal.dish,
+    kcal: meal.kcal,
+    protein_g: meal.protein_g,
+    carbs_g: meal.carbs_g,
+    fat_g: meal.fat_g,
+    fav: existing?.fav ?? false,
+    at: Date.now(),
+  };
+  let next = sortRecents([entry, ...rest]);
+  if (next.length > RECENTS_CAP) {
+    const favs = next.filter((m) => m.fav);
+    const others = next.filter((m) => !m.fav).slice(0, Math.max(0, RECENTS_CAP - favs.length));
+    next = sortRecents([...favs, ...others]);
+  }
+  await saveRecents(next);
+  return next;
+}
+
+export async function toggleFavoriteMeal(dish: string): Promise<SavedMeal[]> {
+  const list = await loadRecents();
+  const key = dish.trim().toLowerCase();
+  const next = list.map((m) =>
+    m.dish.trim().toLowerCase() === key ? { ...m, fav: !m.fav } : m
+  );
+  const sorted = sortRecents(next);
+  await saveRecents(sorted);
+  return sorted;
+}
+
+export async function removeRecentMeal(dish: string): Promise<SavedMeal[]> {
+  const list = await loadRecents();
+  const key = dish.trim().toLowerCase();
+  const next = list.filter((m) => m.dish.trim().toLowerCase() !== key);
+  await saveRecents(next);
+  return next;
+}
 
 export async function loadWeights(): Promise<WeightEntry[]> {
   try {
@@ -166,7 +254,28 @@ export async function clearLogs(): Promise<void> {
 
 export async function clearExtras(): Promise<void> {
   try {
-    await AsyncStorage.multiRemove([WEIGHTS_KEY, COMMUNITY_KEY, WATER_KEY, HABITS_KEY]);
+    await AsyncStorage.multiRemove([WEIGHTS_KEY, COMMUNITY_KEY, WATER_KEY, HABITS_KEY, RECENTS_KEY]);
+  } catch {
+    // ignore
+  }
+}
+
+// --- Reminder preference -------------------------------------------------- //
+// Whether local meal + water reminders are enabled. Defaults to ON (true) so
+// users get nudges out of the box; the Settings toggle flips this and the app
+// re-schedules or cancels via push.ts accordingly.
+export async function loadRemindersEnabled(): Promise<boolean> {
+  try {
+    const raw = await AsyncStorage.getItem(REMINDERS_KEY);
+    return raw === null ? true : raw === "1";
+  } catch {
+    return true;
+  }
+}
+
+export async function saveRemindersEnabled(on: boolean): Promise<void> {
+  try {
+    await AsyncStorage.setItem(REMINDERS_KEY, on ? "1" : "0");
   } catch {
     // ignore
   }

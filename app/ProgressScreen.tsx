@@ -24,6 +24,7 @@ import {
 import { colors, radius, shadow, gradients } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
+import WeeklySummary from "./WeeklySummary";
 import { getServerWeights, addServerWeight, deleteServerLog, AuthRequiredError } from "./api";
 
 type Props = {
@@ -138,6 +139,10 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
           <StatCard icon="trophy" color={colors.gold} value={`${best}`} label="Best streak" />
           <StatCard icon="meal" color={colors.green} value={`${totalMeals}`} label="Meals logged" />
         </View>
+
+        {/* Rule-based weekly coach (local, no AI) */}
+        <Text style={styles.section}>This week</Text>
+        <WeeklySummary logs={logs} goal={goal} />
 
         {/* Weekly calories bar chart */}
         <Text style={styles.section}>Calories this week</Text>

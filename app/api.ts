@@ -196,6 +196,50 @@ export async function analyzeBarcode(code: string): Promise<AnalysisResult> {
   }
   return (await res.json()) as AnalysisResult;
 }
+// Ingredient swap: free, in-memory search over the food DB so a user can
+// replace a mis-identified item with the right one. Like analyzeBarcode this
+// is a plain lookup (no Gemini) and never consumes a free-scan credit.
+export type FoodSuggestion = {
+  key: string;
+  name: string;
+  unit: string;
+  kcal_per_unit: number;
+  protein_g_per_unit: number;
+  carbs_g_per_unit: number;
+  fat_g_per_unit: number;
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
+  potassium_mg?: number;
+  calcium_mg?: number;
+  iron_mg?: number;
+  micros?: MicroPanel;
+  health_score?: number;
+  benefits?: string[];
+  watch_outs?: string[];
+};
+
+export async function searchFoods(q: string, limit = 20): Promise<FoodSuggestion[]> {
+  const query = q.trim();
+  if (!query) return [];
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE}/foods/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      { headers: authHeaders() }
+    );
+  } catch {
+    throw new Error("Can't reach the server. Check your connection.");
+  }
+  if (!res.ok) {
+    const msg = await friendlyError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
+  const data = (await res.json()) as { results: FoodSuggestion[] };
+  return data.results;
+}
+
 async function friendlyError(res: Response): Promise<string> {
   let detail = "";
   try {

@@ -505,6 +505,70 @@ def match_food(name: str):
     return best
 
 
+def _food_suggestion(food: dict) -> dict:
+    """Map a FOOD_DB record to the shape the client turns into a FoodItem when
+    a user swaps a mis-identified ingredient. DB macros are already per-unit."""
+    out = {
+        "key": food["key"],
+        "name": food["key"].replace("_", " ").title(),
+        "unit": food["unit"],
+        "kcal_per_unit": food["kcal_per_unit"],
+        "protein_g_per_unit": food.get("protein_g", 0),
+        "carbs_g_per_unit": food.get("carbs_g", 0),
+        "fat_g_per_unit": food.get("fat_g", 0),
+    }
+    for k in ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg", "health_score"):
+        if food.get(k) is not None:
+            out[k] = food[k]
+    for k in ("benefits", "watch_outs", "micros"):
+        if food.get(k):
+            out[k] = food[k]
+    return out
+
+
+def _search_score(query: str, food: dict) -> int:
+    """Rank a food against a normalized query over its key + aliases. Exact >
+    starts-with > contains. 0 means no match."""
+    best = 0
+    for hay in [food["key"], *food.get("aliases", [])]:
+        h = _norm(hay)
+        if not h:
+            continue
+        if h == query:
+            s = 100
+        elif h.startswith(query):
+            s = 80
+        elif query in h:
+            s = 60
+        elif h in query:
+            s = 40
+        else:
+            s = 0
+        best = max(best, s)
+    return best
+
+
+@app.get("/foods/search")
+def foods_search(q: str, request: Request, limit: int = 20):
+    """Free, in-memory search over the food DB so users can swap a
+    mis-identified ingredient for the right one. This is a plain local lookup
+    -- NOT a Gemini call -- so, like barcode, it requires a signed-in account
+    but never reserves or consumes a free-scan credit."""
+    auth.require_account(request)
+    query = _norm(q)
+    if not query:
+        return {"results": []}
+    scored = []
+    for food in FOOD_DB:
+        s = _search_score(query, food)
+        if s > 0:
+            # Tie-break shorter (more specific) names ahead of long ones.
+            scored.append((s, -len(food["key"]), food))
+    scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+    limit = max(1, min(50, limit))
+    return {"results": [_food_suggestion(f) for _, _, f in scored[:limit]]}
+
+
 def anchor_items(data: dict) -> dict:
     """Override per-unit calories AND macros with DB values when matched, then
     compute per-item and meal-level totals.

@@ -9,11 +9,12 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
+import FoodSearchSheet from "./FoodSearchSheet";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
@@ -31,6 +32,10 @@ import {
   HabitMap,
   WATER_GLASS_ML,
   prettyDate,
+  SavedMeal,
+  loadRecents,
+  recordRecentMeal,
+  toggleFavoriteMeal,
 } from "./storage";
 import { colors, radius, shadow, type as T, gradients, elevation } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
@@ -58,6 +63,50 @@ type Props = {
 
 function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
+}
+
+// Builds a fresh FoodItem from a food-DB search result when the user swaps a
+// mis-identified ingredient. Count resets to 1 serving (the user tweaks it
+// with the +/- stepper); micronutrients scale with count like anchor_items.
+function itemFromSuggestion(s: FoodSuggestion, count = 1): FoodItem {
+  const c = Math.max(1, Math.round(count));
+  const scale = (v?: number) => (v == null ? undefined : Math.round(v * c * 10) / 10);
+  const item: FoodItem = {
+    item: s.name,
+    count: c,
+    unit: s.unit,
+    countable: true,
+    kcal_per_unit: s.kcal_per_unit,
+    protein_g_per_unit: s.protein_g_per_unit,
+    carbs_g_per_unit: s.carbs_g_per_unit,
+    fat_g_per_unit: s.fat_g_per_unit,
+    protein_g: Math.round(s.protein_g_per_unit * c),
+    carbs_g: Math.round(s.carbs_g_per_unit * c),
+    fat_g: Math.round(s.fat_g_per_unit * c),
+    kcal_total: Math.round(s.kcal_per_unit * c),
+    source: "db",
+  };
+  if (s.health_score !== undefined) item.health_score = s.health_score;
+  if (s.benefits) item.benefits = s.benefits;
+  if (s.watch_outs) item.watch_outs = s.watch_outs;
+  const fiber = scale(s.fiber_g);
+  if (fiber !== undefined) item.fiber_g = fiber;
+  const sugar = scale(s.sugar_g);
+  if (sugar !== undefined) item.sugar_g = sugar;
+  const sodium = scale(s.sodium_mg);
+  if (sodium !== undefined) item.sodium_mg = sodium;
+  const potassium = scale(s.potassium_mg);
+  if (potassium !== undefined) item.potassium_mg = potassium;
+  const calcium = scale(s.calcium_mg);
+  if (calcium !== undefined) item.calcium_mg = calcium;
+  const iron = scale(s.iron_mg);
+  if (iron !== undefined) item.iron_mg = iron;
+  if (s.micros) {
+    const m: Record<string, number> = {};
+    for (const k of Object.keys(s.micros)) m[k] = Math.round(s.micros[k] * c * 100) / 100;
+    item.micros = m;
+  }
+  return item;
 }
 
 // Same [0,65) red / [40,65) amber / [65,100] green bands used everywhere the
@@ -100,6 +149,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
+  const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
   // mistake it for a brand new tap and pop the camera open uninvited.
@@ -111,6 +162,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     lastScanTrigger.current = scanTrigger;
     setShowAddSheet(true);
   }, [scanTrigger]);
+
+  // Quick re-log list (recent + favorite meals) loads from local storage.
+  useEffect(() => {
+    let alive = true;
+    loadRecents().then((r) => alive && setRecents(r));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const isPro = !!account?.isPro;
   const scansLeft = account?.scansLeft ?? account?.scansLimit ?? null;
@@ -320,24 +380,28 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     });
   }
 
-  function addToDay() {
-    if (!result) return;
-    const meal: Meal = {
-      dish: result.dish,
-      kcal: mealTotal,
-      protein_g: mealMacros.protein_g,
-      carbs_g: mealMacros.carbs_g,
-      fat_g: mealMacros.fat_g,
-      at: Date.now(),
-    };
+  // Ingredient swap: replace a mis-identified item with the right food from the
+  // DB (local search, no AI, no scan credit). Count resets to 1 serving.
+  function applySwap(index: number, s: FoodSuggestion) {
+    setResult((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((it, i) => (i === index ? itemFromSuggestion(s) : it));
+      return { ...prev, items };
+    });
+    setSwapIndex(null);
+  }
+
+  // Shared meal-logging path used by both "Add to today" and the quick re-log
+  // list. Updates local state instantly, records the meal into recents, and
+  // syncs to the server in the background.
+  function logMeal(meal: Meal) {
     setLogs((prev) => {
       const day = prev[today] ?? { date: today, meals: [] };
       const next: LogMap = { ...prev, [today]: { ...day, meals: [...day.meals, meal] } };
       saveLogs(next);
       return next;
     });
-    setResult(null);
-    setPhoto(null);
+    void recordRecentMeal(meal).then(setRecents);
     // Local state above already updated instantly for a fast UI. Make it
     // durable in the background: POST to the real meal_logs table (backend/
     // progress.py) and stamp the returned id onto the local copy once it
@@ -357,6 +421,42 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         if (e instanceof AuthRequiredError) onRequireAuth();
         // else: best-effort -- the meal is still saved locally either way.
       });
+  }
+
+  function addToDay() {
+    if (!result) return;
+    const meal: Meal = {
+      dish: result.dish,
+      kcal: mealTotal,
+      protein_g: mealMacros.protein_g,
+      carbs_g: mealMacros.carbs_g,
+      fat_g: mealMacros.fat_g,
+      at: Date.now(),
+    };
+    logMeal(meal);
+    setResult(null);
+    setPhoto(null);
+  }
+
+  // One-tap re-add of a recent/favorite meal (no re-scan).
+  function quickLog(saved: SavedMeal) {
+    setShowAddSheet(false);
+    if (!account) {
+      onRequireAuth();
+      return;
+    }
+    logMeal({
+      dish: saved.dish,
+      kcal: saved.kcal,
+      protein_g: saved.protein_g,
+      carbs_g: saved.carbs_g,
+      fat_g: saved.fat_g,
+      at: Date.now(),
+    });
+  }
+
+  function toggleFav(dish: string) {
+    void toggleFavoriteMeal(dish).then(setRecents);
   }
 
   const shareDateLabel = useMemo(() => prettyDate(today), [today]);
@@ -553,12 +653,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                   </View>
                 )}
 
-                {it.source === "db" && (
-                  <Pressable onPress={() => setDetailsIndex(i)} style={styles.detailsLink}>
-                    <Icon name="info" size={12} color={colors.mute} />
-                    <Text style={styles.detailsLinkText}>Full nutrition facts</Text>
+                <View style={styles.itemActions}>
+                  {it.source === "db" && (
+                    <Pressable onPress={() => setDetailsIndex(i)} style={styles.detailsLink}>
+                      <Icon name="info" size={12} color={colors.mute} />
+                      <Text style={styles.detailsLinkText}>Full nutrition facts</Text>
+                    </Pressable>
+                  )}
+                  <Pressable onPress={() => setSwapIndex(i)} style={styles.swapLink}>
+                    <Icon name="swap" size={12} color={colors.green} />
+                    <Text style={styles.swapLinkText}>Not right? Swap</Text>
                   </Pressable>
-                )}
+                </View>
               </View>
             ))}
 
@@ -620,6 +726,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           visible={showAddSheet}
           onClose={() => setShowAddSheet(false)}
           onPick={handleAddOption}
+          recents={recents}
+          onQuickLog={quickLog}
+          onToggleFav={toggleFav}
+        />
+      )}
+
+      {swapIndex !== null && (
+        <FoodSearchSheet
+          visible={swapIndex !== null}
+          replacing={result?.items[swapIndex]?.item ?? null}
+          onClose={() => setSwapIndex(null)}
+          onPick={(food) => applySwap(swapIndex, food)}
+          onRequireAuth={onRequireAuth}
         />
       )}
 
@@ -760,6 +879,9 @@ const styles = StyleSheet.create({
   chipWarnText: { color: colors.orange, fontWeight: "700", fontSize: 10.5 },
   detailsLink: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, alignSelf: "flex-start" },
   detailsLinkText: { color: colors.mute, fontSize: 11.5, fontWeight: "700", textDecorationLine: "underline" },
+  itemActions: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8, flexWrap: "wrap" },
+  swapLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" },
+  swapLinkText: { color: colors.green, fontSize: 11.5, fontWeight: "800", textDecorationLine: "underline" },
   stepper: { flexDirection: "row", alignItems: "center", marginHorizontal: 8 },
   stepBtn: { width: 30, height: 30, borderRadius: 8, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
   stepBtnText: { color: colors.green, fontSize: 18, fontWeight: "900" },

@@ -1,7 +1,8 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, elevation } from "./theme";
 import Icon, { IconName } from "./Icon";
+import { SavedMeal } from "./storage";
 
 type OptionKey = "camera" | "gallery" | "barcode" | "describe";
 
@@ -9,6 +10,10 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onPick: (option: OptionKey) => void;
+  // Quick re-log: one-tap re-add of recent/favorite meals (no re-scan, no AI).
+  recents?: SavedMeal[];
+  onQuickLog?: (meal: SavedMeal) => void;
+  onToggleFav?: (dish: string) => void;
 };
 
 const OPTIONS: { key: OptionKey; icon: IconName; title: string; sub: string }[] = [
@@ -24,7 +29,15 @@ const OPTIONS: { key: OptionKey; icon: IconName; title: string; sub: string }[] 
 // you to pick the right button out of a row of near-identical ones. Shared
 // by the Home screen's own "Add food" button and the TabBar's center
 // button (see App.tsx's scanTrigger -> HomeScreen's showAddSheet).
-export default function AddFoodSheet({ visible, onClose, onPick }: Props) {
+export default function AddFoodSheet({
+  visible,
+  onClose,
+  onPick,
+  recents = [],
+  onQuickLog,
+  onToggleFav,
+}: Props) {
+  const hasRecents = recents.length > 0 && !!onQuickLog;
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
@@ -34,22 +47,67 @@ export default function AddFoodSheet({ visible, onClose, onPick }: Props) {
           <Text style={styles.title}>Add a meal</Text>
           <Text style={styles.sub}>Choose how you'd like to log this.</Text>
 
-          {OPTIONS.map((opt) => (
-            <Pressable
-              key={opt.key}
-              style={styles.row}
-              onPress={() => onPick(opt.key)}
-            >
-              <View style={styles.rowIcon}>
-                <Icon name={opt.icon} size={20} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.rowTitle}>{opt.title}</Text>
-                <Text style={styles.rowSub}>{opt.sub}</Text>
-              </View>
-              <Icon name="chevronRight" size={18} color={colors.faint} />
-            </Pressable>
-          ))}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
+            {OPTIONS.map((opt) => (
+              <Pressable
+                key={opt.key}
+                style={styles.row}
+                onPress={() => onPick(opt.key)}
+              >
+                <View style={styles.rowIcon}>
+                  <Icon name={opt.icon} size={20} color={colors.green} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rowTitle}>{opt.title}</Text>
+                  <Text style={styles.rowSub}>{opt.sub}</Text>
+                </View>
+                <Icon name="chevronRight" size={18} color={colors.faint} />
+              </Pressable>
+            ))}
+
+            {hasRecents && (
+              <>
+                <View style={styles.recentHead}>
+                  <Icon name="time" size={14} color={colors.mute} />
+                  <Text style={styles.recentTitle}>Recent &amp; favorites</Text>
+                  <Text style={styles.recentHint}>Tap to log instantly</Text>
+                </View>
+                {recents.map((m) => (
+                  <View key={m.dish} style={styles.recentRow}>
+                    <Pressable
+                      style={styles.recentMain}
+                      onPress={() => onQuickLog?.(m)}
+                    >
+                      <View style={styles.recentPlus}>
+                        <Icon name="plus" size={18} color={colors.green} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.recentName} numberOfLines={1}>
+                          {m.dish}
+                        </Text>
+                        <Text style={styles.recentSub}>
+                          {m.kcal} kcal · P {m.protein_g}g · C {m.carbs_g}g · F {m.fat_g}g
+                        </Text>
+                      </View>
+                    </Pressable>
+                    {onToggleFav && (
+                      <Pressable
+                        style={styles.favBtn}
+                        hitSlop={8}
+                        onPress={() => onToggleFav(m.dish)}
+                      >
+                        <Icon
+                          name={m.fav ? "star" : "starOutline"}
+                          size={20}
+                          color={m.fav ? colors.gold : colors.faint}
+                        />
+                      </Pressable>
+                    )}
+                  </View>
+                ))}
+              </>
+            )}
+          </ScrollView>
 
           <Pressable style={styles.later} onPress={onClose}>
             <Text style={styles.laterText}>Cancel</Text>
@@ -102,6 +160,30 @@ const styles = StyleSheet.create({
   },
   rowTitle: { color: colors.ink, fontWeight: "800", fontSize: 15 },
   rowSub: { color: colors.mute, fontWeight: "600", fontSize: 12, marginTop: 1 },
+  recentHead: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, marginBottom: 8 },
+  recentTitle: { color: colors.ink, fontWeight: "800", fontSize: 13 },
+  recentHint: { color: colors.faint, fontWeight: "600", fontSize: 11, marginLeft: "auto" },
+  recentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    marginBottom: 8,
+    ...elevation.sm,
+  },
+  recentMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12, padding: 12 },
+  recentPlus: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.greenTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recentName: { color: colors.ink, fontWeight: "800", fontSize: 14 },
+  recentSub: { color: colors.mute, fontWeight: "600", fontSize: 11.5, marginTop: 2 },
+  favBtn: { paddingHorizontal: 14, paddingVertical: 16 },
   later: { alignItems: "center", paddingVertical: 14, marginTop: 4 },
   laterText: { color: colors.mute, fontWeight: "700", fontSize: 14 },
 });
+
