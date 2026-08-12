@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { APP_NAME } from "./config";
 import {
   ACTIVITY_LABELS,
+  BMI_CATEGORY_LABEL,
+  computeBmi,
   Diet,
   Goal,
   GoalTargets,
@@ -53,6 +55,7 @@ export default function ProfileScreen({
   onRequireAuth,
 }: Props) {
   const [showFeedback, setShowFeedback] = useState(false);
+  const bmi = useMemo(() => computeBmi(profile.heightCm, profile.weightKg), [profile.heightCm, profile.weightKg]);
   const streak = useMemo(() => computeStreak(logs), [logs]);
   const best = useMemo(() => bestStreak(logs), [logs]);
   const totalMeals = Object.values(logs).reduce((s, d) => s + d.meals.length, 0);
@@ -146,7 +149,14 @@ export default function ProfileScreen({
         <Text style={styles.section}>Metabolism</Text>
         <View style={styles.card}>
           <Row label="BMR (at rest)" value={`${goal.bmr} kcal`} />
-          <Row label="Maintenance (TDEE)" value={`${goal.tdee} kcal`} last />
+          <Row label="Maintenance (TDEE)" value={`${goal.tdee} kcal`} last={!bmi} />
+          {bmi && (
+            <Row
+              label="BMI"
+              value={`${bmi.value} · ${BMI_CATEGORY_LABEL[bmi.category]}`}
+              last
+            />
+          )}
         </View>
 
         {/* Actions */}

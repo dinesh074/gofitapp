@@ -64,6 +64,32 @@ export function tdee(p: Pick<Profile, "gender" | "age" | "heightCm" | "weightKg"
   return Math.round(bmr(p) * ACTIVITY_FACTORS[p.activity]);
 }
 
+export type BmiCategory = "underweight" | "normal" | "overweight" | "obese";
+export type Bmi = { value: number; category: BmiCategory };
+
+export const BMI_CATEGORY_LABEL: Record<BmiCategory, string> = {
+  underweight: "Underweight",
+  normal: "Normal",
+  overweight: "Overweight",
+  obese: "Obese",
+};
+
+// Standard BMI (kg / m^2) + WHO category bands. Mirrors backend/progress.py's
+// _bmi() exactly, so the app can show this instantly from local profile state
+// without waiting on a network round-trip, and always agrees with what the
+// server would compute from the same height/weight.
+export function computeBmi(heightCm: number, weightKg: number): Bmi | null {
+  if (!heightCm || heightCm <= 0) return null;
+  const m = heightCm / 100;
+  const value = Math.round((weightKg / (m * m)) * 10) / 10;
+  let category: BmiCategory;
+  if (value < 18.5) category = "underweight";
+  else if (value < 25) category = "normal";
+  else if (value < 30) category = "overweight";
+  else category = "obese";
+  return { value, category };
+}
+
 // Full calorie + macro targets for the user's goal.
 // - lose: -500 kcal/day (~0.45 kg/week), floored at BMR for safety.
 // - gain: +400 kcal/day.
