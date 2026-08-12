@@ -33,8 +33,11 @@ import os
 import re
 import sqlite3
 import atexit
+import logging
 import threading
 import contextlib
+
+log = logging.getLogger("gofit.db")
 
 # Best-effort: load backend/.env so `import db` works even outside the app entry
 # point (e.g. maintenance scripts). Idempotent if main.py already loaded it.
@@ -116,6 +119,17 @@ def _init_pg_pool():
         max_idle=float(os.environ.get("PG_POOL_MAX_IDLE", "120")),
         open=True,
         configure=_configure,
+        # Supabase's pooler (pgbouncer in front of Postgres) can close a
+        # connection server-side while it's sitting idle in OUR pool -- our
+        # side has no way to know until it tries to use it. check_connection
+        # pings each connection on checkout and transparently discards +
+        # replaces it if the ping fails, so a request never gets handed a
+        # connection that's already dead. Without this, a live request would
+        # get psycopg.OperationalError: "the connection is lost" (a real bug
+        # hit in production: it surfaced as a 500 on /community/sync and
+        # /auth/google, which the app has no retry for -- e.g. a stuck
+        # sign-in spinner with no visible error).
+        check=ConnectionPool.check_connection,
         # dict rows => row["col"] access, matching sqlite3.Row.
         # prepare_threshold=None keeps us compatible with transaction-mode
         # poolers (e.g. Supabase pgbouncer) that dislike prepared statements.
@@ -182,12 +196,30 @@ class _PgConn:
         return self
 
     def __exit__(self, exc_type, exc, tb):
+        broken = False
         try:
             if exc_type:
                 self._raw.rollback()
             else:
                 self._raw.commit()
+        except Exception:
+            # The connection died mid-request (server closed it, network
+            # blip, etc). rollback()/commit() on a dead connection raises
+            # too -- letting that propagate would REPLACE the original
+            # exception with this one, hiding what actually went wrong.
+            # Swallow it: the caller already has (or is about to get) the
+            # real error from whatever execute() call failed first.
+            broken = True
+            log.warning("db: connection died on exit, discarding from pool", exc_info=True)
         finally:
+            if broken:
+                # Don't hand a known-dead connection back to the pool as if
+                # it were healthy -- close it first so the pool opens a
+                # fresh replacement instead of recycling it.
+                try:
+                    self._raw.close()
+                except Exception:
+                    pass
             _pool.putconn(self._raw)
         return False
 
