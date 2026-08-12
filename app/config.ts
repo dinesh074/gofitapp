@@ -1,6 +1,9 @@
-// Change this to your computer's LAN IP when testing on a real phone via Expo Go,
-// e.g. "http://192.168.1.20:8000". Use localhost only for web/simulator.
-export const API_BASE = "http://192.168.0.103:8000";
+// Points at the live Render deployment -- required for the web build (a public
+// web app can't reach a LAN IP) and works for native builds too. If you need to
+// go back to testing against your own machine's local backend on a real phone,
+// temporarily swap this back to "http://<your-LAN-IP>:8000" (127.0.0.1/localhost
+// only works for web/simulator, not a physical device).
+export const API_BASE = "https://gofit-backend-xnik.onrender.com";
 
 // Optional shared secret. Must match the backend's APP_API_KEY when auth is
 // enabled. Leave empty for local dev where the backend has no APP_API_KEY set.
