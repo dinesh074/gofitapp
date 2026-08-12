@@ -48,6 +48,8 @@ export const ICONS = {
   protein: "egg-outline",
   carbs: "leaf-outline",
   fat: "water-outline",
+  mic: "mic-outline",
+  micActive: "mic",
 } as const;
 
 export type IconName = keyof typeof ICONS;

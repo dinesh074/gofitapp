@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
+  Platform,
   Pressable,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
@@ -10,7 +11,17 @@ import {
 } from "react-native";
 import { analyzeText, AnalysisResult, PaywallError, AuthRequiredError } from "./api";
 import { colors, radius, elevation } from "./theme";
+import Icon from "./Icon";
 import PressableScale from "./PressableScale";
+
+// Web-only for now: the browser's built-in Speech Recognition API needs no
+// extra dependency and works today. Native (Android/iOS) would need a
+// separate native module + another EAS build -- a real follow-up, not this.
+function getSpeechRecognition(): any {
+  if (Platform.OS !== "web") return null;
+  const w = window as any;
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
 
 type Props = {
   visible: boolean;
@@ -34,8 +45,44 @@ export default function DescribeMeal({ visible, onClose, onResult, onRequireAuth
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const voiceSupported = !!getSpeechRecognition();
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop?.();
+    };
+  }, []);
+
+  function toggleVoice() {
+    const SpeechRecognition = getSpeechRecognition();
+    if (!SpeechRecognition) return;
+    if (listening) {
+      recognitionRef.current?.stop?.();
+      return;
+    }
+    setError(null);
+    const rec = new SpeechRecognition();
+    rec.lang = "en-IN";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e: any) => {
+      const transcript = e.results?.[0]?.[0]?.transcript;
+      if (transcript) setText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    };
+    rec.onerror = () => {
+      setError("Couldn't hear that clearly. Try again or type instead.");
+      setListening(false);
+    };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setListening(true);
+    rec.start();
+  }
 
   function close() {
+    recognitionRef.current?.stop?.();
     setText("");
     setError(null);
     onClose();
@@ -81,17 +128,28 @@ export default function DescribeMeal({ visible, onClose, onResult, onRequireAuth
             No photo needed — just tell us what you ate, in your own words.
           </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder={`e.g. "${EXAMPLES[0]}"`}
-            placeholderTextColor={colors.faint}
-            value={text}
-            onChangeText={setText}
-            multiline
-            numberOfLines={3}
-            maxLength={500}
-            autoFocus
-          />
+          <View style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              placeholder={`e.g. "${EXAMPLES[0]}"`}
+              placeholderTextColor={colors.faint}
+              value={text}
+              onChangeText={setText}
+              multiline
+              numberOfLines={3}
+              maxLength={500}
+              autoFocus
+            />
+            {voiceSupported && (
+              <Pressable
+                style={[styles.micBtn, listening && styles.micBtnActive]}
+                onPress={toggleVoice}
+              >
+                <Icon name={listening ? "micActive" : "mic"} size={16} color={listening ? "#fff" : colors.green} />
+              </Pressable>
+            )}
+          </View>
+          {listening && <Text style={styles.listeningHint}>Listening… speak now</Text>}
 
           <View style={styles.examplesRow}>
             {EXAMPLES.map((ex) => (
@@ -137,18 +195,32 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: "900", color: colors.ink, letterSpacing: -0.3 },
   sub: { fontSize: 13, color: colors.mute, marginTop: 4, lineHeight: 18 },
+  inputWrap: { marginTop: 16, position: "relative" },
   input: {
-    marginTop: 16,
     backgroundColor: colors.card,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.line,
     padding: 14,
+    paddingRight: 48,
     minHeight: 90,
     fontSize: 14.5,
     color: colors.ink,
     textAlignVertical: "top",
   },
+  micBtn: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.greenTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micBtnActive: { backgroundColor: colors.red },
+  listeningHint: { color: colors.green, fontSize: 12, fontWeight: "700", marginTop: 6 },
   examplesRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
   exampleChip: {
     backgroundColor: colors.card,
