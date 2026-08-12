@@ -184,7 +184,17 @@ function authHeaders(json = false): Record<string, string> {
 
 async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error(`GET ${path} failed (${res.status})`);
+  if (!res.ok) {
+    // A stale/invalid session (expired token, or the account was removed
+    // server-side) surfaces as 401 here too -- this was silently swallowed
+    // as a generic Error before, which meant getMe()'s boot-time session
+    // check never actually detected a dead session (found live: /auth/me
+    // correctly returned 401 for a stale token, but the app kept showing
+    // "signed in" because this threw the wrong error type to notice it).
+    const msg = await authError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
   return (await res.json()) as T;
 }
 

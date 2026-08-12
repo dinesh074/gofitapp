@@ -18,7 +18,7 @@ import {
   loadAuth,
   saveAuth,
 } from "./auth";
-import { logout } from "./api";
+import { logout, getMe, AuthRequiredError } from "./api";
 import { initNotifications } from "./push";
 import {
   clearExtras,
@@ -46,7 +46,21 @@ export default function App() {
       setAuth(a);
       setBooted(true);
       // Already signed in from a previous session → set up notifications now.
-      if (a) void initNotifications();
+      if (a) {
+        void initNotifications();
+        // The cached account (name/avatar/Pro status/scan count) is shown
+        // immediately above for a fast boot -- but a device-local cache is
+        // not the same thing as truth. Refresh it against the real account
+        // row right after, silently. If the backend no longer recognizes
+        // this token (revoked, or the account itself no longer exists), drop
+        // the dead session instead of continuing to show stale "signed in"
+        // state from before.
+        getMe()
+          .then((res) => updateAccount(res.account))
+          .catch((e) => {
+            if (e instanceof AuthRequiredError) void requireAuth();
+          });
+      }
     });
   }, []);
 
