@@ -46,6 +46,11 @@ export default function App() {
   const [booted, setBooted] = useState(false);
   const [tab, setTab] = useState<TabKey>("home");
   const [showSettings, setShowSettings] = useState(false);
+  // Bumped every time the TabBar's center camera button is tapped -- lets
+  // HomeScreen (which owns the actual scan flow) open the camera immediately
+  // even when you're on a different tab, instead of just switching tabs and
+  // leaving you to tap "Scan food" again once there.
+  const [scanTrigger, setScanTrigger] = useState(0);
   const [auth, setAuth] = useState<AuthState | null>(null);
 
   useEffect(() => {
@@ -240,6 +245,7 @@ export default function App() {
             account={auth.account}
             onRequireAuth={requireAuth}
             onAccountUpdate={updateAccount}
+            scanTrigger={scanTrigger}
           />
         )}
         {tab === "progress" && (
@@ -273,7 +279,14 @@ export default function App() {
           />
         )}
       </View>
-      <TabBar active={tab} onChange={setTab} />
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        onScanPress={() => {
+          setTab("home");
+          setScanTrigger((n) => n + 1);
+        }}
+      />
       <CookieBanner />
     </View>
   );

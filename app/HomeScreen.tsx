@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -12,12 +12,28 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
 import DescribeMeal from "./DescribeMeal";
+import BarcodeScanner from "./BarcodeScanner";
 import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { GoalTargets, Profile } from "./nutrition";
-import { dayMacros, dayTotal, LogMap, Meal, saveLogs, todayKey } from "./storage";
+import {
+  dayMacros,
+  dayTotal,
+  LogMap,
+  Meal,
+  saveLogs,
+  todayKey,
+  loadWater,
+  saveWater,
+  loadHabits,
+  saveHabits,
+  WaterMap,
+  HabitMap,
+  WATER_GLASS_ML,
+  WATER_GOAL_ML,
+} from "./storage";
 import { colors, radius, shadow, type as T, gradients, elevation } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
@@ -38,6 +54,9 @@ type Props = {
   account: Account | null;
   onRequireAuth: () => void;
   onAccountUpdate: (account: Account) => void;
+  // Bumped by the TabBar's center camera button (see App.tsx) -- opens the
+  // camera immediately even if you tapped it from a different tab.
+  scanTrigger?: number;
 };
 
 function itemTotal(it: FoodItem): number {
@@ -71,7 +90,7 @@ function MacroProgress({ label, have, goalV, color }: { label: string; have: num
   );
 }
 
-export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate }: Props) {
+export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger }: Props) {
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -79,8 +98,22 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [showPaywall, setShowPaywall] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
   const [showDescribe, setShowDescribe] = useState(false);
+  const [showBarcode, setShowBarcode] = useState(false);
+  const [waterMl, setWaterMl] = useState(0);
+  const [steps, setSteps] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const shareRef = useRef<View>(null);
+  // Tracks the last scanTrigger value we've already handled, so a fresh
+  // mount (which sees whatever value App.tsx is currently holding) doesn't
+  // mistake it for a brand new tap and pop the camera open uninvited.
+  const lastScanTrigger = useRef(scanTrigger ?? 0);
+
+  useEffect(() => {
+    if (scanTrigger === undefined) return;
+    if (scanTrigger === lastScanTrigger.current) return;
+    lastScanTrigger.current = scanTrigger;
+    void pick(true);
+  }, [scanTrigger]);
 
   const isPro = !!account?.isPro;
   const scansLeft = account?.scansLeft ?? account?.scansLimit ?? null;
@@ -89,6 +122,76 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const dayKcal = dayTotal(logs, today);
   const meals = logs[today]?.meals ?? [];
   const dm = dayMacros(logs, today);
+
+  // Water + habit (steps) load from local cache instantly, then reconcile with
+  // the server. Pure data entry -- no AI, no scan credit touched here.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [water, habits] = await Promise.all([loadWater(), loadHabits()]);
+      if (!alive) return;
+      setWaterMl(water[today] ?? 0);
+      setSteps(habits[today]?.steps ?? 0);
+      if (!account) return;
+      try {
+        const w = await getWater(today);
+        if (alive) {
+          setWaterMl(w.ml);
+          const nextW: WaterMap = { ...water, [today]: w.ml };
+          void saveWater(nextW);
+        }
+      } catch {
+        // best-effort: local cache already shown
+      }
+      try {
+        const h = await getHabits(today);
+        if (alive && typeof h.habits.steps === "number") {
+          setSteps(h.habits.steps);
+          const nextH: HabitMap = { ...habits, [today]: { ...habits[today], steps: h.habits.steps } };
+          void saveHabits(nextH);
+        }
+      } catch {
+        // best-effort
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [today, account]);
+
+  async function changeWater(deltaMl: number) {
+    const next = Math.max(0, waterMl + deltaMl);
+    setWaterMl(next); // optimistic
+    const map = await loadWater();
+    void saveWater({ ...map, [today]: next });
+    if (!account) return;
+    try {
+      const res = await apiAddWater(today, deltaMl);
+      setWaterMl(res.ml);
+      const m2 = await loadWater();
+      void saveWater({ ...m2, [today]: res.ml });
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+      // else keep the optimistic local value
+    }
+  }
+
+  async function changeSteps(delta: number) {
+    const next = Math.max(0, steps + delta);
+    setSteps(next); // optimistic
+    const map = await loadHabits();
+    void saveHabits({ ...map, [today]: { ...map[today], steps: next } });
+    if (!account) return;
+    try {
+      const res = await apiSetHabit(today, "steps", next);
+      const v = res.habits.steps ?? next;
+      setSteps(v);
+      const m2 = await loadHabits();
+      void saveHabits({ ...m2, [today]: { ...m2[today], steps: v } });
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    }
+  }
 
   const mealTotal = useMemo(
     () => (result ? result.items.reduce((s, it) => s + itemTotal(it), 0) : 0),
@@ -300,6 +403,61 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
         <MonthStreak logs={logs} goalKcal={goal.kcal} />
 
+        <View style={styles.wellRow}>
+          <View style={styles.wellCard}>
+            <View style={styles.wellHead}>
+              <Icon name="water" size={16} color={colors.fat} />
+              <Text style={styles.wellTitle}>Water</Text>
+            </View>
+            <Text style={styles.wellValue}>
+              {(waterMl / 1000).toFixed(2)}
+              <Text style={styles.wellUnit}> / {(WATER_GOAL_ML / 1000).toFixed(1)} L</Text>
+            </Text>
+            <View style={styles.wellTrack}>
+              <View
+                style={[
+                  styles.wellFill,
+                  { width: `${Math.min(100, Math.round((waterMl / WATER_GOAL_ML) * 100))}%`, backgroundColor: colors.fat },
+                ]}
+              />
+            </View>
+            <View style={styles.wellBtns}>
+              <Pressable style={styles.wellStep} onPress={() => changeWater(-WATER_GLASS_ML)}>
+                <Icon name="minus" size={16} color={colors.mute} />
+              </Pressable>
+              <Text style={styles.wellStepLabel}>+1 glass</Text>
+              <Pressable style={styles.wellStep} onPress={() => changeWater(WATER_GLASS_ML)}>
+                <Icon name="plus" size={16} color={colors.green} />
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.wellCard}>
+            <View style={styles.wellHead}>
+              <Icon name="walk" size={16} color={colors.green} />
+              <Text style={styles.wellTitle}>Steps</Text>
+            </View>
+            <Text style={styles.wellValue}>{steps.toLocaleString()}</Text>
+            <View style={styles.wellTrack}>
+              <View
+                style={[
+                  styles.wellFill,
+                  { width: `${Math.min(100, Math.round((steps / 10000) * 100))}%`, backgroundColor: colors.green },
+                ]}
+              />
+            </View>
+            <View style={styles.wellBtns}>
+              <Pressable style={styles.wellStep} onPress={() => changeSteps(-1000)}>
+                <Icon name="minus" size={16} color={colors.mute} />
+              </Pressable>
+              <Text style={styles.wellStepLabel}>±1,000</Text>
+              <Pressable style={styles.wellStep} onPress={() => changeSteps(1000)}>
+                <Icon name="plus" size={16} color={colors.green} />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+
         <PressableScale style={styles.budgetCard} onPress={() => setShowBudget(true)}>
           <View style={styles.budgetIcon}>
             <Icon name="protein" size={20} color={colors.green} />
@@ -321,6 +479,16 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             <Text style={styles.btnGhostText}>Gallery</Text>
           </PressableScale>
         </View>
+        <PressableScale
+          style={[styles.btn, styles.btnGhost, styles.barcodeBtn]}
+          onPress={() => {
+            if (!account) { onRequireAuth(); return; }
+            setShowBarcode(true);
+          }}
+        >
+          <Icon name="barcode" size={18} color={colors.green} />
+          <Text style={styles.btnGhostText}>Scan barcode (packaged food)</Text>
+        </PressableScale>
         <Pressable
           style={styles.describeLink}
           onPress={() => {
@@ -500,6 +668,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
+      {showBarcode && (
+        <BarcodeScanner
+          visible={showBarcode}
+          onClose={() => setShowBarcode(false)}
+          onResult={(data) => {
+            setPhoto(null);
+            applyResult(data);
+          }}
+          onRequireAuth={() => {
+            setShowBarcode(false);
+            onRequireAuth();
+          }}
+          onFallbackToPhoto={() => {
+            setShowBarcode(false);
+            void pick(true);
+          }}
+        />
+      )}
+
       {showBudget && (
         <BudgetProtein
           visible={showBudget}
@@ -559,6 +746,18 @@ const styles = StyleSheet.create({
   btnPrimaryText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   btnGhost: { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.hairline },
   btnGhostText: { color: colors.green, fontWeight: "800", fontSize: 15 },
+  barcodeBtn: { flexDirection: "row", gap: 8, marginBottom: 16, marginTop: -4 },
+  wellRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  wellCard: { flex: 1, backgroundColor: colors.card, borderRadius: 18, padding: 14, ...elevation.sm },
+  wellHead: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 },
+  wellTitle: { color: colors.mute, fontWeight: "800", fontSize: 12.5, letterSpacing: 0.3 },
+  wellValue: { color: colors.ink, fontWeight: "800", fontSize: 22 },
+  wellUnit: { color: colors.faint, fontWeight: "700", fontSize: 13 },
+  wellTrack: { height: 6, borderRadius: 3, backgroundColor: colors.line, marginTop: 8, overflow: "hidden" },
+  wellFill: { height: "100%", borderRadius: 3 },
+  wellBtns: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 },
+  wellStep: { width: 34, height: 34, borderRadius: 10, borderWidth: 1.5, borderColor: colors.hairline, alignItems: "center", justifyContent: "center" },
+  wellStepLabel: { color: colors.mute, fontWeight: "700", fontSize: 12 },
   describeLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12 },
   describeLinkText: { color: colors.mute, fontWeight: "700", fontSize: 12.5 },
   trialChip: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 16 },
