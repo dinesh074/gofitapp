@@ -50,6 +50,10 @@ export const ICONS = {
   fat: "water-outline",
   mic: "mic-outline",
   micActive: "mic",
+  barcode: "barcode-outline",
+  water: "water",
+  walk: "walk-outline",
+  dumbbell: "barbell-outline",
 } as const;
 
 export type IconName = keyof typeof ICONS;

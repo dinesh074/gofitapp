@@ -10,15 +10,14 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { captureRef } from "react-native-view-shot";
-import * as Sharing from "expo-sharing";
 import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
+import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
 import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
-import { GoalTargets, Profile } from "./nutrition";
+import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
   dayMacros,
   dayTotal,
@@ -33,7 +32,7 @@ import {
   WaterMap,
   HabitMap,
   WATER_GLASS_ML,
-  WATER_GOAL_ML,
+  prettyDate,
 } from "./storage";
 import { colors, radius, shadow, type as T, gradients, elevation } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
@@ -101,10 +100,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [showDescribe, setShowDescribe] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
-  const shareRef = useRef<View>(null);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
   // mistake it for a brand new tap and pop the camera open uninvited.
@@ -124,6 +123,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const dayKcal = dayTotal(logs, today);
   const meals = logs[today]?.meals ?? [];
   const dm = dayMacros(logs, today);
+  // Personalized from this profile's weightKg/activity (see nutrition.ts) --
+  // not the same flat number for every account regardless of who they are.
+  const waterGoalMl = useMemo(() => computeWaterGoalMl(profile), [profile.weightKg, profile.activity]);
+  const stepGoal = useMemo(() => computeStepGoal(profile), [profile.activity]);
 
   // Water + habit (steps) load from local cache instantly, then reconcile with
   // the server. Pure data entry -- no AI, no scan credit touched here.
@@ -360,31 +363,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       });
   }
 
-  async function shareDay() {
-    setError(null);
-    try {
-      const uri = await captureRef(shareRef, { format: "png", quality: 1 });
-      if (Platform.OS === "web") {
-        // window.open(uri) here was a silent no-op: by the time captureRef's
-        // await resolves, the browser no longer treats this as tied to the
-        // original click, so it gets popup-blocked with no visible error --
-        // exactly the "share does nothing" bug. A download anchor isn't
-        // subject to that same gesture-timing rule, and gives an actual
-        // saved file to share, which is more useful than a bare tab anyway.
-        const a = document.createElement("a");
-        a.href = uri;
-        a.download = `gofit-${today}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        return;
-      }
-      if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri);
-      else setError("Sharing not available on this device");
-    } catch (e: any) {
-      setError("Could not create share image: " + (e?.message ?? ""));
-    }
-  }
+  const shareDateLabel = useMemo(() => prettyDate(today), [today]);
 
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
 
@@ -424,7 +403,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           <View style={styles.dayFootRow}>
             <Text style={styles.daySub}>{meals.length} meals logged</Text>
             {meals.length > 0 && (
-              <Pressable style={styles.shareBtn} onPress={shareDay}>
+              <Pressable style={styles.shareBtn} onPress={() => setShowShare(true)}>
                 <Icon name="share" size={14} color={colors.green} />
                 <Text style={styles.shareBtnText}>Share my day</Text>
               </Pressable>
@@ -442,13 +421,13 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             </View>
             <Text style={styles.wellValue}>
               {(waterMl / 1000).toFixed(2)}
-              <Text style={styles.wellUnit}> / {(WATER_GOAL_ML / 1000).toFixed(1)} L</Text>
+              <Text style={styles.wellUnit}> / {(waterGoalMl / 1000).toFixed(1)} L</Text>
             </Text>
             <View style={styles.wellTrack}>
               <View
                 style={[
                   styles.wellFill,
-                  { width: `${Math.min(100, Math.round((waterMl / WATER_GOAL_ML) * 100))}%`, backgroundColor: colors.fat },
+                  { width: `${Math.min(100, Math.round((waterMl / waterGoalMl) * 100))}%`, backgroundColor: colors.fat },
                 ]}
               />
             </View>
@@ -473,7 +452,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <View
                 style={[
                   styles.wellFill,
-                  { width: `${Math.min(100, Math.round((steps / 10000) * 100))}%`, backgroundColor: colors.green },
+                  { width: `${Math.min(100, Math.round((steps / stepGoal) * 100))}%`, backgroundColor: colors.green },
                 ]}
               />
             </View>
@@ -629,11 +608,17 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         )}
       </ScrollView>
 
-      <View style={styles.offscreen} pointerEvents="none">
-        <View ref={shareRef} collapsable={false}>
-          <ShareCard total={dayKcal} meals={meals} streak={streak} />
-        </View>
-      </View>
+      {showShare && (
+        <ShareSheet
+          visible={showShare}
+          onClose={() => setShowShare(false)}
+          total={dayKcal}
+          meals={meals}
+          macros={dm}
+          streak={streak}
+          dateLabel={shareDateLabel}
+        />
+      )}
 
       {/* Each <Modal> is mounted only while open, not just toggled via `visible`.
           On react-native-web, an always-mounted-but-hidden <Modal> still

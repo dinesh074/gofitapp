@@ -44,6 +44,8 @@ import blob_storage
 import audit
 import feedback
 import progress
+import barcode
+import wellness
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -162,6 +164,16 @@ app.include_router(feedback.router)
 # entirely (previously local-storage-only, no server-side persistence at all).
 progress.init_db()
 app.include_router(progress.router)
+
+# Packaged-food barcode lookup (POST /analyze/barcode) -- a deterministic
+# OpenFoodFacts lookup, NOT a Gemini call, so it does NOT consume a free-scan
+# credit (see barcode.py's module docstring).
+app.include_router(barcode.router)
+
+# Water + habit tracking (GET/POST /water, /habits) -- plain data entry, no AI,
+# no scan credit involvement.
+wellness.init_db()
+app.include_router(wellness.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key

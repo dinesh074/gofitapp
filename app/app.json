@@ -54,6 +54,12 @@
         }
       ],
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow gofit.today to use your camera to scan food barcodes."
+        }
+      ],
+      [
         "expo-notifications",
         {
           "color": "#0B7A4B"

@@ -109,6 +109,49 @@ export function computeGoal(p: Profile): GoalTargets {
   return { bmr: base, tdee: maintenance, kcal, protein_g, carbs_g, fat_g };
 }
 
+// Water + step goals -- both used to be flat constants (2500 ml / 10,000
+// steps) shown to every account regardless of what onboarding actually
+// collected. That's not "real data personalized to you", it's a guess with
+// extra steps, so both are now derived from the same profile fields already
+// captured in Onboarding (weightKg, activity). Mirrored byte-for-byte in
+// backend/wellness.py so the server-computed goal (once a profile is synced)
+// always agrees with what the client shows before that round-trip lands.
+
+// Water: clinical guidance is commonly cited as ~30-35 ml per kg of body
+// weight per day (EFSA/ESPEN); 33 ml/kg is the midpoint. Activity adds a
+// fixed bump for extra sweat loss, tiered off the same Activity the user
+// already chose in onboarding. Rounded to the nearest 50 ml and clamped to a
+// sane range so an extreme height/weight can't produce a silly target.
+const WATER_ACTIVITY_BUMP_ML: Record<Activity, number> = {
+  sedentary: 0,
+  light: 0,
+  moderate: 250,
+  active: 500,
+  very_active: 750,
+};
+
+export function computeWaterGoalMl(p: Pick<Profile, "weightKg" | "activity">): number {
+  const base = p.weightKg * 33 + WATER_ACTIVITY_BUMP_ML[p.activity];
+  return Math.min(5000, Math.max(1500, Math.round(base / 50) * 50));
+}
+
+// Steps: the widely-cited Tudor-Locke & Bassett activity-band step counts
+// (sedentary <5,000 / low active 5,000-7,499 / somewhat active 7,500-9,999 /
+// active 10,000-12,499 / highly active 12,500+) give each onboarding activity
+// level a concrete "next tier" daily target instead of everyone getting the
+// same generic 10,000.
+export const STEP_GOAL_BY_ACTIVITY: Record<Activity, number> = {
+  sedentary: 6000,
+  light: 7500,
+  moderate: 9000,
+  active: 10000,
+  very_active: 12000,
+};
+
+export function computeStepGoal(p: Pick<Profile, "activity">): number {
+  return STEP_GOAL_BY_ACTIVITY[p.activity];
+}
+
 // Reasonable input ranges for validation.
 export const LIMITS = {
   age: { min: 13, max: 100 },

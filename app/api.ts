@@ -75,6 +75,15 @@ export class AuthRequiredError extends Error {
   }
 }
 
+// Thrown by analyzeBarcode when the product isn't in the barcode database
+// (HTTP 404) -- the caller uses this to offer a photo/text scan fallback.
+export class BarcodeNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BarcodeNotFoundError";
+  }
+}
+
 // Uploads an image (local uri) to the backend /analyze endpoint.
 export async function analyzeImage(uri: string): Promise<AnalysisResult> {
   const form = new FormData();
@@ -153,7 +162,40 @@ export async function analyzeText(description: string): Promise<AnalysisResult> 
   return (await res.json()) as AnalysisResult;
 }
 
-// Maps backend status codes to short, user-readable messages.
+// Barcode (packaged-food) logging. Unlike analyzeImage/analyzeText this is a
+// deterministic OpenFoodFacts lookup on the backend, NOT a Gemini call, so it
+// does NOT consume a free-scan credit -- there's no PaywallError path here.
+// A 404 means the product isn't in the database; the caller catches
+// BarcodeNotFoundError and offers a photo/text scan instead.
+export async function analyzeBarcode(code: string): Promise<AnalysisResult> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (API_KEY) headers["X-API-Key"] = API_KEY;
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/analyze/barcode`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ code }),
+    });
+  } catch {
+    throw new Error(
+      "Can't reach the server. Check your connection and that the backend is running."
+    );
+  }
+  if (!res.ok) {
+    const msg = await friendlyError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    if (res.status === 404) throw new BarcodeNotFoundError(msg);
+    throw new Error(msg);
+  }
+  return (await res.json()) as AnalysisResult;
+}
 async function friendlyError(res: Response): Promise<string> {
   let detail = "";
   try {
@@ -474,6 +516,36 @@ export async function getServerWeights(): Promise<{ weights: WeightEntry[] }> {
 
 export async function addServerWeight(kg: number): Promise<{ weights: WeightEntry[] }> {
   return postAuth("/weights", { kg });
+}
+
+/* --------------------------- Water / habit tracking ----------------------- */
+// Plain data entry -- no AI, no scan credit. Mirrors the logs/weights pattern:
+// local storage is a fast cache, these calls make it durable server-side.
+
+export type WaterState = { date: string; ml: number; goalMl: number };
+export type HabitKind = "steps" | "workout_min" | "sleep_hr";
+export type HabitState = { date: string; habits: Partial<Record<HabitKind, number>>; stepGoal: number };
+
+export async function getWater(date: string): Promise<WaterState> {
+  return getJson<WaterState>(`/water?date=${encodeURIComponent(date)}`);
+}
+
+// Adds `ml` to the day's running total (negative to undo). Returns the new total.
+export async function addWater(date: string, ml: number): Promise<WaterState> {
+  return postAuth<WaterState>("/water", { date, ml });
+}
+
+export async function getHabits(date: string): Promise<HabitState> {
+  return getJson<HabitState>(`/habits?date=${encodeURIComponent(date)}`);
+}
+
+// Upserts one habit's absolute value for the day (e.g. steps = 8000).
+export async function setHabit(
+  date: string,
+  kind: HabitKind,
+  value: number
+): Promise<HabitState> {
+  return postAuth<HabitState>("/habits", { date, kind, value });
 }
 
 /* ------------------------------- Feed API -------------------------------- */

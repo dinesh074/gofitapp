@@ -19,6 +19,8 @@ export type LogMap = Record<string, DayLog>;
 const KEY = "calai.logs.v1";
 const PROFILE_KEY = "calai.profile.v1";
 const WEIGHTS_KEY = "calai.weights.v1";
+const WATER_KEY = "calai.water.v1";
+const HABITS_KEY = "calai.habits.v1";
 const COMMUNITY_KEY = "calai.community.v1";
 const DEVICE_KEY = "calai.device.v1";
 
@@ -60,6 +62,55 @@ export async function addWeight(kg: number): Promise<WeightEntry[]> {
     // ignore
   }
   return next;
+}
+
+// --- Water + habit tracking (local cache) --------------------------------- //
+// Keyed by day ("YYYY-MM-DD"), mirroring the server tables in wellness.py so
+// the dashboard renders instantly on boot and stays correct once the server
+// reads resolve. No AI, no scan credit involved anywhere in this data.
+
+export const WATER_GLASS_ML = 250; // one "glass" tap = 250 ml
+// The daily water/step *goal* used to live here as a flat constant shown to
+// every account. It's personalized now -- see nutrition.ts's
+// computeWaterGoalMl / computeStepGoal, derived from the profile's
+// weightKg/activity instead of one-size-fits-all.
+
+export type WaterMap = Record<string, number>; // date -> ml total
+export type HabitKind = "steps" | "workout_min" | "sleep_hr";
+export type HabitMap = Record<string, Partial<Record<HabitKind, number>>>;
+
+export async function loadWater(): Promise<WaterMap> {
+  try {
+    const raw = await AsyncStorage.getItem(WATER_KEY);
+    return raw ? (JSON.parse(raw) as WaterMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveWater(map: WaterMap): Promise<void> {
+  try {
+    await AsyncStorage.setItem(WATER_KEY, JSON.stringify(map));
+  } catch {
+    // ignore
+  }
+}
+
+export async function loadHabits(): Promise<HabitMap> {
+  try {
+    const raw = await AsyncStorage.getItem(HABITS_KEY);
+    return raw ? (JSON.parse(raw) as HabitMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveHabits(map: HabitMap): Promise<void> {
+  try {
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(map));
+  } catch {
+    // ignore
+  }
 }
 
 // Community joined-group ids (local, no backend accounts yet).
@@ -115,7 +166,7 @@ export async function clearLogs(): Promise<void> {
 
 export async function clearExtras(): Promise<void> {
   try {
-    await AsyncStorage.multiRemove([WEIGHTS_KEY, COMMUNITY_KEY]);
+    await AsyncStorage.multiRemove([WEIGHTS_KEY, COMMUNITY_KEY, WATER_KEY, HABITS_KEY]);
   } catch {
     // ignore
   }
