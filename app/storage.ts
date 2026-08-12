@@ -8,6 +8,10 @@ export type Meal = {
   carbs_g: number;
   fat_g: number;
   at: number;
+  // Present once this meal has been synced to the server (backend/progress.py);
+  // absent for a meal that only exists locally so far (e.g. offline, or the
+  // sync call hasn't resolved yet).
+  id?: number;
 };
 export type DayLog = { date: string; meals: Meal[] };
 export type LogMap = Record<string, DayLog>;

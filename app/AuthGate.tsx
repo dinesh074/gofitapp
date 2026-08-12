@@ -223,10 +223,10 @@ export default function AuthGate({ onAuthed }: Props) {
 
         {error && <Text style={styles.error}>{error}</Text>}
 
-        {isWeb && (
+        {isWeb && __DEV__ && (
           <Text style={styles.originHint}>
-            If Google says “origin not allowed”, add this to your Web OAuth client’s
-            Authorized JavaScript origins:{"\n"}
+            Dev only — If Google says “origin not allowed”, add this to your Web OAuth
+            client’s Authorized JavaScript origins:{"\n"}
             <Text style={styles.originMono}>{currentOrigin()}</Text>
           </Text>
         )}

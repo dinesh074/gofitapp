@@ -42,6 +42,7 @@ import payments
 import blob_storage
 import audit
 import feedback
+import progress
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -126,6 +127,11 @@ app.include_router(audit.router)
 # In-app feedback / feature requests (POST /feedback, GET /admin/feedback).
 feedback.init_db()
 app.include_router(feedback.router)
+
+# Profile, meal logs, weight history -- the tables that were missing
+# entirely (previously local-storage-only, no server-side persistence at all).
+progress.init_db()
+app.include_router(progress.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key

@@ -1,6 +1,8 @@
 import { Platform } from "react-native";
 import { API_BASE, API_KEY } from "./config";
 import { Account, getToken } from "./auth";
+import { Profile } from "./nutrition";
+import { Meal, LogMap, WeightEntry } from "./storage";
 
 // Full vitamin/mineral panel, keyed by friendly name (e.g. "vitamin_c_mg",
 // "saturated_fat_mg") -- see backend/build_db_v2.py for the exact field list.
@@ -264,11 +266,11 @@ async function authError(res: Response): Promise<string> {
   return `Something went wrong (${res.status}). Please try again.`;
 }
 
-async function postAuth<T>(path: string, body: unknown): Promise<T> {
+async function postAuth<T>(path: string, body: unknown, method: "POST" | "PUT" = "POST"): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
-      method: "POST",
+      method,
       headers: authHeaders(true),
       body: JSON.stringify(body),
     });
@@ -388,6 +390,56 @@ export async function logout(): Promise<void> {
   } catch {
     // best-effort; local sign-out happens regardless
   }
+}
+
+/* ------------------------- Profile / logs / weights ----------------------- */
+// backend/progress.py -- the tables that used to not exist at all. Local
+// storage (storage.ts) remains a fast cache for instant boot; these calls are
+// what makes that cache eventually consistent with the real account record
+// instead of being the only copy of the data that exists anywhere.
+
+export async function getProfile(): Promise<{ profile: Profile | null }> {
+  return getJson<{ profile: Profile | null }>("/profile");
+}
+
+export async function putProfile(profile: Profile): Promise<{ profile: Profile }> {
+  return postAuth("/profile", profile, "PUT");
+}
+
+export async function getServerLogs(): Promise<{ logs: LogMap }> {
+  return getJson<{ logs: LogMap }>("/logs");
+}
+
+export async function addServerLog(
+  date: string,
+  meal: Meal
+): Promise<{ ok: boolean; id: number; at: number }> {
+  return postAuth("/logs", {
+    date,
+    dish: meal.dish,
+    kcal: meal.kcal,
+    protein_g: meal.protein_g,
+    carbs_g: meal.carbs_g,
+    fat_g: meal.fat_g,
+  });
+}
+
+export async function deleteServerLog(id: number): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/logs/${id}`, { method: "DELETE", headers: authHeaders() });
+  if (!res.ok) {
+    const msg = await authError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
+  return (await res.json()) as { ok: boolean };
+}
+
+export async function getServerWeights(): Promise<{ weights: WeightEntry[] }> {
+  return getJson<{ weights: WeightEntry[] }>("/weights");
+}
+
+export async function addServerWeight(kg: number): Promise<{ weights: WeightEntry[] }> {
+  return postAuth("/weights", { kg });
 }
 
 /* ------------------------------- Feed API -------------------------------- */

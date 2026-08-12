@@ -12,7 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog } from "./api";
 import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { GoalTargets, Profile } from "./nutrition";
@@ -196,6 +196,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     });
     setResult(null);
     setPhoto(null);
+    // Local state above already updated instantly for a fast UI. Make it
+    // durable in the background: POST to the real meal_logs table (backend/
+    // progress.py) and stamp the returned id onto the local copy once it
+    // resolves, so a later delete can also sync server-side.
+    addServerLog(today, meal)
+      .then(({ id }) => {
+        setLogs((prev) => {
+          const day = prev[today];
+          if (!day) return prev;
+          const meals = day.meals.map((m) => (m.at === meal.at ? { ...m, id } : m));
+          const next: LogMap = { ...prev, [today]: { ...day, meals } };
+          saveLogs(next);
+          return next;
+        });
+      })
+      .catch((e) => {
+        if (e instanceof AuthRequiredError) onRequireAuth();
+        // else: best-effort -- the meal is still saved locally either way.
+      });
   }
 
   async function shareDay() {

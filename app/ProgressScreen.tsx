@@ -24,6 +24,7 @@ import {
 import { colors, radius, shadow, gradients } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
+import { getServerWeights, addServerWeight, deleteServerLog, AuthRequiredError } from "./api";
 
 type Props = {
   profile: Profile;
@@ -31,15 +32,34 @@ type Props = {
   logs: LogMap;
   setLogs: React.Dispatch<React.SetStateAction<LogMap>>;
   onWeightLogged: (kg: number) => void;
+  onRequireAuth: () => void;
 };
 
-export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightLogged }: Props) {
+export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightLogged, onRequireAuth }: Props) {
   const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [entry, setEntry] = useState<number>(Math.round(profile.weightKg));
   const [detailDay, setDetailDay] = useState<string | null>(null);
 
   useEffect(() => {
     loadWeights().then(setWeights);
+    // weight_logs (backend/progress.py) is the real table -- prefer its copy
+    // if it has one; otherwise this is pre-existing local-only history, so
+    // back it up once.
+    getServerWeights()
+      .then(async ({ weights: serverWeights }) => {
+        if (serverWeights.length > 0) {
+          setWeights(serverWeights);
+        } else {
+          const local = await loadWeights();
+          for (const w of local) {
+            await addServerWeight(w.kg).catch(() => {});
+          }
+        }
+      })
+      .catch((e) => {
+        if (e instanceof AuthRequiredError) onRequireAuth();
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const week = useMemo(() => lastNDays(logs, 7), [logs]);
@@ -52,11 +72,20 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
   }
 
   function handleDelete(dateKey: string, index: number) {
+    const removed = logs[dateKey]?.meals[index];
     setLogs((prev) => {
       const next = deleteMeal(prev, dateKey, index);
       if (!next[dateKey]) setDetailDay(null); // day emptied — close sheet
       return next;
     });
+    // Best-effort: if this meal had already synced (has a server id), remove
+    // it there too. If it hadn't synced yet, there's nothing server-side to
+    // remove -- it just never existed there.
+    if (removed?.id) {
+      deleteServerLog(removed.id).catch((e) => {
+        if (e instanceof AuthRequiredError) onRequireAuth();
+      });
+    }
   }
 
   const loggedDays = week.filter((d) => d.meals > 0);
@@ -90,6 +119,9 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
     const next = await addWeight(entry);
     setWeights(next);
     onWeightLogged(entry);
+    addServerWeight(entry).catch((e) => {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    });
   }
 
   return (

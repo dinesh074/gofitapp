@@ -18,7 +18,15 @@ import {
   loadAuth,
   saveAuth,
 } from "./auth";
-import { logout, getMe, AuthRequiredError } from "./api";
+import {
+  logout,
+  getMe,
+  getProfile,
+  putProfile,
+  getServerLogs,
+  addServerLog,
+  AuthRequiredError,
+} from "./api";
 import { initNotifications } from "./push";
 import {
   clearExtras,
@@ -28,6 +36,7 @@ import {
   loadLogs,
   loadProfile,
   LogMap,
+  saveLogs,
   saveProfile,
 } from "./storage";
 
@@ -60,9 +69,49 @@ export default function App() {
           .catch((e) => {
             if (e instanceof AuthRequiredError) void requireAuth();
           });
+        void syncProfileAndLogs(p, l);
       }
     });
   }, []);
+
+  // The tables this account's profile and meal history actually live in
+  // (backend/progress.py) used to not exist at all -- everything below was
+  // only ever in this device's local storage. On boot: prefer the server's
+  // copy if it has one (this device might be new, or storage was cleared);
+  // otherwise, this local data predates the server table existing at all --
+  // back it up once so it isn't stuck local-only forever.
+  async function syncProfileAndLogs(localProfile: Profile | null, localLogs: LogMap) {
+    try {
+      const { profile: serverProfile } = await getProfile();
+      if (serverProfile) {
+        setProfile(serverProfile);
+        void saveProfile(serverProfile);
+      } else if (localProfile) {
+        await putProfile(localProfile).catch(() => {});
+      }
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) {
+        void requireAuth();
+        return;
+      }
+    }
+
+    try {
+      const { logs: serverLogs } = await getServerLogs();
+      if (Object.keys(serverLogs).length > 0) {
+        setLogs(serverLogs);
+        void saveLogs(serverLogs);
+      } else {
+        for (const day of Object.values(localLogs)) {
+          for (const meal of day.meals) {
+            await addServerLog(day.date, meal).catch(() => {});
+          }
+        }
+      }
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) void requireAuth();
+    }
+  }
 
   const goal = useMemo(() => (profile ? computeGoal(profile) : null), [profile]);
   const streak = useMemo(() => computeStreak(logs), [logs]);
@@ -70,12 +119,18 @@ export default function App() {
   function completeOnboarding(p: Profile) {
     setProfile(p);
     saveProfile(p);
+    putProfile(p).catch((e) => {
+      if (e instanceof AuthRequiredError) void requireAuth();
+    });
   }
 
   function saveSettings(p: Profile) {
     setProfile(p);
     saveProfile(p);
     setShowSettings(false);
+    putProfile(p).catch((e) => {
+      if (e instanceof AuthRequiredError) void requireAuth();
+    });
   }
 
   async function resetAll() {
@@ -194,6 +249,7 @@ export default function App() {
             logs={logs}
             setLogs={setLogs}
             onWeightLogged={onWeightLogged}
+            onRequireAuth={requireAuth}
           />
         )}
         {tab === "community" && (
