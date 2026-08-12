@@ -30,6 +30,8 @@ import auth
 import db
 import blob_storage
 
+from datetime import date, timedelta
+
 log = logging.getLogger("gofit.community")
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "community.db")
@@ -192,6 +194,34 @@ def _member_count(c: sqlite3.Connection, group_id: str, base: int) -> int:
     return n
 
 
+def _real_kcal_streak(account_id: int) -> tuple:
+    """Today's kcal total and the current logging streak, computed directly
+    from meal_logs (backend/progress.py) -- the real table -- rather than
+    trusting whatever numbers the client happens to send. Mirrors app/
+    storage.ts's computeStreak(): the streak holds if today has nothing
+    logged yet but yesterday did, same "haven't broken it yet today" rule
+    the app itself uses."""
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT date, kcal FROM meal_logs WHERE account_id=?", (account_id,)
+        ).fetchall()
+    by_day: dict = {}
+    for r in rows:
+        by_day[r["date"]] = by_day.get(r["date"], 0) + (r["kcal"] or 0)
+
+    today = date.today()
+    kcal_today = int(round(by_day.get(today.isoformat(), 0)))
+
+    d = today
+    if by_day.get(d.isoformat(), 0) <= 0:
+        d = d - timedelta(days=1)
+    streak = 0
+    while by_day.get(d.isoformat(), 0) > 0:
+        streak += 1
+        d = d - timedelta(days=1)
+    return kcal_today, streak
+
+
 @router.post("/sync")
 def sync(body: SyncBody, request: Request):
     # If the caller has a valid Bearer token, their real account identity
@@ -206,6 +236,19 @@ def sync(body: SyncBody, request: Request):
         raise HTTPException(status_code=400, detail="device_id required")
     name = body.name.strip() or "You"
     avatar = (body.avatar or "").strip()
+
+    # A signed-in account now has a real source of truth for kcal/streak
+    # (meal_logs) -- use that instead of the client-reported numbers, which
+    # could drift out of sync or be spoofed. Anonymous/no-account callers
+    # have no such server-side history to compute from, so their
+    # self-reported numbers remain the only option -- same low-stakes
+    # tradeoff noted above.
+    account_id = auth.account_id_from_community(target_id)
+    if account_id is not None:
+        kcal, streak = _real_kcal_streak(account_id)
+    else:
+        kcal, streak = body.kcal, body.streak
+
     with _lock, _conn() as c:
         if avatar:
             c.execute(
@@ -217,7 +260,7 @@ def sync(body: SyncBody, request: Request):
                     streak=excluded.streak, avatar=excluded.avatar,
                     updated_at=excluded.updated_at
                 """,
-                (target_id, name, body.kcal, body.streak, avatar, time.time()),
+                (target_id, name, kcal, streak, avatar, time.time()),
             )
         else:
             c.execute(
@@ -228,7 +271,7 @@ def sync(body: SyncBody, request: Request):
                     name=excluded.name, kcal=excluded.kcal,
                     streak=excluded.streak, updated_at=excluded.updated_at
                 """,
-                (target_id, name, body.kcal, body.streak, time.time()),
+                (target_id, name, kcal, streak, time.time()),
             )
     return {"ok": True}
 

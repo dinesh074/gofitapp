@@ -222,7 +222,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     try {
       const uri = await captureRef(shareRef, { format: "png", quality: 1 });
       if (Platform.OS === "web") {
-        window.open(uri, "_blank");
+        // window.open(uri) here was a silent no-op: by the time captureRef's
+        // await resolves, the browser no longer treats this as tied to the
+        // original click, so it gets popup-blocked with no visible error --
+        // exactly the "share does nothing" bug. A download anchor isn't
+        // subject to that same gesture-timing rule, and gives an actual
+        // saved file to share, which is more useful than a bare tab anyway.
+        const a = document.createElement("a");
+        a.href = uri;
+        a.download = `gofit-${today}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         return;
       }
       if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri);
