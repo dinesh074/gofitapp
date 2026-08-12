@@ -119,6 +119,40 @@ export async function analyzeImage(uri: string): Promise<AnalysisResult> {
   return (await res.json()) as AnalysisResult;
 }
 
+// Text (or voice-transcribed) meal logging -- same free-scan gate and
+// response shape as analyzeImage(), just describing the meal in words
+// instead of a photo. Useful when a photo isn't practical, and doubles as
+// the pipeline voice logging feeds into (speech -> text -> this call).
+export async function analyzeText(description: string): Promise<AnalysisResult> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (API_KEY) headers["X-API-Key"] = API_KEY;
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/analyze/text`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ description }),
+    });
+  } catch {
+    throw new Error(
+      "Can't reach the server. Check your connection and that the backend is running."
+    );
+  }
+  if (!res.ok) {
+    const msg = await friendlyError(res);
+    if (res.status === 402) throw new PaywallError(msg);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
+  return (await res.json()) as AnalysisResult;
+}
+
 // Maps backend status codes to short, user-readable messages.
 async function friendlyError(res: Response): Promise<string> {
   let detail = "";

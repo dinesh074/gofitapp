@@ -13,6 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { analyzeImage, AnalysisResult, FoodItem, PaywallError, AuthRequiredError, addServerLog } from "./api";
+import DescribeMeal from "./DescribeMeal";
 import ShareCard from "./ShareCard";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { GoalTargets, Profile } from "./nutrition";
@@ -77,6 +78,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [error, setError] = useState<string | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showBudget, setShowBudget] = useState(false);
+  const [showDescribe, setShowDescribe] = useState(false);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const shareRef = useRef<View>(null);
 
@@ -136,22 +138,29 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     runAnalyze(uri);
   }
 
+  // Shared between the photo path and the text-description path (and, once
+  // built, voice -- speech transcribes to text and goes through the same
+  // /analyze/text call DescribeMeal already uses) -- both return the exact
+  // same AnalysisResult shape, so applying one to screen state is identical.
+  function applyResult(data: AnalysisResult) {
+    setResult(data);
+    if (data.usage && account) {
+      onAccountUpdate({
+        ...account,
+        isPro: data.usage.is_pro,
+        scansUsed: data.usage.scans_used,
+        scansLimit: data.usage.scans_limit,
+        scansLeft: data.usage.is_pro ? null : Math.max(0, data.usage.scans_limit - data.usage.scans_used),
+      });
+    }
+  }
+
   async function runAnalyze(uri: string) {
     setLoading(true);
     setError(null);
     try {
       const data = await analyzeImage(uri);
-      setResult(data);
-      // Reflect the newly-consumed scan in the account usage.
-      if (data.usage && account) {
-        onAccountUpdate({
-          ...account,
-          isPro: data.usage.is_pro,
-          scansUsed: data.usage.scans_used,
-          scansLimit: data.usage.scans_limit,
-          scansLeft: data.usage.is_pro ? null : Math.max(0, data.usage.scans_limit - data.usage.scans_used),
-        });
-      }
+      applyResult(data);
     } catch (e: any) {
       if (e instanceof PaywallError) {
         setShowPaywall(true);
@@ -312,6 +321,17 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             <Text style={styles.btnGhostText}>Gallery</Text>
           </PressableScale>
         </View>
+        <Pressable
+          style={styles.describeLink}
+          onPress={() => {
+            if (!account) { onRequireAuth(); return; }
+            if (!isPro && (scansLeft ?? 0) <= 0) { setShowPaywall(true); return; }
+            setShowDescribe(true);
+          }}
+        >
+          <Icon name="edit" size={13} color={colors.mute} />
+          <Text style={styles.describeLinkText}>No photo? Describe your meal instead</Text>
+        </Pressable>
 
         {account && !isPro && (
           <Pressable style={styles.trialChip} onPress={() => (scansLeft && scansLeft > 0 ? null : setShowPaywall(true))}>
@@ -461,6 +481,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
+      {showDescribe && (
+        <DescribeMeal
+          visible={showDescribe}
+          onClose={() => setShowDescribe(false)}
+          onResult={(data) => {
+            setPhoto(null);
+            applyResult(data);
+          }}
+          onRequireAuth={() => {
+            setShowDescribe(false);
+            onRequireAuth();
+          }}
+          onPaywall={() => {
+            setShowDescribe(false);
+            setShowPaywall(true);
+          }}
+        />
+      )}
+
       {showBudget && (
         <BudgetProtein
           visible={showBudget}
@@ -520,6 +559,8 @@ const styles = StyleSheet.create({
   btnPrimaryText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   btnGhost: { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.hairline },
   btnGhostText: { color: colors.green, fontWeight: "800", fontSize: 15 },
+  describeLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12 },
+  describeLinkText: { color: colors.mute, fontWeight: "700", fontSize: 12.5 },
   trialChip: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 16 },
   trialText: { color: colors.green, fontWeight: "800", fontSize: 12.5 },
   budgetCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, ...elevation.sm },

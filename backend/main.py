@@ -27,6 +27,7 @@ from collections import defaultdict, deque
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 from PIL import Image
 import google.generativeai as genai
 
@@ -81,6 +82,35 @@ Analyse the food photo and return ONLY strict JSON (no markdown), schema:
 Use standard Indian household portions. Break a plate into its components
 (rice + dal + sabzi). Estimate kcal_per_unit for a normal home serving.
 Count only what is clearly visible."""
+
+TEXT_PROMPT = """You are the nutrition engine for an Indian food calorie-tracking app.
+The user typed a description of what they ate (may be dictated from voice, so
+expect informal phrasing, e.g. "2 rotis with dal and a bit of ghee"). Parse it
+into the SAME strict JSON schema (no markdown) used for a food photo:
+{
+  "dish": "short name",
+  "cuisine": "e.g. South Indian",
+  "items": [
+    {
+      "item": "component name, e.g. 'idli'",
+      "count": <number of pieces/servings mentioned or implied>,
+      "unit": "piece | katori | cup | plate | tbsp",
+      "kcal_per_unit": <calories for ONE unit>,
+      "protein_g": <protein grams for ONE unit>,
+      "carbs_g": <carbohydrate grams for ONE unit>,
+      "fat_g": <fat grams for ONE unit>,
+      "kcal_total": <count * kcal_per_unit>,
+      "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>
+    }
+  ],
+  "calories_kcal": <sum of all items kcal_total>,
+  "confidence": <0.0-1.0, LOWER than you'd give a clear photo -- text descriptions
+    are inherently more ambiguous about portion size>
+}
+Use standard Indian household portions when the user didn't specify an amount
+(e.g. "dal" alone means one katori). If the description is too vague to name
+any real food (e.g. "food", "something"), return items: [] and
+confidence: 0 rather than guessing."""
 
 app = FastAPI(title="gofit.today — Analyze")
 
@@ -630,25 +660,67 @@ def ready():
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB cap to prevent memory-exhaustion abuse
 
 
-@app.post("/analyze")
-async def analyze(request: Request, file: UploadFile = File(...), _: None = Depends(guard)):
-    # Free-trial gate: scanning requires an account, and free accounts get a
-    # limited number of scans before the paywall. Signed-in Pro users are
-    # unlimited. This ties usage to an identity (esp. Google) so the trial
-    # can't be farmed by making throwaway accounts.
+def _require_scan_slot(request: Request) -> dict:
+    """Shared free-trial gate for both /analyze and /analyze/text -- scanning
+    requires an account, and free accounts get a limited number of scans
+    before the paywall (Pro is unlimited). Reserves the slot atomically
+    BEFORE the slow Gemini call (see auth.reserve_scan's docstring for the
+    race this closes)."""
     account = auth.account_from_request(request)
     if not account:
         raise HTTPException(status_code=401, detail="Please sign in to scan your food.")
-    # Atomically check-and-reserve BEFORE the slow Gemini call (see
-    # auth.reserve_scan's docstring for the race this closes: the old
-    # check-then-increment-after pattern let concurrent requests all pass the
-    # check and get real results before any of them recorded a scan).
     if not auth.reserve_scan(account["id"]):
         usage = auth.usage_for(account["id"])
         raise HTTPException(
             status_code=402,
             detail=f"You've used all {usage['scans_limit']} free scans. Upgrade to keep scanning.",
         )
+    return account
+
+
+def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str) -> dict:
+    """Shared retry/anchor/usage/scan-history plumbing for both the image and
+    text analysis paths -- media is either a PIL.Image (photo) or omitted
+    (text-only prompt already has the description baked in)."""
+    last = None
+    for attempt in range(3):
+        try:
+            parts = [prompt, media] if media is not None else [prompt]
+            resp = get_model().generate_content(parts)
+            data = extract_json(resp.text)
+            if not isinstance(data, dict) or "items" not in data:
+                raise ValueError("model returned unexpected shape")
+            for it in data.get("items", []):
+                it.setdefault("count", 1)
+                it.setdefault("kcal_per_unit", 0)
+                it.setdefault("protein_g", 0)
+                it.setdefault("carbs_g", 0)
+                it.setdefault("fat_g", 0)
+                it.setdefault("countable", True)
+                it.setdefault("unit", "piece")
+            data = anchor_items(data)
+            data["usage"] = auth.usage_for(account["id"])
+            items = data.get("items", [])
+            progress.record_scan(
+                account["id"], success=True, item_count=len(items),
+                total_kcal=data.get("calories_kcal"),
+            )
+            return data
+        except HTTPException:
+            raise
+        except Exception as ex:
+            last = ex
+            log.warning("%s attempt %d failed: %s", error_detail_prefix, attempt + 1, ex)
+    # Every retry failed -- refund the reserved slot so a failed request
+    # (not the user's fault) doesn't cost them a real scan.
+    auth.release_scan(account["id"])
+    progress.record_scan(account["id"], success=False, error_detail=str(last)[:500] if last else None)
+    raise HTTPException(status_code=502, detail=f"Could not analyze the {error_detail_prefix}. Please try again.")
+
+
+@app.post("/analyze")
+async def analyze(request: Request, file: UploadFile = File(...), _: None = Depends(guard)):
+    account = _require_scan_slot(request)
 
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="File must be an image")
@@ -665,40 +737,19 @@ async def analyze(request: Request, file: UploadFile = File(...), _: None = Depe
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid or unreadable image")
 
-    last = None
-    for attempt in range(3):
-        try:
-            resp = get_model().generate_content([PROMPT, img])
-            data = extract_json(resp.text)
-            if not isinstance(data, dict) or "items" not in data:
-                raise ValueError("model returned unexpected shape")
-            # normalize/guard fields the app relies on
-            for it in data.get("items", []):
-                it.setdefault("count", 1)
-                it.setdefault("kcal_per_unit", 0)
-                it.setdefault("protein_g", 0)
-                it.setdefault("carbs_g", 0)
-                it.setdefault("fat_g", 0)
-                it.setdefault("countable", True)
-                it.setdefault("unit", "piece")
-            # anchor per-unit calories to the IFCT food DB where possible
-            data = anchor_items(data)
-            # Scan was already reserved atomically before this loop started;
-            # just surface the now-current quota.
-            data["usage"] = auth.usage_for(account["id"])
-            items = data.get("items", [])
-            progress.record_scan(
-                account["id"], success=True, item_count=len(items),
-                total_kcal=data.get("calories_kcal"),
-            )
-            return data
-        except HTTPException:
-            raise
-        except Exception as ex:
-            last = ex
-            log.warning("analyze attempt %d failed: %s", attempt + 1, ex)
-    # Every retry failed -- refund the reserved slot so a failed request
-    # (not the user's fault) doesn't cost them a real scan.
-    auth.release_scan(account["id"])
-    progress.record_scan(account["id"], success=False, error_detail=str(last)[:500] if last else None)
-    raise HTTPException(status_code=502, detail="Could not analyze the image. Please try another photo.")
+    return _run_gemini_analysis(account, PROMPT, img, "photo")
+
+
+class TextAnalyzeBody(BaseModel):
+    description: str = Field(..., min_length=2, max_length=500)
+
+
+@app.post("/analyze/text")
+def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guard)):
+    """Text (or voice-transcribed-to-text) meal logging -- same free-scan
+    gate, same DB-anchoring, same response shape as the photo path, just
+    without an image. Lets you log a meal by describing it when a photo
+    isn't practical."""
+    account = _require_scan_slot(request)
+    prompt = f'{TEXT_PROMPT}\n\nUser\'s description: "{body.description.strip()}"'
+    return _run_gemini_analysis(account, prompt, None, "description")
