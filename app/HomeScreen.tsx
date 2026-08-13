@@ -42,7 +42,7 @@ import { colors, radius, shadow, type as T, gradients, elevation } from "./theme
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
-import { computeSuggestion, recentsToCandidates, BASE_CANDIDATES, Candidate } from "./mealSuggest";
+import { computeSuggestions, recentsToCandidates, BASE_CANDIDATES, Candidate } from "./mealSuggest";
 import {
   loadPortionMemory,
   rememberPortions,
@@ -683,22 +683,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // The candidate pool blends the built-in ideas, the user's own recent/favourite
   // meals (boosted so it feels personal), and real diet-appropriate foods from
   // the DB (accurate nutrition + variety). Today's training context biases which
-  // one wins (carbs before endurance, protein for lifting).
-  const nextMeal = useMemo(() => {
+  // ones win (carbs before endurance, protein for lifting). We surface several
+  // ranked options and let the user shuffle for more, so it never feels canned.
+  const [mealShuffle, setMealShuffle] = useState(0);
+  const nextPlan = useMemo(() => {
     const candidates: Candidate[] = [
       ...BASE_CANDIDATES,
       ...recentsToCandidates(recents),
       ...dbPool,
     ];
-    return computeSuggestion(
+    return computeSuggestions(
       { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
       goal,
       profile,
       new Date(),
       training,
       candidates,
+      { count: 3, offset: mealShuffle * 3 },
     );
-  }, [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal, training, recents, dbPool]);
+  }, [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal, training, recents, dbPool, mealShuffle]);
 
   // Fuelling tip for today's training context (null when none selected).
   const trainTip = useMemo(
@@ -796,29 +799,39 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         <View style={styles.nextCard}>
           <View style={styles.nextHeaderRow}>
             <Icon name="sparkles" size={15} color={colors.green} />
-            <Text style={styles.nextHeader}>{nextMeal.headline}</Text>
+            <Text style={styles.nextHeader}>{nextPlan.headline}</Text>
           </View>
           <View style={styles.nextFocusRow}>
-            {nextMeal.focus.map((f) => (
+            {nextPlan.focus.map((f) => (
               <View key={f} style={styles.nextChip}>
                 <Text style={styles.nextChipText}>{f}</Text>
               </View>
             ))}
           </View>
-          {!!nextMeal.idea && (
-            <Text style={styles.nextIdea}>
-              <Text style={styles.nextIdeaLabel}>Try: </Text>
-              {nextMeal.idea}
-              {nextMeal.detail ? <Text style={styles.nextIdeaKcal}>{`  (${nextMeal.detail})`}</Text> : null}
-              {nextMeal.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${nextMeal.kcal} kcal`}</Text> : null}
+          {nextPlan.options.map((opt, i) => (
+            <Text key={`${opt.name}-${i}`} style={styles.nextIdea}>
+              <Text style={styles.nextIdeaLabel}>{i === 0 ? "Try: " : "or: "}</Text>
+              {opt.name}
+              {opt.detail ? <Text style={styles.nextIdeaKcal}>{`  (${opt.detail})`}</Text> : null}
+              {opt.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${opt.kcal} kcal`}</Text> : null}
             </Text>
-          )}
-          <Text style={styles.nextRationale}>{nextMeal.rationale}</Text>
-          {!!aiSuggestion && nextMeal.source === "db" && (
+          ))}
+          <Text style={styles.nextRationale}>{nextPlan.rationale}</Text>
+          {!!aiSuggestion && nextPlan.options[0]?.source === "db" && (
             <View style={styles.nextCoachRow}>
               <Icon name="nutrition" size={12} color={colors.mute} />
               <Text style={styles.nextCoach}>{aiSuggestion}</Text>
             </View>
+          )}
+          {nextPlan.poolSize > nextPlan.options.length && (
+            <Pressable
+              style={styles.nextMoreBtn}
+              onPress={() => setMealShuffle((n) => n + 1)}
+              hitSlop={8}
+            >
+              <Icon name="refresh" size={13} color={colors.green} />
+              <Text style={styles.nextMoreText}>More ideas</Text>
+            </Pressable>
           )}
         </View>
 
@@ -1238,6 +1251,8 @@ const styles = StyleSheet.create({
   nextRationale: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 16 },
   nextCoachRow: { flexDirection: "row", alignItems: "flex-start", gap: 5, marginTop: 8 },
   nextCoach: { flex: 1, color: colors.mute, fontSize: 11.5, fontStyle: "italic", lineHeight: 15 },
+  nextMoreBtn: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10, alignSelf: "flex-start" },
+  nextMoreText: { color: colors.green, fontSize: 12.5, fontWeight: "800" },
 
   trainCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 10, ...elevation.sm },
   trainHeadRow: { flexDirection: "row", alignItems: "center", gap: 6 },

@@ -91,6 +91,26 @@ export type Candidate = {
   detail?: string;
 };
 
+// One concrete thing to eat, for the multi-option "what to eat next" list.
+export type MealOption = {
+  name: string;
+  kcal: number;
+  detail?: string;
+  source?: MealSource;
+};
+
+// The next-meal plan: shared context (headline/focus/rationale) plus several
+// ranked options so the user isn't shown the exact same single dish every time
+// and can pick what they fancy. `poolSize` is how many good distinct options
+// exist, so the UI can offer a "more ideas" shuffle only when it helps.
+export type MealPlan = {
+  headline: string;
+  focus: string[];
+  rationale: string;
+  options: MealOption[];
+  poolSize: number;
+};
+
 const ALL_SLOTS: MealSlot[] = ["breakfast", "snack", "lunch", "dinner"];
 
 // Static ideas as candidates -- the always-available offline fallback pool.
@@ -147,20 +167,32 @@ function allowedForDiet(diet: Diet, c: Candidate): boolean {
   return dietAllows(diet, c.contains);
 }
 
+/** Goal tilt shared by the scorer: leaner picks when losing, heartier when gaining. */
+const goalKcalBias = (g: Goal): number => (g === "lose" ? -0.15 : g === "gain" ? 0.1 : 0);
+
 /**
- * Core scorer: rank a candidate pool against what's left in the day's budget,
- * the time of day, diet, goal and today's training context, and return the best
- * suggestion. `suggestNextMeal` and the DB/recents-enriched path both funnel
- * through here so ranking is always identical.
+ * Core planner: rank a candidate pool against what's left in the day's budget,
+ * the time of day, diet, goal and today's training context, and return a plan
+ * with SEVERAL ranked options (deduped by name) so the card can show a few
+ * choices and rotate them, instead of pinning the user to one dish forever.
+ * `suggestNextMeal`, `computeSuggestion` and the DB/recents-enriched path all
+ * funnel through here so ranking is always identical.
+ *
+ * `opts.count` = how many options to return (default 3). `opts.offset` rotates
+ * the window through the top-ranked band for variety (the "more ideas" shuffle);
+ * offset 0 always returns the genuine best first.
  */
-export function computeSuggestion(
+export function computeSuggestions(
   consumed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number },
   goal: GoalTargets,
   profile: Pick<Profile, "diet" | "goal">,
   now: Date,
   training: TrainingContext | null,
   candidates: Candidate[],
-): MealSuggestion {
+  opts: { count?: number; offset?: number } = {},
+): MealPlan {
+  const count = Math.max(1, Math.floor(opts.count ?? 3));
+  const offset = Math.max(0, Math.floor(opts.offset ?? 0));
   const bias: TrainingBias = biasFor(training);
   const remKcal = goal.kcal - consumed.kcal;
   const remP = Math.max(0, goal.protein_g - consumed.protein_g);
@@ -173,9 +205,9 @@ export function computeSuggestion(
     return {
       headline: "You're over today's target",
       focus: remP > 15 ? ["High protein", "Low added fat"] : ["Keep it light"],
-      idea: remP > 15 ? "If you're genuinely hungry: curd, sprouts or a few eggs" : "A glass of chaas or some cucumber",
+      options: [{ name: remP > 15 ? "If you're genuinely hungry: curd, sprouts or a few eggs" : "A glass of chaas or some cucumber", kcal: 0 }],
       rationale: `You're ${Math.round(consumed.kcal - goal.kcal)} kcal over. A light, protein-y bite beats more carbs or fat.`,
-      kcal: 0,
+      poolSize: 1,
     };
   }
 
@@ -184,9 +216,9 @@ export function computeSuggestion(
     return {
       headline: "You're on track",
       focus: ["Keep it light"],
-      idea: remP > 12 ? "A little curd or a boiled egg to top up protein" : "Just water or chaas if you're peckish",
+      options: [{ name: remP > 12 ? "A little curd or a boiled egg to top up protein" : "Just water or chaas if you're peckish", kcal: 0 }],
       rationale: `Only ${Math.round(remKcal)} kcal left today — you've nailed it.`,
-      kcal: 0,
+      poolSize: 1,
     };
   }
 
@@ -204,7 +236,6 @@ export function computeSuggestion(
   // down on protein, performance/rest keep it lighter (see training.ts). A
   // per-candidate `boost` lets the user's own favourites/recents float up.
   const proteinPriority = goal.protein_g > 0 && remP / goal.protein_g >= 0.3;
-  const goalKcalBias = (g: Goal): number => (g === "lose" ? -0.15 : g === "gain" ? 0.1 : 0);
 
   const scored = candidates
     .filter((c) => allowedForDiet(profile.diet, c) && c.slots.includes(slot) && c.kcal <= remKcal * 1.2)
@@ -238,7 +269,17 @@ export function computeSuggestion(
     });
 
   scored.sort((a, b) => b.score - a.score);
-  const best = scored[0]?.c ?? null;
+
+  // Dedupe by dish name, keeping each dish's best-scoring instance, so the
+  // options list never repeats "Dal" three times from different sources.
+  const seen = new Set<string>();
+  const ranked: MealOption[] = [];
+  for (const { c } of scored) {
+    const key = c.name.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ranked.push({ name: c.name, kcal: c.kcal, detail: c.detail, source: c.source });
+  }
 
   const gapBits: string[] = [];
   if (remP >= 15) gapBits.push(`~${Math.round(remP)}g protein`);
@@ -246,7 +287,49 @@ export function computeSuggestion(
   const gapLine = gapBits.length
     ? `You have ${gapBits.join(" and ")} left${proteinPriority ? " — protein first" : ""}.`
     : `You have ${Math.round(remKcal)} kcal left today.`;
-  // Add a personal note when the winner is the user's own meal or a real DB food.
+
+  if (ranked.length === 0) {
+    return {
+      headline: "Your next meal",
+      focus: focus.length ? focus : ["Balanced"],
+      options: [{ name: "A balanced plate — dal, a roti and some sabzi", kcal: 0 }],
+      rationale: gapLine,
+      poolSize: 1,
+    };
+  }
+
+  // Only rotate among the top band of genuinely-good options (never surface a
+  // poorly-fitting dish just to be "random"). Offset 0 shows the true best.
+  const band = Math.min(ranked.length, Math.max(count, 9));
+  const start = offset % band;
+  const options: MealOption[] = [];
+  for (let i = 0; i < Math.min(count, band); i++) {
+    options.push(ranked[(start + i) % band]);
+  }
+
+  return {
+    headline: "Your next meal",
+    focus: focus.length ? focus : ["Balanced"],
+    options,
+    rationale: gapLine,
+    poolSize: band,
+  };
+}
+
+/**
+ * Single best next-meal suggestion (back-compat wrapper over computeSuggestions).
+ * Used by `suggestNextMeal` and anywhere only one pick is needed.
+ */
+export function computeSuggestion(
+  consumed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number },
+  goal: GoalTargets,
+  profile: Pick<Profile, "diet" | "goal">,
+  now: Date,
+  training: TrainingContext | null,
+  candidates: Candidate[],
+): MealSuggestion {
+  const plan = computeSuggestions(consumed, goal, profile, now, training, candidates, { count: 1 });
+  const best = plan.options[0];
   const sourceNote =
     best?.source === "favorite"
       ? " From your favourites."
@@ -255,13 +338,12 @@ export function computeSuggestion(
         : best?.source === "db"
           ? " Real nutrition from our food database."
           : "";
-
   return {
-    headline: "Your next meal",
-    focus: focus.length ? focus : ["Balanced"],
-    idea: best ? best.name : "A balanced plate — dal, a roti and some sabzi",
-    rationale: gapLine + sourceNote,
-    kcal: best ? best.kcal : 0,
+    headline: plan.headline,
+    focus: plan.focus,
+    idea: best ? best.name : null,
+    rationale: plan.rationale + sourceNote,
+    kcal: best?.kcal ?? 0,
     source: best?.source,
     detail: best?.detail,
   };
