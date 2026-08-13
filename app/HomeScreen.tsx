@@ -878,6 +878,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           date={today}
           account={account}
           onRequireAuth={onRequireAuth}
+          consumed={{ kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g }}
         />
 
         {AI_COACH_ENABLED && (

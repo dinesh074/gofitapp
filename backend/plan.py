@@ -344,12 +344,86 @@ class Targets(BaseModel):
     fat_g: float = Field(0, ge=0, le=2000)
 
 
+# The clock hour (local) by which each meal is assumed to be over. Used to decide
+# which slots are still AHEAD of the user so only those get re-portioned to the
+# calories/macros they have left -- meals already behind them are left as they
+# were (a record of what was suggested), never resized retroactively.
+_SLOT_END_HOUR = {"breakfast": 10, "lunch": 15, "snack": 18, "dinner": 24}
+_MACRO_KEYS = ("kcal", "protein_g", "carbs_g", "fat_g")
+
+
+def _rescale_item(it: dict, factor: float) -> dict:
+    """Re-portion a plan item by `factor`, keeping the same dish (continuity --
+    we resize the day, we don't swap dishes on the user mid-meal). Servings are
+    clamped to the normal half-serving range so a portion never becomes silly."""
+    base = it.get("count", 0) or 0
+    new_count = round(base * factor * 2) / 2.0
+    new_count = min(MAX_ITEM_SERVINGS, max(MIN_SERVINGS, new_count))
+    r = (new_count / base) if base else 1.0
+    return {
+        **it,
+        "count": new_count,
+        "kcal": round((it.get("kcal", 0) or 0) * r),
+        "protein_g": round((it.get("protein_g", 0) or 0) * r, 1),
+        "carbs_g": round((it.get("carbs_g", 0) or 0) * r, 1),
+        "fat_g": round((it.get("fat_g", 0) or 0) * r, 1),
+    }
+
+
+def _adapt_plan(plan: dict, targets: dict, consumed: dict, hour: Optional[int]) -> dict:
+    """Return a COPY of the day's plan adapted to what the user has actually
+    logged so far: meals still ahead of them (by clock hour) are re-portioned so
+    that, together, they fill exactly the calories/macros left in the day. The
+    day's dish choices stay put (stability); only portions move. Nothing is
+    persisted -- the saved plan remains the clean full-day version; this is the
+    live view layered on top for the current moment."""
+    adapted = json.loads(json.dumps(plan))  # deep copy, never mutate the saved plan
+    remaining = {m: max(0.0, targets[m] - consumed.get(m, 0.0)) for m in _MACRO_KEYS}
+
+    def _upcoming(slot_key: str) -> bool:
+        if hour is None:
+            return True  # no clock -> treat the whole day as still ahead
+        return hour < _SLOT_END_HOUR.get(slot_key, 24)
+
+    up = [s for s in adapted["slots"] if _upcoming(s["slot"])]
+    base_up_kcal = sum(max(0.0, s.get("target_kcal", 0) or 0) for s in up)
+
+    for s in adapted["slots"]:
+        if not _upcoming(s["slot"]):
+            s["upcoming"] = False
+            continue
+        s["upcoming"] = True
+        if remaining["kcal"] <= 1 or base_up_kcal <= 0:
+            # Day's budget already met -> upcoming meals become optional.
+            s["items"] = []
+            s["over_budget"] = remaining["kcal"] <= 1
+        else:
+            share = (max(0.0, s.get("target_kcal", 0) or 0)) / base_up_kcal
+            want_kcal = remaining["kcal"] * share
+            have_kcal = sum((it.get("kcal", 0) or 0) for it in s["items"]) or 0
+            factor = (want_kcal / have_kcal) if have_kcal > 0 else 1.0
+            s["items"] = [_rescale_item(it, factor) for it in s["items"]]
+        s.update(_sum_items(s["items"]))
+
+    adapted["consumed"] = {m: round(consumed.get(m, 0.0), 1) for m in _MACRO_KEYS}
+    adapted["remaining"] = {m: round(remaining[m], 1) for m in _MACRO_KEYS}
+    adapted["adapted"] = True
+    # Keep the totals row consistent with the (re-portioned) slots on screen.
+    adapted["totals"] = _sum_items([it for s in adapted["slots"] for it in s["items"]])
+    return adapted
+
+
 class PlanBody(BaseModel):
     targets: Targets
     diet: str = "veg"
     goal: str = "maintain"
     date: str
     regenerate: bool = False
+    # What the user has already logged today, and their local clock hour. When
+    # provided, the meals still ahead of them are re-portioned to the budget they
+    # have left (see _adapt_plan). Optional so the base plan still works alone.
+    consumed: Optional[Targets] = None
+    hour: Optional[int] = Field(None, ge=0, le=23)
 
 
 @router.post("/plan/today")
@@ -372,11 +446,27 @@ def plan_today(body: PlanBody, request: Request):
     goal = (body.goal or "maintain").strip().lower()
     sig = _signature(targets, diet, goal)
 
+    consumed = None
+    if body.consumed is not None:
+        consumed = {
+            "kcal": max(0.0, body.consumed.kcal),
+            "protein_g": max(0.0, body.consumed.protein_g),
+            "carbs_g": max(0.0, body.consumed.carbs_g),
+            "fat_g": max(0.0, body.consumed.fat_g),
+        }
+
+    def _respond(plan: dict, cached: bool) -> dict:
+        # The saved plan is always the clean full-day version; adaptation to
+        # what's been logged is a live view layered on top, never persisted.
+        if consumed is not None:
+            return {"plan": _adapt_plan(plan, targets, consumed, body.hour), "cached": cached}
+        return {"plan": plan, "cached": cached}
+
     if not body.regenerate:
         saved = _load_saved(acct["id"], date_key)
         if saved and saved.get("signature") == sig:
-            return {"plan": saved["plan"], "cached": True}
+            return _respond(saved["plan"], True)
 
     plan = build_plan(targets, diet, goal, date_key)
     _save(acct["id"], date_key, sig, plan)
-    return {"plan": plan, "cached": False}
+    return _respond(plan, False)

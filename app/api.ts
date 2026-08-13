@@ -373,6 +373,11 @@ export type PlanSlot = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  // Present only when the plan is adapted to what's been logged today: whether
+  // this meal is still ahead of the user (re-portioned to the remaining budget)
+  // or already behind them (left as-is), and whether the day's budget is spent.
+  upcoming?: boolean;
+  over_budget?: boolean;
 };
 
 export type DayPlan = {
@@ -383,6 +388,10 @@ export type DayPlan = {
   slots: PlanSlot[];
   coach_note?: string;
   generated_at: number;
+  // Present when `consumed` was sent: the live adaptation layer.
+  adapted?: boolean;
+  consumed?: PlanMacros;
+  remaining?: PlanMacros;
 };
 
 export async function fetchTodayPlan(input: {
@@ -391,6 +400,10 @@ export async function fetchTodayPlan(input: {
   goal: string; // "lose" | "maintain" | "gain"
   date: string; // "YYYY-MM-DD" (the user's local day)
   regenerate?: boolean;
+  // When provided, the meals still ahead of the user are re-portioned to the
+  // budget they have left; `hour` is the user's local clock hour (0-23).
+  consumed?: PlanMacros;
+  hour?: number;
 }): Promise<DayPlan | null> {
   let res: Response;
   try {
@@ -403,6 +416,8 @@ export async function fetchTodayPlan(input: {
         goal: input.goal,
         date: input.date,
         regenerate: input.regenerate ?? false,
+        ...(input.consumed ? { consumed: input.consumed } : {}),
+        ...(typeof input.hour === "number" ? { hour: input.hour } : {}),
       }),
     });
   } catch {

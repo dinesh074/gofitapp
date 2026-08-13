@@ -17,6 +17,9 @@ type Props = {
   date: string; // YYYY-MM-DD (the user's local day)
   account: Account | null;
   onRequireAuth: () => void;
+  // What the user has logged so far today. When present, the meals still ahead
+  // of them are re-portioned server-side to the budget they have left.
+  consumed?: PlanMacros;
 };
 
 const MACROS: { key: keyof PlanMacros; label: string; color: string; unit: string }[] = [
@@ -30,15 +33,18 @@ function fmtCount(n: number): string {
   return Number.isInteger(n) ? `${n}` : `${n}`;
 }
 
-export default function TodayPlanCard({ goal, diet, goalName, date, account, onRequireAuth }: Props) {
+export default function TodayPlanCard({ goal, diet, goalName, date, account, onRequireAuth, consumed }: Props) {
   const [plan, setPlan] = useState<DayPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
-  // Only refetch when the targets/diet/goal that the plan is built from actually
-  // change -- not on every render. The server also de-dupes via its signature.
+  // Refetch when the targets/diet/goal that the plan is BUILT from change, or
+  // when what's been logged today moves enough to shift the remaining budget
+  // (bucketed to ~40 kcal so we re-adapt without hammering the endpoint). The
+  // base plan stays server-cached; only the lightweight adaptation recomputes.
+  const consumedBucket = consumed ? Math.round(consumed.kcal / 40) : 0;
   const sig = `${date}|${diet}|${goalName}|${Math.round(goal.kcal)}|${Math.round(
     goal.protein_g,
-  )}|${Math.round(goal.carbs_g)}|${Math.round(goal.fat_g)}`;
+  )}|${Math.round(goal.carbs_g)}|${Math.round(goal.fat_g)}|${consumedBucket}`;
   const lastSig = useRef<string | null>(null);
 
   const targets: PlanMacros = {
@@ -53,7 +59,15 @@ export default function TodayPlanCard({ goal, diet, goalName, date, account, onR
       if (!account || goal.kcal <= 0) return;
       setLoading(true);
       setFailed(false);
-      const p = await fetchTodayPlan({ targets, diet, goal: goalName, date, regenerate });
+      const p = await fetchTodayPlan({
+        targets,
+        diet,
+        goal: goalName,
+        date,
+        regenerate,
+        consumed,
+        hour: new Date().getHours(),
+      });
       setLoading(false);
       if (p) {
         setPlan(p);
@@ -110,25 +124,49 @@ export default function TodayPlanCard({ goal, diet, goalName, date, account, onR
         <>
           {!!plan.coach_note && <Text style={styles.note}>{plan.coach_note}</Text>}
 
-          {plan.slots.map((s) => (
-            <View key={s.slot} style={styles.slot}>
-              <View style={styles.slotHead}>
-                <Text style={styles.slotLabel}>{s.label}</Text>
-                <Text style={styles.slotKcal}>{s.kcal} kcal</Text>
-              </View>
-              {s.items.length > 0 ? (
-                s.items.map((it, i) => (
-                  <Text key={`${it.key}-${i}`} style={styles.item}>
-                    <Text style={styles.itemDot}>· </Text>
-                    {it.name}
-                    <Text style={styles.itemMeta}>{`  ×${fmtCount(it.count)} · ${it.kcal} kcal`}</Text>
+          {plan.remaining && (
+            <View style={styles.remainRow}>
+              {MACROS.map((m) => (
+                <View key={m.key} style={styles.remainChip}>
+                  <Text style={[styles.remainVal, { color: m.color }]}>
+                    {Math.max(0, Math.round(plan.remaining![m.key]))}
+                    {m.unit}
                   </Text>
-                ))
-              ) : (
-                <Text style={styles.itemEmpty}>Something light — add your own here.</Text>
-              )}
+                  <Text style={styles.remainLabel}>{m.label} left</Text>
+                </View>
+              ))}
             </View>
-          ))}
+          )}
+
+          {plan.slots.map((s) => {
+            const past = plan.adapted && s.upcoming === false;
+            return (
+              <View key={s.slot} style={[styles.slot, past && styles.slotPast]}>
+                <View style={styles.slotHead}>
+                  <Text style={[styles.slotLabel, past && styles.slotLabelPast]}>
+                    {s.label}
+                    {past ? "  · earlier" : ""}
+                  </Text>
+                  <Text style={styles.slotKcal}>{s.kcal} kcal</Text>
+                </View>
+                {s.over_budget ? (
+                  <Text style={styles.itemEmpty}>
+                    You&apos;ve hit today&apos;s target — anything more is a bonus.
+                  </Text>
+                ) : s.items.length > 0 ? (
+                  s.items.map((it, i) => (
+                    <Text key={`${it.key}-${i}`} style={styles.item}>
+                      <Text style={styles.itemDot}>· </Text>
+                      {it.name}
+                      <Text style={styles.itemMeta}>{`  ×${fmtCount(it.count)} · ${it.kcal} kcal`}</Text>
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={styles.itemEmpty}>Something light — add your own here.</Text>
+                )}
+              </View>
+            );
+          })}
 
           <View style={styles.totalsRow}>
             {MACROS.map((m) => (
@@ -169,10 +207,23 @@ const styles = StyleSheet.create({
   },
   regenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   note: { color: colors.inkSoft, fontSize: 13, fontWeight: "600", lineHeight: 18 },
+  remainRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: colors.greenTint,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+  },
+  remainChip: { alignItems: "center", flex: 1 },
+  remainVal: { fontSize: 15, fontWeight: "900" },
+  remainLabel: { color: colors.mute, fontSize: 10, fontWeight: "700", marginTop: 1 },
   loadingRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 },
   loadingText: { color: colors.mute, fontSize: 13, fontWeight: "600" },
   empty: { color: colors.mute, fontSize: 12.5, fontWeight: "500", lineHeight: 17 },
   slot: { gap: 3, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 8 },
+  slotPast: { opacity: 0.5 },
+  slotLabelPast: { color: colors.mute, fontWeight: "700" },
   slotHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   slotLabel: { color: colors.ink, fontSize: 13, fontWeight: "800" },
   slotKcal: { color: colors.mute, fontSize: 12, fontWeight: "700" },
