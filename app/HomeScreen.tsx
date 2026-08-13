@@ -42,6 +42,7 @@ import { colors, radius, shadow, type as T, gradients, elevation } from "./theme
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
+import { suggestNextMeal } from "./mealSuggest";
 import MonthStreak from "./MonthStreak";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
@@ -524,6 +525,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   const shareDateLabel = useMemo(() => prettyDate(today), [today]);
 
+  // "What to eat next" -- deterministic, recomputed as the day's totals change.
+  // Recomputes on each render's day totals; the Date() inside keys off wall time
+  // which is fine (it only reads the hour to pick a meal slot).
+  const nextMeal = useMemo(
+    () => suggestNextMeal(
+      { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
+      goal,
+      profile,
+    ),
+    [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal],
+  );
+
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
 
   return (
@@ -568,6 +581,28 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               </Pressable>
             )}
           </View>
+        </View>
+
+        <View style={styles.nextCard}>
+          <View style={styles.nextHeaderRow}>
+            <Icon name="sparkles" size={15} color={colors.green} />
+            <Text style={styles.nextHeader}>{nextMeal.headline}</Text>
+          </View>
+          <View style={styles.nextFocusRow}>
+            {nextMeal.focus.map((f) => (
+              <View key={f} style={styles.nextChip}>
+                <Text style={styles.nextChipText}>{f}</Text>
+              </View>
+            ))}
+          </View>
+          {!!nextMeal.idea && (
+            <Text style={styles.nextIdea}>
+              <Text style={styles.nextIdeaLabel}>Try: </Text>
+              {nextMeal.idea}
+              {nextMeal.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${nextMeal.kcal} kcal`}</Text> : null}
+            </Text>
+          )}
+          <Text style={styles.nextRationale}>{nextMeal.rationale}</Text>
         </View>
 
         <MonthStreak logs={logs} goalKcal={goal.kcal} />
@@ -920,6 +955,16 @@ const styles = StyleSheet.create({
   tagline: { color: "#CDEBD9", fontSize: 13, marginTop: 2 },
   body: { padding: 16, paddingBottom: 24, marginTop: -12 },
   dayCard: { backgroundColor: colors.card, borderRadius: 22, padding: 20, marginBottom: 16, ...elevation.md },
+  nextCard: { backgroundColor: colors.greenTint, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8 },
+  nextHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  nextHeader: { color: colors.green, fontSize: 14, fontWeight: "900" },
+  nextFocusRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  nextChip: { backgroundColor: "#fff", borderRadius: 999, paddingVertical: 4, paddingHorizontal: 11, borderWidth: 1, borderColor: colors.line },
+  nextChipText: { color: colors.ink, fontSize: 11.5, fontWeight: "800" },
+  nextIdea: { color: colors.ink, fontSize: 14.5, fontWeight: "700", lineHeight: 20 },
+  nextIdeaLabel: { color: colors.green, fontWeight: "900" },
+  nextIdeaKcal: { color: colors.mute, fontSize: 12, fontWeight: "700" },
+  nextRationale: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 16 },
   dayLabel: { color: colors.mute, fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
   ringWrap: { alignItems: "center", marginTop: 10, marginBottom: 6 },
   dayKcal: { color: colors.green, fontSize: 34, fontWeight: "900", marginTop: 2 },
