@@ -162,3 +162,27 @@ export const LIMITS = {
 export function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
+
+// A profile counts as "onboarded" only when every field the app relies on is
+// present and valid. We check this explicitly instead of just testing whether a
+// profile object exists, so a partial/corrupt cached profile (or a stale one
+// left over from an interrupted onboarding) can never skip the onboarding gate
+// or feed NaNs into computeGoal.
+export function isCompleteProfile(p: Profile | null | undefined): p is Profile {
+  if (!p) return false;
+  const genders: Gender[] = ["male", "female"];
+  const goals: Goal[] = ["lose", "maintain", "gain"];
+  const activities: Activity[] = ["sedentary", "light", "moderate", "active", "very_active"];
+  const diets: Diet[] = ["veg", "nonveg", "vegan", "eggetarian", "jain", "sattvic"];
+  const num = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
+  return (
+    genders.includes(p.gender) &&
+    goals.includes(p.goal) &&
+    activities.includes(p.activity) &&
+    diets.includes(p.diet) &&
+    num(p.age) &&
+    num(p.heightCm) &&
+    num(p.weightKg) &&
+    num(p.targetWeightKg)
+  );
+}

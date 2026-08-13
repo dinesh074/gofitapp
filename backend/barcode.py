@@ -36,7 +36,11 @@ router = APIRouter(tags=["barcode"])
 
 # OpenFoodFacts asks every API client to identify itself with a descriptive
 # User-Agent (unidentified traffic can be rate-limited/blocked).
-_OFF_URL = "https://world.openfoodfacts.org/api/v2/product/{code}.json"
+# Production is tried first; staging (.net) is a same-API fallback used only when
+# production is unreachable (e.g. the recurring .org 502 outages), so a barcode
+# scan still resolves instead of hard-failing.
+_OFF_HOSTS = ("world.openfoodfacts.org", "world.openfoodfacts.net")
+_OFF_URL = "https://{host}/api/v2/product/{code}.json"
 _OFF_FIELDS = (
     "product_name,brands,serving_size,serving_quantity,nutriments,"
     "quantity,categories_tags,countries_tags"
@@ -69,9 +73,11 @@ def _num(nutriments: dict, *keys) -> float:
     return 0.0
 
 
-def _fetch_off(code: str) -> dict | None:
-    """Return the OpenFoodFacts product dict, or None if not found."""
-    url = _OFF_URL.format(code=code) + "?fields=" + _OFF_FIELDS
+def _fetch_off_host(host: str, code: str) -> dict | None:
+    """Query one OpenFoodFacts host. Returns the product dict, None if the code
+    is unknown (404 / status 0), or raises _OffUnavailable if the host itself is
+    unreachable/erroring so the caller can try the next host."""
+    url = _OFF_URL.format(host=host, code=code) + "?fields=" + _OFF_FIELDS
     req = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
@@ -79,15 +85,39 @@ def _fetch_off(code: str) -> dict | None:
     except urllib.error.HTTPError as ex:
         if ex.code == 404:
             return None
-        log.warning("OFF HTTP error for %s: %s", code, ex)
-        raise HTTPException(status_code=502, detail="Barcode lookup service error.")
+        log.warning("OFF HTTP error for %s on %s: %s", code, host, ex)
+        raise _OffUnavailable(str(ex))
     except Exception as ex:
-        log.warning("OFF lookup failed for %s: %s", code, ex)
-        raise HTTPException(status_code=502, detail="Couldn't reach the barcode database. Try again.")
+        log.warning("OFF lookup failed for %s on %s: %s", code, host, ex)
+        raise _OffUnavailable(str(ex))
     # OFF returns status 0 with no usable product when the code is unknown.
     if not body or body.get("status") == 0 or not body.get("product"):
         return None
     return body["product"]
+
+
+class _OffUnavailable(Exception):
+    """A given OpenFoodFacts host couldn't serve the request (down/errored)."""
+
+
+def _fetch_off(code: str) -> dict | None:
+    """Return the OpenFoodFacts product dict, or None if not found.
+
+    Tries production first, then falls back to staging when production is
+    unreachable (the .org API has recurring 502 outages). A definitive
+    "not found" from any reachable host short-circuits -- we only move on when a
+    host is actually down. If every host is unavailable, surface a 502."""
+    last_error: str | None = None
+    for host in _OFF_HOSTS:
+        try:
+            return _fetch_off_host(host, code)
+        except _OffUnavailable as ex:
+            last_error = str(ex)
+            continue
+    raise HTTPException(
+        status_code=502,
+        detail="Couldn't reach the barcode database. Try again.",
+    )
 
 
 def _build_result(product: dict) -> dict:

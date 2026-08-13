@@ -10,7 +10,7 @@ import ProfileScreen from "./ProfileScreen";
 import AuthGate from "./AuthGate";
 import CookieBanner from "./CookieBanner";
 import TabBar, { TabKey } from "./TabBar";
-import { computeGoal, Profile } from "./nutrition";
+import { computeGoal, isCompleteProfile, Profile } from "./nutrition";
 import { colors } from "./theme";
 import {
   AuthState,
@@ -52,6 +52,11 @@ export default function App() {
   // leaving you to tap "Scan food" again once there.
   const [scanTrigger, setScanTrigger] = useState(0);
   const [auth, setAuth] = useState<AuthState | null>(null);
+  // True only while we're pulling a freshly signed-in account's profile/logs
+  // from the server. Prevents a returning user from briefly seeing the
+  // onboarding screen (local data was just wiped) before their server profile
+  // arrives.
+  const [hydrating, setHydrating] = useState(false);
 
   useEffect(() => {
     Promise.all([loadLogs(), loadProfile(), loadAuth()]).then(([l, p, a]) => {
@@ -88,7 +93,7 @@ export default function App() {
   async function syncProfileAndLogs(localProfile: Profile | null, localLogs: LogMap) {
     try {
       const { profile: serverProfile } = await getProfile();
-      if (serverProfile) {
+      if (isCompleteProfile(serverProfile)) {
         setProfile(serverProfile);
         void saveProfile(serverProfile);
       } else if (localProfile) {
@@ -147,11 +152,32 @@ export default function App() {
     setTab("home");
   }
 
-  function onAuthed(state: AuthState) {
+  async function onAuthed(state: AuthState) {
+    // This sign-in may be for a DIFFERENT account than the one whose data is
+    // still cached on this device (e.g. the previous user signed out, or was
+    // never signed out at all). Local profile/logs/extras use global keys --
+    // they are NOT namespaced per account -- so we must wipe them before the
+    // new session begins, otherwise account B sees account A's onboarding
+    // (skipped) and meal history. The correct data for THIS account is then
+    // pulled from its own server rows below; a brand-new account ends up with
+    // no profile → the onboarding gate shows as intended.
+    await Promise.all([clearProfile(), clearLogs(), clearExtras()]);
+    setProfile(null);
+    setLogs({});
     setAuth(state);
     saveAuth(state);
     // Register for push + schedule local reminders right after sign-in.
     void initNotifications();
+    // Hydrate this account's own profile + logs from the server (the boot-time
+    // useEffect only runs once, so a login after boot wouldn't otherwise sync).
+    // Hold the UI on a spinner until this resolves so a returning user doesn't
+    // flash the onboarding screen before their profile loads.
+    setHydrating(true);
+    try {
+      await syncProfileAndLogs(null, {});
+    } finally {
+      setHydrating(false);
+    }
   }
 
   function updateAccount(account: AuthState["account"]) {
@@ -165,8 +191,15 @@ export default function App() {
 
   async function signOut() {
     await logout(); // best-effort server-side token revoke
-    await clearAuth();
+    // Clear this account's cached data too, not just the token -- otherwise the
+    // next account to sign in on this device would inherit the previous user's
+    // profile and logs (local storage keys are not per-account).
+    await Promise.all([clearAuth(), clearProfile(), clearLogs(), clearExtras()]);
     setAuth(null);
+    setProfile(null);
+    setLogs({});
+    setShowSettings(false);
+    setTab("home");
   }
 
   // Called when the backend rejects an authenticated request with 401 -- the
@@ -208,7 +241,20 @@ export default function App() {
     );
   }
 
-  if (!profile || !goal) {
+  // Signed in, but still fetching this account's profile from the server right
+  // after login. Show a spinner rather than momentarily flashing onboarding.
+  if (hydrating) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <ActivityIndicator size="large" color={colors.green} />
+      </View>
+    );
+  }
+
+  // Onboarding gate: an account is "onboarded" only once it has a complete,
+  // valid profile. Anyone signed in without one lands here and cannot reach the
+  // app until they finish -- this is the single source of truth for that status.
+  if (!isCompleteProfile(profile) || !goal) {
     return (
       <>
         <Onboarding onComplete={completeOnboarding} />

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -328,9 +328,48 @@ function NumberField({
   step?: number;
   onChange: (v: number) => void;
 }) {
+  // Keep the latest value in a ref so the hold-to-repeat interval always reads
+  // the current number instead of the one captured when the press started.
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repeatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const bump = (dir: number) => onChange(clamp(valueRef.current + dir * step, min, max));
+
+  const stopHold = () => {
+    if (holdTimer.current) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+    if (repeatTimer.current) {
+      clearInterval(repeatTimer.current);
+      repeatTimer.current = null;
+    }
+  };
+
+  // Fire once immediately on press, then (if still held) auto-repeat.
+  const startHold = (dir: number) => {
+    stopHold();
+    bump(dir);
+    holdTimer.current = setTimeout(() => {
+      repeatTimer.current = setInterval(() => bump(dir), 80);
+    }, 350);
+  };
+
+  // Clean up any running timers if the field unmounts mid-hold.
+  useEffect(() => stopHold, []);
+
   return (
     <View style={styles.numberField}>
-      <Pressable style={styles.numBtn} onPress={() => onChange(clamp(value - step, min, max))}>
+      <Pressable
+        style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={`Decrease ${unit}`}
+        onPressIn={() => startHold(-1)}
+        onPressOut={stopHold}
+      >
         <Text style={styles.numBtnText}>−</Text>
       </Pressable>
       <View style={styles.numCenter}>
@@ -343,10 +382,18 @@ function NumberField({
             if (!isNaN(n)) onChange(n);
             else if (t === "") onChange(min);
           }}
+          onBlur={() => onChange(clamp(value, min, max))}
         />
         <Text style={styles.numUnit}>{unit}</Text>
       </View>
-      <Pressable style={styles.numBtn} onPress={() => onChange(clamp(value + step, min, max))}>
+      <Pressable
+        style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={`Increase ${unit}`}
+        onPressIn={() => startHold(1)}
+        onPressOut={stopHold}
+      >
         <Text style={styles.numBtnText}>+</Text>
       </Pressable>
     </View>
@@ -462,6 +509,7 @@ const styles = StyleSheet.create({
 
   numberField: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 20 },
   numBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#fff", borderWidth: 2, borderColor: "#EAEFEB", alignItems: "center", justifyContent: "center" },
+  numBtnPressed: { backgroundColor: "#EAF5EE", borderColor: GREEN },
   numBtnText: { fontSize: 28, fontWeight: "800", color: GREEN },
   numCenter: { alignItems: "center", minWidth: 120 },
   numInput: { fontSize: 48, fontWeight: "900", color: INK, textAlign: "center", minWidth: 100, padding: 0 },
