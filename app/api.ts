@@ -784,6 +784,24 @@ export async function setHabit(
   return postAuth<HabitState>("/habits", { date, kind, value });
 }
 
+// Today's training context, persisted server-side so it's part of the one
+// connected system and syncs across devices (see training.ts, which uses
+// on-device storage as a fast offline cache in front of these).
+export type TrainingContextValue = "rest" | "endurance" | "strength" | "performance";
+export type TrainingState = { date: string; context: TrainingContextValue | null };
+
+export async function getServerTraining(date: string): Promise<TrainingState> {
+  return getJson<TrainingState>(`/training?date=${encodeURIComponent(date)}`);
+}
+
+// Set (or clear, when context is null) today's training context.
+export async function putServerTraining(
+  date: string,
+  context: TrainingContextValue | null
+): Promise<TrainingState> {
+  return postAuth<TrainingState>("/training", { date, context }, "PUT");
+}
+
 /* ------------------------------ Exercise tracking ------------------------- */
 // Curated open (Compendium of Physical Activities MET-based) exercise catalog +
 // daily activity logging. Calories burned are computed server-side from the

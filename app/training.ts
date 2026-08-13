@@ -15,6 +15,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { GoalTargets, Profile } from "./nutrition";
+import { getServerTraining, putServerTraining } from "./api";
 
 export type TrainingContext = "rest" | "endurance" | "strength" | "performance";
 
@@ -144,23 +145,49 @@ async function saveStore(store: TrainingStore): Promise<void> {
 }
 
 // Read today's context for an account, or null if none set / signed out.
+// Prefers the server (source of truth, syncs across devices) and falls back to
+// the on-device cache when offline / unauthenticated.
 export async function loadTrainingContext(
   accountId: number | null,
   date: string,
 ): Promise<TrainingContext | null> {
   if (accountId == null) return null;
-  const store = await loadStore();
-  return store[String(accountId)]?.[date] ?? null;
+  try {
+    const { context } = await getServerTraining(date);
+    // Keep the local cache in step so an offline read later is still correct.
+    await writeCache(accountId, date, context);
+    return context;
+  } catch {
+    // Offline / not authenticated yet: fall back to the on-device cache.
+    const store = await loadStore();
+    return store[String(accountId)]?.[date] ?? null;
+  }
 }
 
-// Set (or clear, when ctx === null) today's context for an account. Also prunes
-// entries older than ~14 days so the store can't grow forever.
+// Set (or clear, when ctx === null) today's context for an account. Writes
+// through to the server (source of truth) and mirrors into the on-device cache.
 export async function saveTrainingContext(
   accountId: number | null,
   date: string,
   ctx: TrainingContext | null,
 ): Promise<void> {
   if (accountId == null) return;
+  await writeCache(accountId, date, ctx);
+  try {
+    await putServerTraining(date, ctx);
+  } catch {
+    // Best-effort: the local cache still holds it and a later read will
+    // re-sync. Don't block the UI on a network hiccup.
+  }
+}
+
+// Update only the on-device cache (also prunes entries older than ~14 days so
+// the store can't grow forever).
+async function writeCache(
+  accountId: number,
+  date: string,
+  ctx: TrainingContext | null,
+): Promise<void> {
   const store = await loadStore();
   const key = String(accountId);
   const byDate: Record<string, TrainingContext> = { ...(store[key] ?? {}) };

@@ -22,6 +22,7 @@ local cache can stay eventually-consistent the same way meal logs do.
 """
 import time
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -36,6 +37,9 @@ router = APIRouter(tags=["wellness"])
 # Recognised habit kinds. Kept as a small allow-list so an arbitrary client
 # can't spray unbounded key names into the table.
 HABIT_KINDS = {"steps", "workout_min", "sleep_hr"}
+
+# Recognised training contexts. Same allow-list idea as HABIT_KINDS.
+TRAINING_CONTEXTS = {"rest", "endurance", "strength", "performance"}
 
 # Fallback only, used before an account has synced a profile at all (see
 # _water_goal_ml below). Once a profile exists, the goal is personalized --
@@ -112,6 +116,20 @@ def init_db() -> None:
                 value      REAL NOT NULL DEFAULT 0,
                 updated_at REAL NOT NULL,
                 PRIMARY KEY (account_id, date, kind)
+            )
+            """
+        )
+        # Today's training context (rest / endurance / strength / performance).
+        # Persisted server-side so it's part of the one connected system and
+        # syncs across devices, instead of living only in on-device storage.
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS training_logs (
+                account_id INTEGER NOT NULL,
+                date       TEXT NOT NULL,
+                context    TEXT NOT NULL,
+                updated_at REAL NOT NULL,
+                PRIMARY KEY (account_id, date)
             )
             """
         )
@@ -210,3 +228,48 @@ def set_habit(body: HabitBody, request: Request):
         habits = _habits_for(c, acct["id"], body.date)
         step_goal = _step_goal(_profile_for(c, acct["id"]))
     return {"date": body.date, "habits": habits, "stepGoal": step_goal}
+
+
+# --- training context ----------------------------------------------------- #
+
+class TrainingBody(BaseModel):
+    date: str = Field(..., min_length=10, max_length=10)
+    # None clears today's context (e.g. the user un-taps the selected pill).
+    context: Optional[str] = None
+
+
+@router.get("/training")
+def get_training(request: Request, date: str):
+    acct = auth.require_account(request)
+    with db.connect() as c:
+        row = c.execute(
+            "SELECT context FROM training_logs WHERE account_id=? AND date=?",
+            (acct["id"], date),
+        ).fetchone()
+    return {"date": date, "context": row["context"] if row else None}
+
+
+@router.put("/training")
+def set_training(body: TrainingBody, request: Request):
+    acct = auth.require_account(request)
+    now = time.time()
+    ctx = body.context
+    if ctx is not None and ctx not in TRAINING_CONTEXTS:
+        raise HTTPException(status_code=400, detail=f"Unknown training context '{ctx}'.")
+    with db.write_lock(), db.connect() as c:
+        if ctx is None:
+            c.execute(
+                "DELETE FROM training_logs WHERE account_id=? AND date=?",
+                (acct["id"], body.date),
+            )
+        else:
+            c.execute(
+                """
+                INSERT INTO training_logs (account_id, date, context, updated_at)
+                VALUES (?,?,?,?)
+                ON CONFLICT(account_id, date) DO UPDATE SET
+                    context=excluded.context, updated_at=excluded.updated_at
+                """,
+                (acct["id"], body.date, ctx, now),
+            )
+    return {"date": body.date, "context": ctx}
