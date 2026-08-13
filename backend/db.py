@@ -74,7 +74,7 @@ def write_lock():
 # Tables whose primary key is a serial `id` column. Only for these do we append
 # `RETURNING id` to plain INSERTs so `cursor.lastrowid` keeps working on
 # Postgres. (Text-PK tables like `tokens`, `groups`, `users` are excluded.)
-_ID_TABLES = {"accounts", "posts", "post_comments", "notifications", "feedback", "meal_logs"}
+_ID_TABLES = {"accounts", "posts", "post_comments", "notifications", "feedback", "meal_logs", "exercise_logs"}
 _INSERT_TABLE_RE = re.compile(r"insert\s+into\s+([a-z_][a-z0-9_]*)", re.I)
 _AUTOINC_RE = re.compile(r"integer\s+primary\s+key\s+autoincrement", re.I)
 _REAL_RE = re.compile(r"\bREAL\b", re.I)

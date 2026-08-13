@@ -784,6 +784,59 @@ export async function setHabit(
   return postAuth<HabitState>("/habits", { date, kind, value });
 }
 
+/* ------------------------------ Exercise tracking ------------------------- */
+// Curated open (Compendium of Physical Activities MET-based) exercise catalog +
+// daily activity logging. Calories burned are computed server-side from the
+// account's saved weight, so they recalculate when the profile weight changes.
+
+export type ExerciseCatalogItem = { key: string; name: string; met: number };
+export type ExerciseCategory = { key: string; label: string; items: ExerciseCatalogItem[] };
+export type ExerciseCatalog = { categories: ExerciseCategory[] };
+export type ExerciseEntry = {
+  id: number;
+  key: string;
+  name: string;
+  minutes: number;
+  kcal: number;
+  at: number;
+};
+export type ExerciseDay = {
+  date: string;
+  entries: ExerciseEntry[];
+  totalKcal: number;
+  totalMinutes: number;
+};
+
+export async function getExerciseCatalog(): Promise<ExerciseCatalog> {
+  return getJson<ExerciseCatalog>("/exercise/catalog");
+}
+
+export async function getExerciseLogs(date: string): Promise<ExerciseDay> {
+  return getJson<ExerciseDay>(`/exercise/logs?date=${encodeURIComponent(date)}`);
+}
+
+// Logs one activity for the day; returns the updated day (with computed kcal).
+export async function addExerciseLog(
+  date: string,
+  key: string,
+  minutes: number
+): Promise<ExerciseDay> {
+  return postAuth<ExerciseDay>("/exercise/log", { date, key, minutes });
+}
+
+export async function deleteExerciseLog(id: number): Promise<ExerciseDay> {
+  const res = await fetch(`${API_BASE}/exercise/log/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const msg = await authError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
+  return (await res.json()) as ExerciseDay;
+}
+
 /* ------------------------------- Feed API -------------------------------- */
 
 export type FeedMeal = {

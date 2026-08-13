@@ -10,12 +10,13 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
+import ExerciseSheet from "./ExerciseSheet";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
@@ -178,6 +179,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [showShare, setShowShare] = useState(false);
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
+  const [exerciseKcal, setExerciseKcal] = useState(0);
+  const [showExercise, setShowExercise] = useState(false);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   // Thali clarification: selected option index per question id. Empty = every
@@ -341,6 +344,12 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         }
       } catch {
         // best-effort
+      }
+      try {
+        const ex = await getExerciseLogs(today);
+        if (alive) setExerciseKcal(ex.totalKcal);
+      } catch {
+        // best-effort: exercise burn just shows 0 until it loads
       }
     })();
     return () => {
@@ -1057,6 +1066,22 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         </View>
 
+        {/* Exercise: opens a full picker sheet. Calories burned are computed
+            server-side from the saved weight, so this stays part of the one
+            connected system rather than a static number. */}
+        <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
+          <View style={styles.exerciseIcon}>
+            <Icon name="dumbbell" size={18} color={colors.green} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.exerciseTitle}>Exercise</Text>
+            <Text style={styles.exerciseSub}>
+              {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
+            </Text>
+          </View>
+          <Icon name="chevronRight" size={18} color={colors.mute} />
+        </PressableScale>
+
         {/* One button, one sheet (AddFoodSheet) -- camera, gallery, barcode
             and describe used to each get their own row on this screen, which
             just meant hunting for the right one. The center TabBar button
@@ -1307,6 +1332,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
+      {showExercise && (
+        <ExerciseSheet
+          visible={showExercise}
+          date={today}
+          onClose={() => setShowExercise(false)}
+          onChanged={(d) => setExerciseKcal(d.totalKcal)}
+          onRequireAuth={() => {
+            setShowExercise(false);
+            onRequireAuth();
+          }}
+        />
+      )}
+
       {showPaywall && (
         <Paywall
           visible={showPaywall}
@@ -1466,6 +1504,10 @@ const styles = StyleSheet.create({
   wellBtns: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 },
   wellStep: { width: 34, height: 34, borderRadius: 10, borderWidth: 1.5, borderColor: colors.hairline, alignItems: "center", justifyContent: "center" },
   wellStepLabel: { color: colors.mute, fontWeight: "700", fontSize: 12 },
+  exerciseCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 18, padding: 14, marginBottom: 16, ...elevation.sm },
+  exerciseIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardMuted, alignItems: "center", justifyContent: "center" },
+  exerciseTitle: { color: colors.ink, fontSize: 15, fontWeight: "900" },
+  exerciseSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600", marginTop: 2 },
   trialChip: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 16 },
   trialText: { color: colors.green, fontWeight: "800", fontSize: 12.5 },
 

@@ -47,6 +47,7 @@ import progress
 import barcode
 import wellness
 import plan
+import exercise
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -197,6 +198,13 @@ app.include_router(barcode.router)
 # no scan credit involvement.
 wellness.init_db()
 app.include_router(wellness.router)
+
+# Exercise catalog + daily activity logging (GET /exercise/catalog,
+# GET/POST /exercise/logs, DELETE /exercise/log/{id}). Calories burned are
+# computed from the account's saved weight via MET values -- part of the one
+# connected system, no third-party service or scan credit involved.
+exercise.init_db()
+app.include_router(exercise.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key
