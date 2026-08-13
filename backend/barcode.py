@@ -43,7 +43,7 @@ _OFF_HOSTS = ("world.openfoodfacts.net", "world.openfoodfacts.org")
 _OFF_URL = "https://{host}/api/v2/product/{code}.json"
 _OFF_FIELDS = (
     "product_name,brands,serving_size,serving_quantity,nutriments,"
-    "quantity,categories_tags,countries_tags"
+    "quantity,categories_tags,countries_tags,alcohol"
 )
 _USER_AGENT = "gofit.today/1.0 (barcode lookup; contact: info@buiild.in)"
 _TIMEOUT = 8  # seconds -- keep the request snappy; OFF is usually sub-second
@@ -120,12 +120,52 @@ def _fetch_off(code: str) -> dict | None:
     )
 
 
+def _sanity_issues(kcal, protein, carbs, fat, fiber, sugar, alcohol=0.0) -> list[str]:
+    """Physical-plausibility checks on a per-100g nutrient row. Returns a list of
+    human-readable issues; empty means the label looks trustworthy.
+
+    OpenFoodFacts is crowd-sourced, so some products carry impossible values
+    (macros summing past the food's own mass, calories that don't match the
+    macros, fibre/sugar exceeding total carbohydrate). We use these to demote
+    confidence rather than present garbage as near-certain."""
+    issues: list[str] = []
+    # Macronutrients are a subset of 100 g of food; allow a little slack for
+    # rounding and water/ash, but a sum well past 100 g is impossible.
+    if protein + carbs + fat > 105.0:
+        issues.append("macros exceed 100 g/100 g")
+    # Pure fat is ~884 kcal/100 g; nothing edible exceeds ~900.
+    if kcal > 902.0:
+        issues.append("calories exceed physical maximum")
+    # Fibre and sugar are components of carbohydrate; they can't exceed it
+    # (small tolerance for label rounding).
+    if fiber > carbs + 1.0:
+        issues.append("fibre exceeds carbohydrate")
+    if sugar > carbs + 1.0:
+        issues.append("sugar exceeds carbohydrate")
+    # Atwater: calories implied by the macros should roughly match the declared
+    # calories. Alcohol (7 kcal/g) carries energy but isn't a macro, so include
+    # it -- otherwise spirits would look like "calories from nothing". Judge only
+    # when at least one side is substantial, so trace-calorie products (diet
+    # drinks, water) aren't flagged on rounding noise.
+    atwater = 4.0 * protein + 4.0 * carbs + 9.0 * fat + 7.0 * alcohol
+    if kcal > 50.0 or atwater > 50.0:
+        ratio = kcal / max(atwater, 1.0)
+        if ratio < 0.6 or ratio > 1.6:
+            issues.append("calories disagree with macros")
+    return issues
+
+
 def _build_result(product: dict) -> dict:
     """Map an OpenFoodFacts product to the app's AnalysisResult shape.
 
     Packaged-food labels are given per-100g; many also carry per-serving
     figures. We anchor one FoodItem to a single serving when the pack declares
-    one (so the +/- stepper adds whole servings), otherwise to 100 g."""
+    one (so the +/- stepper adds whole servings), otherwise to 100 g.
+
+    Before trusting a per-serving basis we sanity-check the label: if the
+    per-100g row is physically implausible (bad crowd-sourced data), we fall
+    back to the 100 g basis and lower the confidence so obviously-wrong entries
+    aren't presented as near-certain."""
     n = product.get("nutriments") or {}
     name = (product.get("product_name") or "").strip()
     brand = (product.get("brands") or "").split(",")[0].strip()
@@ -133,32 +173,53 @@ def _build_result(product: dict) -> dict:
         name = brand or "Packaged food"
     dish = f"{brand} {name}".strip() if brand and brand.lower() not in name.lower() else name
 
+    # Per-100g row -- the canonical basis and what we sanity-check against.
+    kcal_100 = _num(n, "energy-kcal_100g")
+    protein_100 = _num(n, "proteins_100g")
+    carbs_100 = _num(n, "carbohydrates_100g")
+    fat_100 = _num(n, "fat_100g")
+    fiber_100 = _num(n, "fiber_100g")
+    sugar_100 = _num(n, "sugars_100g")
+    sodium_100 = _num(n, "sodium_100g")
+    alcohol_100 = _num(n, "alcohol_100g")
+
+    issues = _sanity_issues(
+        kcal_100, protein_100, carbs_100, fat_100, fiber_100, sugar_100, alcohol_100
+    )
+
     serving_g = product.get("serving_quantity")
     try:
         serving_g = float(serving_g) if serving_g not in (None, "") else 0.0
     except (TypeError, ValueError):
         serving_g = 0.0
 
-    # Prefer explicit per-serving values from the label; else scale per-100g.
-    if serving_g and serving_g > 0:
+    # Use the per-serving basis only when the label is trustworthy. If the data
+    # failed the sanity checks, anchor to 100 g so we don't multiply bad numbers
+    # by a (possibly also bad) serving size.
+    if serving_g and serving_g > 0 and not issues:
         factor = serving_g / 100.0
         unit = f"serving ({serving_g:g} g)"
-        kcal = _num(n, "energy-kcal_serving") or _num(n, "energy-kcal_100g") * factor
-        protein = _num(n, "proteins_serving") or _num(n, "proteins_100g") * factor
-        carbs = _num(n, "carbohydrates_serving") or _num(n, "carbohydrates_100g") * factor
-        fat = _num(n, "fat_serving") or _num(n, "fat_100g") * factor
-        fiber = _num(n, "fiber_serving") or _num(n, "fiber_100g") * factor
-        sugar = _num(n, "sugars_serving") or _num(n, "sugars_100g") * factor
-        sodium_g = _num(n, "sodium_serving") or _num(n, "sodium_100g") * factor
+        kcal = _num(n, "energy-kcal_serving") or kcal_100 * factor
+        protein = _num(n, "proteins_serving") or protein_100 * factor
+        carbs = _num(n, "carbohydrates_serving") or carbs_100 * factor
+        fat = _num(n, "fat_serving") or fat_100 * factor
+        fiber = _num(n, "fiber_serving") or fiber_100 * factor
+        sugar = _num(n, "sugars_serving") or sugar_100 * factor
+        sodium_g = _num(n, "sodium_serving") or sodium_100 * factor
     else:
         unit = "100 g"
-        kcal = _num(n, "energy-kcal_100g")
-        protein = _num(n, "proteins_100g")
-        carbs = _num(n, "carbohydrates_100g")
-        fat = _num(n, "fat_100g")
-        fiber = _num(n, "fiber_100g")
-        sugar = _num(n, "sugars_100g")
-        sodium_g = _num(n, "sodium_100g")
+        kcal = kcal_100
+        protein = protein_100
+        carbs = carbs_100
+        fat = fat_100
+        fiber = fiber_100
+        sugar = sugar_100
+        sodium_g = sodium_100
+
+    # Fibre/sugar are components of carbohydrate; never let a bad label report
+    # more than the carbohydrate total for the same basis.
+    fiber = min(fiber, carbs) if carbs else fiber
+    sugar = min(sugar, carbs) if carbs else sugar
 
     # OFF stores sodium in grams; the app tracks it in mg.
     sodium_mg = round(sodium_g * 1000.0, 1)
@@ -192,14 +253,18 @@ def _build_result(product: dict) -> dict:
         "carbs_g": item["carbs_g"],
         "fat_g": item["fat_g"],
     }
+    if issues:
+        log.warning("OFF data for %r looks implausible (%s)", dish, "; ".join(issues))
     return {
         "dish": dish,
         "cuisine": "Packaged",
         "items": [item],
         "calories_kcal": item["kcal_total"],
-        # Barcode data is read straight off the label, so the reading itself is
-        # exact -- the only uncertainty is whether the user eats one serving.
-        "confidence": 0.99,
+        # Barcode data is normally read straight off the label, so the reading is
+        # exact -- the only uncertainty is whether the user eats one serving. But
+        # when the crowd-sourced label failed our sanity checks, flag it as much
+        # less certain so the UI/user treats the numbers with suspicion.
+        "confidence": 0.55 if issues else 0.99,
         "totals": totals,
     }
 
