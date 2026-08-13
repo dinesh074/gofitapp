@@ -43,6 +43,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
 import { suggestNextMeal } from "./mealSuggest";
+import {
+  loadPortionMemory,
+  rememberPortions,
+  applyPortionMemory,
+  forgetPortion,
+  PortionMemory,
+} from "./corrections";
 import MonthStreak from "./MonthStreak";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
@@ -156,6 +163,12 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // question sits on its baseline (default) option, so totals match the AI's
   // first estimate until the user answers.
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  // Correction/learning engine: this account's remembered portions, loaded once
+  // per account and kept in sync as the user logs meals. `learnedIdx` maps an
+  // item index -> the AI's ORIGINAL count, present only for items we auto-set to
+  // the user's usual portion (so we can show a "your usual" chip + undo).
+  const portionMemory = useRef<PortionMemory>({});
+  const [learnedIdx, setLearnedIdx] = useState<Record<number, number>>({});
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -177,6 +190,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       alive = false;
     };
   }, []);
+
+  // Load this account's learned portions (correction engine). Reloads when the
+  // signed-in account changes so we never apply one user's habits to another.
+  useEffect(() => {
+    let alive = true;
+    loadPortionMemory(account?.id ?? null).then((m) => {
+      if (alive) portionMemory.current = m;
+    });
+    return () => {
+      alive = false;
+    };
+  }, [account?.id]);
 
   const isPro = !!account?.isPro;
   const scansLeft = account?.scansLeft ?? account?.scansLimit ?? null;
@@ -349,8 +374,12 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // /analyze/text call DescribeMeal already uses) -- both return the exact
   // same AnalysisResult shape, so applying one to screen state is identical.
   function applyResult(data: AnalysisResult) {
-    setResult(data);
     setAnswers({}); // new scan -> reset any thali clarifications
+    // Correction engine: pre-apply the user's usual portions for foods they've
+    // logged before, so the AI's generic guess becomes their reality.
+    const { items, learned } = applyPortionMemory(data.items, portionMemory.current);
+    setResult({ ...data, items });
+    setLearnedIdx(learned);
     if (data.usage && account) {
       onAccountUpdate({
         ...account,
@@ -498,8 +527,45 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       at: Date.now(),
     };
     logMeal(meal);
+    // Correction engine: learn the portions the user settled on for each food,
+    // so next time this account scans the same item we pre-fill their usual.
+    void rememberPortions(account?.id ?? null, result.items).then((m) => {
+      portionMemory.current = m;
+    });
     setResult(null);
     setPhoto(null);
+    setLearnedIdx({});
+  }
+
+  // "Not my usual": revert an auto-applied learned portion back to the AI's
+  // original count for this item, and forget it so we stop pre-applying it.
+  function undoLearned(index: number) {
+    const original = learnedIdx[index];
+    if (original === undefined) return;
+    setResult((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((it, i) => {
+        if (i !== index) return it;
+        return {
+          ...it,
+          count: original,
+          kcal_total: Math.round(original * it.kcal_per_unit),
+          protein_g: Math.round(original * it.protein_g_per_unit * 10) / 10,
+          carbs_g: Math.round(original * it.carbs_g_per_unit * 10) / 10,
+          fat_g: Math.round(original * it.fat_g_per_unit * 10) / 10,
+        };
+      });
+      const name = prev.items[index]?.item ?? "";
+      void forgetPortion(account?.id ?? null, name).then((m) => {
+        portionMemory.current = m;
+      });
+      return { ...prev, items };
+    });
+    setLearnedIdx((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   }
 
   // One-tap re-add of a recent/favorite meal (no re-scan).
@@ -723,6 +789,14 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                       {Math.round(it.count * it.carbs_g_per_unit)}g · F{" "}
                       {Math.round(it.count * it.fat_g_per_unit)}g
                     </Text>
+                    {learnedIdx[i] !== undefined && (
+                      <Pressable style={styles.usualChip} onPress={() => undoLearned(i)}>
+                        <Icon name="sparkles" size={11} color={colors.green} />
+                        <Text style={styles.usualChipText}>
+                          Your usual · tap to reset to {learnedIdx[i]}
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                   <View style={styles.stepper}>
                     <Pressable style={styles.stepBtn} onPress={() => adjust(i, -1)}>
@@ -1031,6 +1105,18 @@ const styles = StyleSheet.create({
   itemActions: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8, flexWrap: "wrap" },
   swapLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" },
   swapLinkText: { color: colors.green, fontSize: 11.5, fontWeight: "800", textDecorationLine: "underline" },
+  usualChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    marginTop: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    backgroundColor: colors.greenTint,
+  },
+  usualChipText: { fontSize: 10.5, fontWeight: "800", color: colors.green },
   qBlock: { marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: colors.greenTint, gap: 10 },
   qHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   qHeader: { fontSize: 14, fontWeight: "900", color: colors.green },
