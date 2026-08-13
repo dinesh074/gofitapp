@@ -99,3 +99,18 @@ export function promptGoogleWeb(): void {
   const google = (window as any).google;
   google?.accounts?.id?.prompt();
 }
+
+// Called on sign-out (web). Turns off Google Identity Services auto-select so the
+// NEXT sign-in doesn't silently re-issue a credential for the same Google account
+// that was just signed out -- the user gets the account chooser instead. This is
+// what makes "switch account" actually switch, rather than logging straight back
+// into the previous user. (It does not, and cannot, sign the browser out of
+// Google itself -- only clears our app's auto-select preference.)
+export function signOutGoogleWeb(): void {
+  const google = (window as any).google;
+  try {
+    google?.accounts?.id?.disableAutoSelect();
+  } catch {
+    /* GIS not loaded yet -- nothing to disable */
+  }
+}

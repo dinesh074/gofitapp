@@ -28,6 +28,7 @@ import {
   AuthRequiredError,
 } from "./api";
 import { initNotifications } from "./push";
+import { signOutGoogleWeb } from "./googleWeb";
 import {
   clearExtras,
   clearLogs,
@@ -191,6 +192,9 @@ export default function App() {
 
   async function signOut() {
     await logout(); // best-effort server-side token revoke
+    // Turn off Google auto-select so the next sign-in shows the account chooser
+    // instead of silently re-issuing a credential for the account we just left.
+    signOutGoogleWeb();
     // Clear this account's cached data too, not just the token -- otherwise the
     // next account to sign in on this device would inherit the previous user's
     // profile and logs (local storage keys are not per-account).

@@ -17,6 +17,10 @@ export function promptGoogleWeb(): void {
   // no-op on native
 }
 
+export function signOutGoogleWeb(): void {
+  // no-op on native
+}
+
 export function currentOrigin(): string {
   return "";
 }
