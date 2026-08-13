@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -285,12 +286,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       setShowPaywall(true);
       return;
     }
-    const perm = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setError("Permission denied for " + (fromCamera ? "camera" : "photos"));
-      return;
+    // On web there is no OS media/camera permission to request up front -- the
+    // browser handles it via the file picker (gallery) or the getUserMedia
+    // prompt (camera) at the moment of use. Calling requestMediaLibrary/Camera
+    // permissions on web can spuriously return granted:false on some browsers,
+    // which was blocking gallery uploads entirely. So only gate on native.
+    if (Platform.OS !== "web") {
+      const perm = fromCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        setError("Permission denied for " + (fromCamera ? "camera" : "photos"));
+        return;
+      }
     }
     const res = fromCamera
       ? await ImagePicker.launchCameraAsync({ quality: 0.6 })

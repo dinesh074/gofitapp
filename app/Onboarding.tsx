@@ -334,6 +334,21 @@ function NumberField({
   valueRef.current = value;
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repeatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Set true once a press-and-hold has auto-repeated at least once, so the
+  // onPress that fires on release doesn't add one extra step on top of the
+  // repeats. A plain tap never sets this, so onPress handles the single step.
+  const didRepeat = useRef(false);
+
+  // Free-typing buffer. The field is not hard-bound to `value` while focused --
+  // otherwise clearing it would instantly snap back to the minimum and you
+  // could never retype a number. We only clamp/commit on blur.
+  const [text, setText] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+  // When the value changes from outside (the +/- buttons) and we're not mid-typing,
+  // mirror it into the text buffer so the input stays in sync.
+  useEffect(() => {
+    if (!focused) setText(String(value));
+  }, [value, focused]);
 
   const bump = (dir: number) => onChange(clamp(valueRef.current + dir * step, min, max));
 
@@ -348,25 +363,49 @@ function NumberField({
     }
   };
 
-  // Fire once immediately on press, then (if still held) auto-repeat.
+  // Start the hold-to-repeat timer. Does NOT step immediately -- the reliable
+  // single step comes from onPress (which fires on every device/browser),
+  // avoiding the case where onPressIn doesn't fire and a tap does nothing.
   const startHold = (dir: number) => {
     stopHold();
-    bump(dir);
+    didRepeat.current = false;
     holdTimer.current = setTimeout(() => {
-      repeatTimer.current = setInterval(() => bump(dir), 80);
+      repeatTimer.current = setInterval(() => {
+        didRepeat.current = true;
+        bump(dir);
+      }, 80);
     }, 350);
+  };
+
+  const onTap = (dir: number) => {
+    // Suppress the trailing tap that follows a hold-repeat; otherwise a plain
+    // tap performs the single step here.
+    if (didRepeat.current) {
+      didRepeat.current = false;
+      return;
+    }
+    bump(dir);
   };
 
   // Clean up any running timers if the field unmounts mid-hold.
   useEffect(() => stopHold, []);
 
+  const commit = () => {
+    setFocused(false);
+    const n = parseInt(text, 10);
+    const v = isNaN(n) ? min : clamp(n, min, max);
+    onChange(v);
+    setText(String(v));
+  };
+
   return (
     <View style={styles.numberField}>
       <Pressable
         style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
-        hitSlop={12}
+        hitSlop={16}
         accessibilityRole="button"
         accessibilityLabel={`Decrease ${unit}`}
+        onPress={() => onTap(-1)}
         onPressIn={() => startHold(-1)}
         onPressOut={stopHold}
       >
@@ -379,21 +418,29 @@ function NumberField({
         <TextInput
           style={styles.numInput}
           keyboardType="numeric"
-          value={String(value)}
+          inputMode="numeric"
+          value={text}
+          onFocus={() => setFocused(true)}
           onChangeText={(t) => {
-            const n = parseInt(t.replace(/[^0-9]/g, ""), 10);
+            const cleaned = t.replace(/[^0-9]/g, "");
+            setText(cleaned);
+            // Live-update the parent while typing so the summary/next-button
+            // enablement tracks, but never clamp here -- clamping happens on blur.
+            const n = parseInt(cleaned, 10);
             if (!isNaN(n)) onChange(n);
-            else if (t === "") onChange(min);
           }}
-          onBlur={() => onChange(clamp(value, min, max))}
+          onBlur={commit}
+          onSubmitEditing={commit}
+          returnKeyType="done"
         />
         <Text style={styles.numUnit}>{unit}</Text>
       </View>
       <Pressable
         style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
-        hitSlop={12}
+        hitSlop={16}
         accessibilityRole="button"
         accessibilityLabel={`Increase ${unit}`}
+        onPress={() => onTap(1)}
         onPressIn={() => startHold(1)}
         onPressOut={stopHold}
       >
