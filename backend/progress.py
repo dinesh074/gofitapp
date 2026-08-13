@@ -44,6 +44,14 @@ log = logging.getLogger("gofit.progress")
 router = APIRouter(tags=["progress"])
 
 
+def _ensure_column(c, table: str, column: str, decl: str) -> None:
+    """Add a column if it's missing, so older databases pick up new fields
+    without a migration framework. SQLite has no ADD COLUMN IF NOT EXISTS."""
+    cols = {r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in cols:
+        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def init_db() -> None:
     with db.connect() as c:
         c.execute(
@@ -59,11 +67,19 @@ def init_db() -> None:
                 goal             TEXT NOT NULL,
                 activity         TEXT NOT NULL,
                 diet             TEXT NOT NULL,
+                goal_pace        TEXT,
+                goal_kind        TEXT,
                 created_at       REAL NOT NULL,
                 updated_at       REAL NOT NULL
             )
             """
         )
+        # Additive columns for the onboarding redesign. Guarded so existing
+        # databases (created before these columns) get them without a migration
+        # tool. goal_pace / goal_kind are nullable; the client + server both fall
+        # back sensibly when absent (see resolveGoalPace / resolveGoalKind).
+        _ensure_column(c, "profiles", "goal_pace", "TEXT")
+        _ensure_column(c, "profiles", "goal_kind", "TEXT")
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS meal_logs (
@@ -203,6 +219,8 @@ class ProfileBody(BaseModel):
     goal: str
     activity: str
     diet: str
+    goalPace: Optional[str] = None
+    goalKind: Optional[str] = None
 
 
 def _row_to_profile(row) -> dict:
@@ -216,6 +234,8 @@ def _row_to_profile(row) -> dict:
         "goal": row["goal"],
         "activity": row["activity"],
         "diet": row["diet"],
+        "goalPace": (row["goal_pace"] if "goal_pace" in row.keys() else None),
+        "goalKind": (row["goal_kind"] if "goal_kind" in row.keys() else None),
         "createdAt": row["created_at"],
         # Computed, not stored -- always current with whatever weight/height
         # is on the profile right now, nothing to keep in sync.
@@ -246,19 +266,21 @@ def put_profile(body: ProfileBody, request: Request):
             """
             INSERT INTO profiles
                 (account_id, name, gender, age, height_cm, weight_kg,
-                 target_weight_kg, goal, activity, diet, created_at, updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                 target_weight_kg, goal, activity, diet, goal_pace, goal_kind,
+                 created_at, updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(account_id) DO UPDATE SET
                 name=excluded.name, gender=excluded.gender, age=excluded.age,
                 height_cm=excluded.height_cm, weight_kg=excluded.weight_kg,
                 target_weight_kg=excluded.target_weight_kg, goal=excluded.goal,
                 activity=excluded.activity, diet=excluded.diet,
+                goal_pace=excluded.goal_pace, goal_kind=excluded.goal_kind,
                 updated_at=excluded.updated_at
             """,
             (
                 acct["id"], body.name, body.gender, body.age, body.heightCm,
                 body.weightKg, body.targetWeightKg, body.goal, body.activity,
-                body.diet, created_at, now,
+                body.diet, body.goalPace, body.goalKind, created_at, now,
             ),
         )
         row = c.execute(

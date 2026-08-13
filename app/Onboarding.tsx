@@ -1,32 +1,43 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   Activity,
   ACTIVITY_LABELS,
   clamp,
+  computeBmi,
   computeGoal,
   Diet,
   Gender,
   Goal,
+  GoalKind,
+  GoalPace,
+  kgToLb,
+  lbToKg,
+  cmToIn,
+  inToCm,
+  formatHeight,
+  HeightUnit,
   LIMITS,
   Profile,
+  projectPlan,
+  tdee,
+  WeightUnit,
 } from "./nutrition";
 import { APP_NAME } from "./config";
 import { colors } from "./theme";
 import Icon, { IconName } from "./Icon";
 import PressableScale from "./PressableScale";
+import WheelPicker from "./WheelPicker";
+import PaceSlider from "./PaceSlider";
 
 const GREEN = "#0B7A4B";
 const BG = "#F4F6F5";
 const INK = "#1D2521";
 const MUTE = "#8A8F8C";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fmtDate = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const fmtKg = (n: number) => `${Math.round(n * 10) / 10}`;
 
 type Props = { onComplete: (p: Profile) => void };
 
@@ -35,86 +46,117 @@ type Draft = {
   age: number;
   heightCm: number;
   weightKg: number;
-  goal?: Goal;
+  goalKind?: GoalKind;
   targetWeightKg: number;
+  goalPace: GoalPace;
   activity?: Activity;
   diet?: Diet;
 };
 
+// welcome is index 0; everything after it shows the progress bar. target + pace
+// are skipped for goals with no weight change (maintain / general fitness).
 const STEPS = [
   "welcome",
-  "gender",
-  "age",
-  "height",
-  "weight",
+  "basics", // gender + age
+  "body", // height + weight
+  "activity",
   "goal",
   "target",
-  "activity",
+  "pace",
   "diet",
   "summary",
 ] as const;
 
+const IDX = STEPS.reduce((m, k, i) => ((m[k] = i), m), {} as Record<(typeof STEPS)[number], number>);
+
+function goalOf(kind: GoalKind): Goal {
+  return kind === "loss" ? "lose" : kind === "muscle" ? "gain" : "maintain";
+}
+const hasWeightTarget = (kind?: GoalKind) => kind === "loss" || kind === "muscle";
+
 export default function Onboarding({ onComplete }: Props) {
   const [step, setStep] = useState(0);
+  const [heightUnit, setHeightUnit] = useState<HeightUnit>("cm");
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>("kg");
   const [d, setD] = useState<Draft>({
     age: 25,
     heightCm: 170,
     weightKg: 70,
     targetWeightKg: 65,
+    goalPace: "recommended",
   });
 
   const key = STEPS[step];
   const progress = step / (STEPS.length - 1);
 
+  // Animated progress bar (persists all draft values across back/forward — the
+  // draft is never reset on navigation).
+  const anim = useRef(new Animated.Value(progress)).current;
+  useEffect(() => {
+    Animated.timing(anim, { toValue: progress, duration: 260, useNativeDriver: false }).start();
+  }, [progress, anim]);
+  const widthPct = anim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] });
+
   const canContinue = useMemo(() => {
     switch (key) {
-      case "gender":
+      case "basics":
         return !!d.gender;
       case "goal":
-        return !!d.goal;
+        return !!d.goalKind;
       case "activity":
         return !!d.activity;
       case "diet":
         return !!d.diet;
-      case "age":
-        return d.age >= LIMITS.age.min && d.age <= LIMITS.age.max;
-      case "height":
-        return d.heightCm >= LIMITS.heightCm.min && d.heightCm <= LIMITS.heightCm.max;
-      case "weight":
-        return d.weightKg >= LIMITS.weightKg.min && d.weightKg <= LIMITS.weightKg.max;
-      case "target":
-        return d.targetWeightKg >= LIMITS.weightKg.min && d.targetWeightKg <= LIMITS.weightKg.max;
+      case "target": {
+        if (d.goalKind === "loss") return d.targetWeightKg < d.weightKg;
+        if (d.goalKind === "muscle") return d.targetWeightKg > d.weightKg;
+        return true;
+      }
       default:
         return true;
     }
   }, [key, d]);
 
   function next() {
-    // skip target-weight step when maintaining
-    if (key === "goal" && d.goal === "maintain") {
+    // Skip target + pace for maintain / general fitness.
+    if (key === "goal" && !hasWeightTarget(d.goalKind)) {
       setD((s) => ({ ...s, targetWeightKg: s.weightKg }));
-      setStep((s) => s + 2);
+      setStep(IDX.diet);
       return;
     }
     if (step < STEPS.length - 1) setStep((s) => s + 1);
   }
 
   function back() {
-    if (key === "activity" && d.goal === "maintain") {
-      setStep((s) => s - 2);
+    if (key === "diet" && !hasWeightTarget(d.goalKind)) {
+      setStep(IDX.goal);
       return;
     }
     if (step > 0) setStep((s) => s - 1);
   }
 
+  // Selecting a goal seeds a sensible default target on the correct side of the
+  // user's current weight so the target wheel never opens on an invalid value.
+  function pickGoal(kind: GoalKind) {
+    setD((s) => {
+      let target = s.weightKg;
+      if (kind === "loss") target = clamp(Math.round(s.weightKg - 5), LIMITS.weightKg.min, s.weightKg - 1);
+      else if (kind === "muscle") target = clamp(Math.round(s.weightKg + 4), s.weightKg + 1, LIMITS.weightKg.max);
+      return { ...s, goalKind: kind, targetWeightKg: target };
+    });
+  }
+
   function finish() {
+    const kind = d.goalKind!;
     const profile: Profile = {
       gender: d.gender!,
       age: d.age,
       heightCm: d.heightCm,
       weightKg: d.weightKg,
-      targetWeightKg: d.targetWeightKg,
-      goal: d.goal!,
+      targetWeightKg: hasWeightTarget(kind) ? d.targetWeightKg : d.weightKg,
+      goal: goalOf(kind),
+      goalKind: kind,
+      goalPace: d.goalPace,
       activity: d.activity!,
       diet: d.diet!,
       createdAt: Date.now(),
@@ -124,88 +166,87 @@ export default function Onboarding({ onComplete }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Progress */}
       {step > 0 && (
         <View style={styles.progressWrap}>
           <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
+            <Animated.View style={[styles.progressFill, { width: widthPct }]} />
           </View>
-          <Text style={styles.progressText}>
-            Step {step} of {STEPS.length - 2}
-          </Text>
         </View>
       )}
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         {key === "welcome" && <Welcome />}
 
-        {key === "gender" && (
-          <Question title="What's your gender?" sub="We use this to estimate your metabolism accurately.">
-            <Option label="Male" selected={d.gender === "male"} onPress={() => setD({ ...d, gender: "male" })} />
-            <Option label="Female" selected={d.gender === "female"} onPress={() => setD({ ...d, gender: "female" })} />
+        {key === "basics" && (
+          <Question title="A few basics about you" sub="Used to estimate your nutrition targets.">
+            <Text style={styles.fieldLabel}>Gender</Text>
+            <Segmented
+              options={[
+                { key: "male", label: "Male" },
+                { key: "female", label: "Female" },
+                { key: "other", label: "Other" },
+              ]}
+              value={d.gender}
+              onChange={(g) => setD({ ...d, gender: g as Gender })}
+            />
+            <Text style={[styles.fieldLabel, { marginTop: 26 }]}>Age</Text>
+            <WheelPicker
+              min={LIMITS.age.min}
+              max={LIMITS.age.max}
+              value={d.age}
+              unit="yrs"
+              onChange={(v) => setD({ ...d, age: v })}
+            />
           </Question>
         )}
 
-        {key === "age" && (
-          <Question title="How old are you?" sub="Age affects how many calories you burn at rest.">
-            <NumberField value={d.age} unit="years" min={LIMITS.age.min} max={LIMITS.age.max}
-              onChange={(v) => setD({ ...d, age: v })} />
-          </Question>
-        )}
-
-        {key === "height" && (
-          <Question title="How tall are you?" sub="">
-            <NumberField value={d.heightCm} unit="cm" step={1} min={LIMITS.heightCm.min} max={LIMITS.heightCm.max}
-              onChange={(v) => setD({ ...d, heightCm: v })} />
-          </Question>
-        )}
-
-        {key === "weight" && (
-          <Question title="What's your current weight?" sub="">
-            <NumberField value={d.weightKg} unit="kg" min={LIMITS.weightKg.min} max={LIMITS.weightKg.max}
-              onChange={(v) => setD({ ...d, weightKg: v })} />
-          </Question>
-        )}
-
-        {key === "goal" && (
-          <Question title="What's your goal?" sub="We'll set your daily calorie target accordingly.">
-            <Option label="Lose weight" sublabel="Calorie deficit (~0.45 kg/week)" selected={d.goal === "lose"} onPress={() => setD({ ...d, goal: "lose" })} />
-            <Option label="Maintain weight" sublabel="Stay at your current weight" selected={d.goal === "maintain"} onPress={() => setD({ ...d, goal: "maintain" })} />
-            <Option label="Gain weight" sublabel="Calorie surplus for muscle" selected={d.goal === "gain"} onPress={() => setD({ ...d, goal: "gain" })} />
-          </Question>
-        )}
-
-        {key === "target" && (
-          <Question title="What's your target weight?" sub="A goal to work towards.">
-            <NumberField value={d.targetWeightKg} unit="kg" min={LIMITS.weightKg.min} max={LIMITS.weightKg.max}
-              onChange={(v) => setD({ ...d, targetWeightKg: v })} />
-          </Question>
-        )}
+        {key === "body" && <BodyStep d={d} setD={setD} heightUnit={heightUnit} setHeightUnit={setHeightUnit} weightUnit={weightUnit} setWeightUnit={setWeightUnit} />}
 
         {key === "activity" && (
-          <Question title="How active are you?" sub="Include exercise and daily movement.">
+          <Question title="How active are you usually?" sub="Include training and everyday movement.">
             {(Object.keys(ACTIVITY_LABELS) as Activity[]).map((a) => (
-              <Option key={a} label={prettyActivity(a)} sublabel={ACTIVITY_LABELS[a]}
-                selected={d.activity === a} onPress={() => setD({ ...d, activity: a })} />
+              <Option
+                key={a}
+                label={prettyActivity(a)}
+                sublabel={ACTIVITY_LABELS[a]}
+                selected={d.activity === a}
+                onPress={() => setD({ ...d, activity: a })}
+              />
             ))}
           </Question>
         )}
 
+        {key === "goal" && (
+          <Question title="What's your main goal?" sub="We'll shape your calorie and protein targets around it.">
+            <GoalCard icon="flame" title="Weight loss" desc="Fat loss while supporting your daily energy." selected={d.goalKind === "loss"} onPress={() => pickGoal("loss")} />
+            <GoalCard icon="dumbbell" title="Muscle gain" desc="Support muscle growth with a higher protein target." selected={d.goalKind === "muscle"} onPress={() => pickGoal("muscle")} />
+            <GoalCard icon="target" title="Maintain weight" desc="Stay around your current weight while eating well." selected={d.goalKind === "maintain"} onPress={() => pickGoal("maintain")} />
+            <GoalCard icon="heart" title="General fitness" desc="Eat well and stay consistent day to day." selected={d.goalKind === "fitness"} onPress={() => pickGoal("fitness")} />
+          </Question>
+        )}
+
+        {key === "target" && <TargetStep d={d} setD={setD} weightUnit={weightUnit} />}
+
+        {key === "pace" && <PaceStep d={d} setD={setD} />}
+
         {key === "diet" && (
           <Question title="Your food preference?" sub="Helps us tailor Indian food suggestions.">
-            <Option label="Vegetarian" selected={d.diet === "veg"} onPress={() => setD({ ...d, diet: "veg" })} />
-            <Option label="Non-vegetarian" selected={d.diet === "nonveg"} onPress={() => setD({ ...d, diet: "nonveg" })} />
-            <Option label="Eggetarian" selected={d.diet === "eggetarian"} onPress={() => setD({ ...d, diet: "eggetarian" })} />
-            <Option label="Vegan" selected={d.diet === "vegan"} onPress={() => setD({ ...d, diet: "vegan" })} />
-            <Option label="Jain" selected={d.diet === "jain"} onPress={() => setD({ ...d, diet: "jain" })} />
-            <Option label="Sattvic" selected={d.diet === "sattvic"} onPress={() => setD({ ...d, diet: "sattvic" })} />
+            {([
+              ["veg", "Vegetarian"],
+              ["nonveg", "Non-vegetarian"],
+              ["eggetarian", "Eggetarian"],
+              ["vegan", "Vegan"],
+              ["jain", "Jain"],
+              ["sattvic", "Sattvic"],
+            ] as [Diet, string][]).map(([k, label]) => (
+              <Option key={k} label={label} selected={d.diet === k} onPress={() => setD({ ...d, diet: k })} />
+            ))}
           </Question>
         )}
 
         {key === "summary" && <Summary draft={d} />}
       </ScrollView>
 
-      {/* Footer nav */}
       <View style={styles.footer}>
         {step > 0 && (
           <Pressable style={[styles.navBtn, styles.backBtn]} onPress={back}>
@@ -213,11 +254,7 @@ export default function Onboarding({ onComplete }: Props) {
           </Pressable>
         )}
         {key === "summary" ? (
-          <PressableScale
-            containerStyle={{ flex: 1 }}
-            style={[styles.navBtn, styles.primaryBtn]}
-            onPress={finish}
-          >
+          <PressableScale containerStyle={{ flex: 1 }} style={[styles.navBtn, styles.primaryBtn]} onPress={finish}>
             <Text style={styles.primaryText}>Start tracking</Text>
             <Icon name="chevronRight" size={18} color="#fff" />
           </PressableScale>
@@ -237,15 +274,184 @@ export default function Onboarding({ onComplete }: Props) {
 
 function prettyActivity(a: Activity): string {
   return {
-    sedentary: "Sedentary",
+    sedentary: "Mostly sedentary",
     light: "Lightly active",
-    moderate: "Moderately active",
-    active: "Very active",
-    very_active: "Extra active",
+    moderate: "Regular training",
+    active: "Highly active",
+    very_active: "Athlete / very active",
   }[a];
 }
 
-/* ---------- sub-components ---------- */
+/* ---------- step screens ---------- */
+
+function BodyStep({
+  d,
+  setD,
+  heightUnit,
+  setHeightUnit,
+  weightUnit,
+  setWeightUnit,
+}: {
+  d: Draft;
+  setD: React.Dispatch<React.SetStateAction<Draft>>;
+  heightUnit: HeightUnit;
+  setHeightUnit: (u: HeightUnit) => void;
+  weightUnit: WeightUnit;
+  setWeightUnit: (u: WeightUnit) => void;
+}) {
+  const bmi = computeBmi(d.heightCm, d.weightKg);
+  // Provisional maintenance estimate (activity may not be chosen yet — default
+  // to "light"). Real, goal-aware targets are shown on the summary screen.
+  const maintain = tdee({
+    gender: d.gender ?? "other",
+    age: d.age,
+    heightCm: d.heightCm,
+    weightKg: d.weightKg,
+    activity: d.activity ?? "light",
+  });
+
+  return (
+    <View>
+      <Text style={styles.qTitle}>Your height & weight</Text>
+      <Text style={styles.qSub}>Two numbers that help us estimate your daily nutrition targets.</Text>
+
+      <View style={styles.dualRow}>
+        <View style={styles.dualCol}>
+          <View style={styles.dualHead}>
+            <Text style={styles.fieldLabel}>Height</Text>
+            <UnitToggle options={["cm", "in"]} value={heightUnit} onChange={(u) => setHeightUnit(u as HeightUnit)} />
+          </View>
+          <HeightWheel valueCm={d.heightCm} unit={heightUnit} onChangeCm={(v) => setD((s) => ({ ...s, heightCm: v }))} />
+        </View>
+        <View style={styles.dualCol}>
+          <View style={styles.dualHead}>
+            <Text style={styles.fieldLabel}>Weight</Text>
+            <UnitToggle options={["kg", "lb"]} value={weightUnit} onChange={(u) => setWeightUnit(u as WeightUnit)} />
+          </View>
+          <WeightWheel valueKg={d.weightKg} unit={weightUnit} minKg={LIMITS.weightKg.min} maxKg={LIMITS.weightKg.max} onChangeKg={(v) => setD((s) => ({ ...s, weightKg: v }))} />
+        </View>
+      </View>
+
+      <View style={styles.estimateCard}>
+        <Text style={styles.estimateMain}>Targeting ~{maintain.toLocaleString()} kcal/day</Text>
+        <Text style={styles.estimateSub}>
+          based on your current profile{bmi ? ` · BMI ${bmi.value}` : ""}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function TargetStep({ d, setD, weightUnit }: { d: Draft; setD: React.Dispatch<React.SetStateAction<Draft>>; weightUnit: WeightUnit }) {
+  const losing = d.goalKind === "loss";
+  const minKg = losing ? LIMITS.weightKg.min : d.weightKg + 0.5;
+  const maxKg = losing ? d.weightKg - 0.5 : LIMITS.weightKg.max;
+  const delta = d.targetWeightKg - d.weightKg;
+  const deltaLabel = `${delta > 0 ? "+" : "−"}${fmtKg(Math.abs(delta))} kg from today`;
+
+  return (
+    <View>
+      <Text style={styles.qTitle}>What weight would you like to reach?</Text>
+      <Text style={styles.qSub}>A goal to work towards. You can change it anytime.</Text>
+
+      <View style={{ marginTop: 24, alignSelf: "center", width: 200 }}>
+        <WeightWheel valueKg={d.targetWeightKg} unit={weightUnit} minKg={minKg} maxKg={maxKg} step={0.5} decimals={1} onChangeKg={(v) => setD((s) => ({ ...s, targetWeightKg: v }))} />
+      </View>
+
+      <View style={styles.deltaPill}>
+        <Text style={styles.deltaText}>{deltaLabel}</Text>
+      </View>
+    </View>
+  );
+}
+
+function PaceStep({ d, setD }: { d: Draft; setD: React.Dispatch<React.SetStateAction<Draft>> }) {
+  // Build a real profile so the projection (weeks / date / kcal) is computed by
+  // the single nutrition engine and updates live as the pace changes.
+  const profile: Profile = {
+    gender: d.gender ?? "other",
+    age: d.age,
+    heightCm: d.heightCm,
+    weightKg: d.weightKg,
+    targetWeightKg: d.targetWeightKg,
+    goal: goalOf(d.goalKind ?? "maintain"),
+    goalKind: d.goalKind,
+    goalPace: d.goalPace,
+    activity: d.activity ?? "light",
+    diet: d.diet ?? "veg",
+    createdAt: Date.now(),
+  };
+  const plan = projectPlan(profile);
+
+  return (
+    <View>
+      <Text style={styles.qTitle}>How fast do you want to reach your goal?</Text>
+      <Text style={styles.qSub}>This directly changes your calorie target and timeline.</Text>
+
+      <View style={{ marginTop: 28 }}>
+        <PaceSlider value={d.goalPace} onChange={(p) => setD((s) => ({ ...s, goalPace: p }))} />
+      </View>
+
+      <View style={styles.planGrid}>
+        <PlanStat label="Timeline" value={plan.weeks > 0 ? `~${plan.weeks} wk` : "—"} />
+        <PlanStat label="Reach around" value={plan.targetDate ? fmtDate(plan.targetDate) : "—"} />
+        <PlanStat label="Daily target" value={`${plan.kcal.toLocaleString()}`} unit="kcal" />
+      </View>
+    </View>
+  );
+}
+
+/* ---------- unit-aware wheels ---------- */
+
+function HeightWheel({ valueCm, unit, onChangeCm }: { valueCm: number; unit: HeightUnit; onChangeCm: (cm: number) => void }) {
+  if (unit === "in") {
+    const minIn = Math.round(cmToIn(LIMITS.heightCm.min));
+    const maxIn = Math.round(cmToIn(LIMITS.heightCm.max));
+    return (
+      <WheelPicker
+        min={minIn}
+        max={maxIn}
+        value={Math.round(cmToIn(valueCm))}
+        formatLabel={(v) => formatHeight(inToCm(v), "in")}
+        onChange={(v) => onChangeCm(Math.round(inToCm(v)))}
+      />
+    );
+  }
+  return <WheelPicker min={LIMITS.heightCm.min} max={LIMITS.heightCm.max} value={Math.round(valueCm)} unit="cm" onChange={onChangeCm} />;
+}
+
+function WeightWheel({
+  valueKg,
+  unit,
+  minKg,
+  maxKg,
+  step = 1,
+  decimals = 0,
+  onChangeKg,
+}: {
+  valueKg: number;
+  unit: WeightUnit;
+  minKg: number;
+  maxKg: number;
+  step?: number;
+  decimals?: number;
+  onChangeKg: (kg: number) => void;
+}) {
+  if (unit === "lb") {
+    return (
+      <WheelPicker
+        min={Math.round(kgToLb(minKg))}
+        max={Math.round(kgToLb(maxKg))}
+        value={Math.round(kgToLb(valueKg))}
+        unit="lb"
+        onChange={(v) => onChangeKg(Math.round(lbToKg(v) * 10) / 10)}
+      />
+    );
+  }
+  return <WheelPicker min={minKg} max={maxKg} step={step} decimals={decimals} value={valueKg} unit="kg" onChange={onChangeKg} />;
+}
+
+/* ---------- shared UI ---------- */
 
 function Welcome() {
   return (
@@ -263,7 +469,7 @@ function Welcome() {
         <Bullet icon="target" text="A personalized daily goal" />
         <Bullet icon="flame" text="Streaks to keep you consistent" />
       </View>
-      <Text style={styles.welcomeNote}>Let's set up your personal plan in under a minute.</Text>
+      <Text style={styles.welcomeNote}>We'll build your nutrition plan together in under a minute.</Text>
     </View>
   );
 }
@@ -289,193 +495,102 @@ function Question({ title, sub, children }: { title: string; sub?: string; child
   );
 }
 
-function Option({
-  label,
-  sublabel,
-  selected,
-  onPress,
-}: {
-  label: string;
-  sublabel?: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
+function Segmented({ options, value, onChange }: { options: { key: string; label: string }[]; value?: string; onChange: (k: string) => void }) {
+  return (
+    <View style={styles.segment}>
+      {options.map((o) => {
+        const on = value === o.key;
+        return (
+          <Pressable key={o.key} style={[styles.segmentItem, on && styles.segmentItemOn]} onPress={() => onChange(o.key)}>
+            <Text style={[styles.segmentText, on && styles.segmentTextOn]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function UnitToggle({ options, value, onChange }: { options: string[]; value: string; onChange: (u: string) => void }) {
+  return (
+    <View style={styles.unitToggle}>
+      {options.map((o) => {
+        const on = value === o;
+        return (
+          <Pressable key={o} style={[styles.unitItem, on && styles.unitItemOn]} onPress={() => onChange(o)}>
+            <Text style={[styles.unitText, on && styles.unitTextOn]}>{o}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function Option({ label, sublabel, selected, onPress }: { label: string; sublabel?: string; selected: boolean; onPress: () => void }) {
   return (
     <Pressable style={[styles.option, selected && styles.optionSelected]} onPress={onPress}>
       <View style={{ flex: 1 }}>
         <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{label}</Text>
         {!!sublabel && <Text style={styles.optionSub}>{sublabel}</Text>}
       </View>
-      <View style={[styles.radio, selected && styles.radioSelected]}>
-        {selected && <View style={styles.radioDot} />}
+      <View style={[styles.radio, selected && styles.radioSelected]}>{selected && <View style={styles.radioDot} />}</View>
+    </Pressable>
+  );
+}
+
+function GoalCard({ icon, title, desc, selected, onPress }: { icon: IconName; title: string; desc: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable style={[styles.goalOption, selected && styles.goalOptionOn]} onPress={onPress}>
+      <View style={[styles.goalIcon, selected && styles.goalIconOn]}>
+        <Icon name={icon} size={20} color={selected ? "#fff" : colors.green} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.goalOptTitle, selected && styles.optionLabelSelected]}>{title}</Text>
+        <Text style={styles.goalOptDesc}>{desc}</Text>
       </View>
     </Pressable>
   );
 }
 
-function NumberField({
-  value,
-  unit,
-  min,
-  max,
-  step = 1,
-  onChange,
-}: {
-  value: number;
-  unit: string;
-  min: number;
-  max: number;
-  step?: number;
-  onChange: (v: number) => void;
-}) {
-  // Keep the latest value in a ref so the hold-to-repeat interval always reads
-  // the current number instead of the one captured when the press started.
-  const valueRef = useRef(value);
-  valueRef.current = value;
-  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const repeatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Set true once a press-and-hold has auto-repeated at least once, so the
-  // onPress that fires on release doesn't add one extra step on top of the
-  // repeats. A plain tap never sets this, so onPress handles the single step.
-  const didRepeat = useRef(false);
-
-  // Free-typing buffer. The field is not hard-bound to `value` while focused --
-  // otherwise clearing it would instantly snap back to the minimum and you
-  // could never retype a number. We only clamp/commit on blur.
-  const [text, setText] = useState(String(value));
-  const [focused, setFocused] = useState(false);
-  // When the value changes from outside (the +/- buttons) and we're not mid-typing,
-  // mirror it into the text buffer so the input stays in sync.
-  useEffect(() => {
-    if (!focused) setText(String(value));
-  }, [value, focused]);
-
-  const bump = (dir: number) => onChange(clamp(valueRef.current + dir * step, min, max));
-
-  const stopHold = () => {
-    if (holdTimer.current) {
-      clearTimeout(holdTimer.current);
-      holdTimer.current = null;
-    }
-    if (repeatTimer.current) {
-      clearInterval(repeatTimer.current);
-      repeatTimer.current = null;
-    }
-  };
-
-  // Start the hold-to-repeat timer. Does NOT step immediately -- the reliable
-  // single step comes from onPress (which fires on every device/browser),
-  // avoiding the case where onPressIn doesn't fire and a tap does nothing.
-  const startHold = (dir: number) => {
-    stopHold();
-    didRepeat.current = false;
-    holdTimer.current = setTimeout(() => {
-      repeatTimer.current = setInterval(() => {
-        didRepeat.current = true;
-        bump(dir);
-      }, 80);
-    }, 350);
-  };
-
-  const onTap = (dir: number) => {
-    // Suppress the trailing tap that follows a hold-repeat; otherwise a plain
-    // tap performs the single step here.
-    if (didRepeat.current) {
-      didRepeat.current = false;
-      return;
-    }
-    bump(dir);
-  };
-
-  // Clean up any running timers if the field unmounts mid-hold.
-  useEffect(() => stopHold, []);
-
-  const commit = () => {
-    setFocused(false);
-    const n = parseInt(text, 10);
-    const v = isNaN(n) ? min : clamp(n, min, max);
-    onChange(v);
-    setText(String(v));
-  };
-
+function PlanStat({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <View style={styles.numberField}>
-      <Pressable
-        style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
-        hitSlop={16}
-        accessibilityRole="button"
-        accessibilityLabel={`Decrease ${unit}`}
-        onPress={() => onTap(-1)}
-        onPressIn={() => startHold(-1)}
-        onPressOut={stopHold}
-      >
-        {/* Font-independent glyphs: drawn with Views so they render identically
-            on desktop web, mobile web (where an icon/glyph font may not load)
-            and native, and are always dark enough to see. */}
-        <View style={styles.barH} />
-      </Pressable>
-      <View style={styles.numCenter}>
-        <TextInput
-          style={styles.numInput}
-          keyboardType="numeric"
-          inputMode="numeric"
-          value={text}
-          onFocus={() => setFocused(true)}
-          onChangeText={(t) => {
-            const cleaned = t.replace(/[^0-9]/g, "");
-            setText(cleaned);
-            // Live-update the parent while typing so the summary/next-button
-            // enablement tracks, but never clamp here -- clamping happens on blur.
-            const n = parseInt(cleaned, 10);
-            if (!isNaN(n)) onChange(n);
-          }}
-          onBlur={commit}
-          onSubmitEditing={commit}
-          returnKeyType="done"
-        />
-        <Text style={styles.numUnit}>{unit}</Text>
-      </View>
-      <Pressable
-        style={({ pressed }) => [styles.numBtn, pressed && styles.numBtnPressed]}
-        hitSlop={16}
-        accessibilityRole="button"
-        accessibilityLabel={`Increase ${unit}`}
-        onPress={() => onTap(1)}
-        onPressIn={() => startHold(1)}
-        onPressOut={stopHold}
-      >
-        <View style={styles.plusBox}>
-          <View style={styles.barH} />
-          <View style={styles.barV} />
-        </View>
-      </Pressable>
+    <View style={styles.planStat}>
+      <Text style={styles.planStatLabel}>{label}</Text>
+      <Text style={styles.planStatValue}>
+        {value}
+        {unit ? <Text style={styles.planStatUnit}>{` ${unit}`}</Text> : null}
+      </Text>
     </View>
   );
 }
 
 function Summary({ draft }: { draft: Draft }) {
+  const kind = draft.goalKind ?? "maintain";
   const profile: Profile = {
     gender: draft.gender!,
     age: draft.age,
     heightCm: draft.heightCm,
     weightKg: draft.weightKg,
-    targetWeightKg: draft.targetWeightKg,
-    goal: draft.goal!,
+    targetWeightKg: hasWeightTarget(kind) ? draft.targetWeightKg : draft.weightKg,
+    goal: goalOf(kind),
+    goalKind: kind,
+    goalPace: draft.goalPace,
     activity: draft.activity!,
     diet: draft.diet!,
     createdAt: Date.now(),
   };
   const g = computeGoal(profile);
+  const plan = projectPlan(profile);
+  const paceLabel = { relaxed: "Relaxed", recommended: "Recommended", ambitious: "Ambitious" }[draft.goalPace];
+
   return (
     <View>
-      <Text style={styles.qTitle}>Your daily plan</Text>
-      <Text style={styles.qSub}>Calculated from your body metrics and goal.</Text>
+      <Text style={styles.qTitle}>Your gofit plan</Text>
+      <Text style={styles.qSub}>Calculated from everything you just told us.</Text>
 
       <View style={styles.goalCard}>
         <Text style={styles.goalKcalLabel}>DAILY CALORIE TARGET</Text>
-        <Text style={styles.goalKcal}>{g.kcal}</Text>
+        <Text style={styles.goalKcal}>{g.kcal.toLocaleString()}</Text>
         <Text style={styles.goalKcalUnit}>kcal / day</Text>
-
         <View style={styles.macroRow}>
           <MacroPill label="Protein" value={`${g.protein_g}g`} />
           <MacroPill label="Carbs" value={`${g.carbs_g}g`} />
@@ -484,18 +599,13 @@ function Summary({ draft }: { draft: Draft }) {
       </View>
 
       <View style={styles.statsCard}>
-        <StatRow label="Basal metabolic rate (BMR)" value={`${g.bmr} kcal`} />
-        <StatRow label="Maintenance (TDEE)" value={`${g.tdee} kcal`} />
-        <StatRow
-          label="Goal adjustment"
-          value={
-            profile.goal === "lose" ? "−500 kcal" : profile.goal === "gain" ? "+400 kcal" : "±0 kcal"
-          }
-        />
+        <StatRow label="Current weight" value={`${fmtKg(draft.weightKg)} kg`} />
+        {hasWeightTarget(kind) && <StatRow label="Goal weight" value={`${fmtKg(draft.targetWeightKg)} kg`} />}
+        <StatRow label="Activity" value={prettyActivity(draft.activity!)} />
+        {hasWeightTarget(kind) && <StatRow label="Goal pace" value={paceLabel} />}
+        {plan.targetDate && <StatRow label="Estimated to reach" value={`${fmtDate(plan.targetDate)} · ~${plan.weeks} wk`} />}
       </View>
-      <Text style={styles.disclaimer}>
-        Estimates for guidance only, not medical advice. You can adjust anytime.
-      </Text>
+      <Text style={styles.disclaimer}>Estimates for guidance only, not medical advice. You can adjust anytime.</Text>
     </View>
   );
 }
@@ -525,7 +635,6 @@ const styles = StyleSheet.create({
   progressWrap: { paddingTop: 56, paddingHorizontal: 24, paddingBottom: 8 },
   progressTrack: { height: 6, borderRadius: 3, backgroundColor: "#E2E8E4", overflow: "hidden" },
   progressFill: { height: 6, borderRadius: 3, backgroundColor: GREEN },
-  progressText: { color: MUTE, fontSize: 12, marginTop: 8, fontWeight: "600" },
 
   body: { padding: 24, paddingBottom: 24, flexGrow: 1 },
 
@@ -541,17 +650,38 @@ const styles = StyleSheet.create({
 
   qTitle: { fontSize: 24, fontWeight: "800", color: INK },
   qSub: { fontSize: 14, color: MUTE, marginTop: 6, lineHeight: 20 },
+  fieldLabel: { fontSize: 13, fontWeight: "800", color: MUTE, letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 10 },
 
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#EAEFEB",
-    padding: 18,
-    marginBottom: 12,
-  },
+  segment: { flexDirection: "row", backgroundColor: "#fff", borderRadius: 14, borderWidth: 2, borderColor: "#EAEFEB", padding: 4, gap: 4 },
+  segmentItem: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: "center" },
+  segmentItemOn: { backgroundColor: GREEN },
+  segmentText: { fontSize: 15, fontWeight: "800", color: INK },
+  segmentTextOn: { color: "#fff" },
+
+  unitToggle: { flexDirection: "row", backgroundColor: "#EEF3F0", borderRadius: 10, padding: 3 },
+  unitItem: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8 },
+  unitItemOn: { backgroundColor: "#fff", shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
+  unitText: { fontSize: 13, fontWeight: "800", color: MUTE },
+  unitTextOn: { color: GREEN },
+
+  dualRow: { flexDirection: "row", gap: 12, marginTop: 22 },
+  dualCol: { flex: 1 },
+  dualHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
+
+  estimateCard: { backgroundColor: "#fff", borderRadius: 18, padding: 18, marginTop: 24, alignItems: "center", borderWidth: 2, borderColor: "#EAEFEB" },
+  estimateMain: { fontSize: 20, fontWeight: "900", color: GREEN },
+  estimateSub: { fontSize: 13, color: MUTE, marginTop: 4 },
+
+  deltaPill: { alignSelf: "center", marginTop: 20, backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 },
+  deltaText: { color: GREEN, fontWeight: "900", fontSize: 15 },
+
+  planGrid: { flexDirection: "row", gap: 10, marginTop: 30 },
+  planStat: { flex: 1, backgroundColor: "#fff", borderRadius: 16, paddingVertical: 16, paddingHorizontal: 10, alignItems: "center", borderWidth: 2, borderColor: "#EAEFEB" },
+  planStatLabel: { fontSize: 11, color: MUTE, fontWeight: "700", marginBottom: 6, textAlign: "center" },
+  planStatValue: { fontSize: 20, fontWeight: "900", color: INK },
+  planStatUnit: { fontSize: 12, fontWeight: "700", color: MUTE },
+
+  option: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 16, borderWidth: 2, borderColor: "#EAEFEB", padding: 18, marginBottom: 12 },
   optionSelected: { borderColor: GREEN, backgroundColor: "#F0F8F3" },
   optionLabel: { fontSize: 16, fontWeight: "700", color: INK },
   optionLabelSelected: { color: GREEN },
@@ -560,15 +690,12 @@ const styles = StyleSheet.create({
   radioSelected: { borderColor: GREEN },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: GREEN },
 
-  numberField: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 20 },
-  numBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#fff", borderWidth: 2, borderColor: "#EAEFEB", alignItems: "center", justifyContent: "center" },
-  numBtnPressed: { backgroundColor: "#EAF5EE", borderColor: GREEN },
-  barH: { width: 22, height: 3.5, borderRadius: 2, backgroundColor: GREEN },
-  barV: { position: "absolute", width: 3.5, height: 22, borderRadius: 2, backgroundColor: GREEN },
-  plusBox: { width: 22, height: 22, alignItems: "center", justifyContent: "center" },
-  numCenter: { alignItems: "center", minWidth: 120 },
-  numInput: { fontSize: 48, fontWeight: "900", color: INK, textAlign: "center", minWidth: 100, padding: 0 },
-  numUnit: { fontSize: 15, color: MUTE, marginTop: -4 },
+  goalOption: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: "#fff", borderRadius: 16, borderWidth: 2, borderColor: "#EAEFEB", padding: 16, marginBottom: 12 },
+  goalOptionOn: { borderColor: GREEN, backgroundColor: "#F0F8F3" },
+  goalIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
+  goalIconOn: { backgroundColor: GREEN },
+  goalOptTitle: { fontSize: 16, fontWeight: "800", color: INK },
+  goalOptDesc: { fontSize: 13, color: MUTE, marginTop: 3, lineHeight: 18 },
 
   goalCard: { backgroundColor: GREEN, borderRadius: 24, padding: 24, marginTop: 24, alignItems: "center" },
   goalKcalLabel: { color: "#9FD6BA", fontSize: 12, fontWeight: "700", letterSpacing: 1 },

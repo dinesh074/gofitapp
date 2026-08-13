@@ -6,9 +6,12 @@ import {
   BMI_CATEGORY_LABEL,
   computeBmi,
   Diet,
+  Gender,
   Goal,
+  GoalPace,
   GoalTargets,
   Profile,
+  resolveGoalPace,
 } from "./nutrition";
 import { Account } from "./auth";
 import { bestStreak, computeStreak, LogMap } from "./storage";
@@ -34,6 +37,16 @@ const GOAL_LABEL: Record<Goal, string> = {
   lose: "Losing weight",
   maintain: "Maintaining weight",
   gain: "Gaining weight",
+};
+const GENDER_LABEL: Record<Gender, string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+};
+const PACE_LABEL: Record<GoalPace, string> = {
+  relaxed: "Relaxed",
+  recommended: "Recommended",
+  ambitious: "Ambitious",
 };
 const DIET_LABEL: Record<Diet, string> = {
   veg: "Vegetarian",
@@ -136,11 +149,14 @@ export default function ProfileScreen({
         {/* Details */}
         <Text style={styles.section}>Your details</Text>
         <View style={styles.card}>
-          <Row label="Gender" value={profile.gender === "male" ? "Male" : "Female"} />
+          <Row label="Gender" value={GENDER_LABEL[profile.gender]} />
           <Row label="Age" value={`${profile.age} yrs`} />
           <Row label="Height" value={`${profile.heightCm} cm`} />
           <Row label="Current weight" value={`${profile.weightKg} kg`} />
           <Row label="Target weight" value={`${profile.targetWeightKg} kg`} />
+          {profile.goal !== "maintain" && (
+            <Row label="Goal pace" value={PACE_LABEL[resolveGoalPace(profile)]} />
+          )}
           <Row label="Activity" value={ACTIVITY_LABELS[profile.activity]} />
           <Row label="Diet" value={DIET_LABEL[profile.diet]} last />
         </View>

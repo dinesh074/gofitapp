@@ -16,6 +16,9 @@ import {
   Diet,
   Gender,
   Goal,
+  GoalPace,
+  resolveGoalKind,
+  resolveGoalPace,
   LIMITS,
   Profile,
 } from "./nutrition";
@@ -39,11 +42,17 @@ type Props = {
 const GENDERS: { key: Gender; label: string }[] = [
   { key: "male", label: "Male" },
   { key: "female", label: "Female" },
+  { key: "other", label: "Other" },
 ];
 const GOALS: { key: Goal; label: string }[] = [
   { key: "lose", label: "Lose" },
   { key: "maintain", label: "Maintain" },
   { key: "gain", label: "Gain" },
+];
+const PACES: { key: GoalPace; label: string }[] = [
+  { key: "relaxed", label: "Relaxed" },
+  { key: "recommended", label: "Recommended" },
+  { key: "ambitious", label: "Ambitious" },
 ];
 const DIETS: { key: Diet; label: string }[] = [
   { key: "veg", label: "Veg" },
@@ -80,11 +89,13 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
       .catch(() => {});
   }
 
-  // Keep target sensible: maintain => equals current weight.
+  // Keep target sensible: maintain => equals current weight. Keep the 4-way
+  // goalKind in sync with the 3-way engine goal so downstream copy stays correct.
   function setGoal(g: Goal) {
     setD((s) => ({
       ...s,
       goal: g,
+      goalKind: resolveGoalKind({ goal: g }),
       targetWeightKg: g === "maintain" ? s.weightKg : s.targetWeightKg,
     }));
   }
@@ -179,6 +190,16 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
               min={LIMITS.weightKg.min}
               max={LIMITS.weightKg.max}
               onChange={(v) => setD({ ...d, targetWeightKg: v })}
+            />
+          </Field>
+        )}
+
+        {d.goal !== "maintain" && (
+          <Field label="Goal pace">
+            <Segmented
+              options={PACES}
+              value={resolveGoalPace(d)}
+              onChange={(v) => setD({ ...d, goalPace: v })}
             />
           </Field>
         )}
