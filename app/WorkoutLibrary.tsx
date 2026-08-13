@@ -31,7 +31,10 @@ type Props = {
   onRequireAuth?: () => void;
 };
 
-const DURATIONS = [10, 20, 30, 45, 60];
+// Minutes of *actual effort* for a single movement. Strength moves are usually
+// just a few minutes of real work (a few sets), so we start low; cardio/longer
+// sessions can pick the bigger chips.
+const DURATIONS = [3, 5, 10, 15, 30];
 
 function levelColor(level: string): string {
   if (level === "expert") return colors.red;
