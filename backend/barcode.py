@@ -45,7 +45,7 @@ _OFF_FIELDS = (
     "product_name,brands,serving_size,serving_quantity,nutriments,"
     "quantity,categories_tags,countries_tags"
 )
-_USER_AGENT = "gofit.today/1.0 (barcode lookup; contact: support@gofit.today)"
+_USER_AGENT = "gofit.today/1.0 (barcode lookup; contact: info@buiild.in)"
 _TIMEOUT = 8  # seconds -- keep the request snappy; OFF is usually sub-second
 
 
