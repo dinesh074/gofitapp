@@ -213,16 +213,27 @@ export function computeSuggestion(
       const carbFill = Math.min(c.carbs, remC); // useful carbs toward the gap
       const kcalOver = Math.max(0, c.kcal - remKcal); // penalise overshoot
       const fatOver = Math.max(0, c.fat - remF);
+      // Training context has to visibly move the pick, not just tint the macros.
+      // Carbs get real weight on endurance days (carbBoost up to 0.9); "lighter"
+      // days (rest/performance, negative kcalBias) actively prefer leaner,
+      // lower-calorie foods via an absolute-fat penalty + a calorie tilt, so a
+      // fatty high-protein dish stops winning every mode. Strength keeps winning
+      // on protein because its proteinBoost (1.6) outweighs the fat penalty.
+      const carbWeight = 0.15 + bias.carbBoost * 0.75;
+      const leanPenalty = 0.7 * bias.fatPenalty * c.fat;
+      const heartiness = 0.02 + bias.kcalBias * 0.65;
       let score =
         (proteinPriority ? 2.2 : 1.0) * bias.proteinBoost * proteinFill +
-        bias.carbBoost * 0.12 * carbFill -
+        carbWeight * carbFill -
         0.06 * kcalOver -
         (0.4 + bias.fatPenalty * 0.3) * fatOver +
-        (goalKcalBias(profile.goal) + bias.kcalBias) * (c.kcal / 100) +
+        (goalKcalBias(profile.goal) + bias.kcalBias) * (c.kcal / 100) -
+        leanPenalty +
         (c.boost ?? 0);
       // Prefer ideas that roughly fit the calorie budget over tiny snacks when a
-      // real meal is due (breakfast/lunch/dinner).
-      if (slot !== "snack") score += Math.min(c.kcal, remKcal) * 0.02;
+      // real meal is due (breakfast/lunch/dinner). On lighter days `heartiness`
+      // goes slightly negative, nudging toward smaller plates.
+      if (slot !== "snack") score += Math.min(c.kcal, remKcal) * heartiness;
       return { c, score };
     });
 
