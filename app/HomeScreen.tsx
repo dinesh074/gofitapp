@@ -63,6 +63,7 @@ import MonthStreak from "./MonthStreak";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
 import PressableScale from "./PressableScale";
+import TodayPlanCard from "./TodayPlanCard";
 import { Account } from "./auth";
 
 // Deferred to a later phase: the AI meal-coaching surfaces (Today's training,
@@ -869,6 +870,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             )}
           </View>
         </View>
+
+        <TodayPlanCard
+          goal={goal}
+          diet={profile.diet}
+          goalName={profile.goal}
+          date={today}
+          account={account}
+          onRequireAuth={onRequireAuth}
+        />
 
         {AI_COACH_ENABLED && (
         <View style={styles.trainCard}>
