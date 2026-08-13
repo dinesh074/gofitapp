@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -18,6 +18,8 @@ import AddFoodSheet from "./AddFoodSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
 import ExerciseSheet from "./ExerciseSheet";
 import WeightSheet from "./WeightSheet";
+import CustomizeHomeSheet from "./CustomizeHomeSheet";
+import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
@@ -186,6 +188,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [exerciseKcal, setExerciseKcal] = useState(0);
   const [showExercise, setShowExercise] = useState(false);
   const [showWeight, setShowWeight] = useState(false);
+  const [layoutOrder, setLayoutOrder] = useState<HomeModuleKey[]>(DEFAULT_ORDER);
+  const [hiddenSet, setHiddenSet] = useState<Set<HomeModuleKey>>(new Set());
+  const [showCustomize, setShowCustomize] = useState(false);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   // Thali clarification: selected option index per question id. Empty = every
@@ -233,6 +238,44 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       alive = false;
     };
   }, []);
+
+  // Home dashboard layout (module order + hidden set) is per-account and synced
+  // from the server, so a user's arrangement follows them across devices. We
+  // merge whatever the server has with the canonical module set (resolveLayout)
+  // so newly-shipped modules still appear for existing users.
+  useEffect(() => {
+    if (!account) {
+      setLayoutOrder(DEFAULT_ORDER);
+      setHiddenSet(new Set());
+      return;
+    }
+    let alive = true;
+    getHomeLayout()
+      .then((saved) => {
+        if (!alive) return;
+        const { order, hidden } = resolveLayout(saved);
+        setLayoutOrder(order);
+        setHiddenSet(hidden);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setLayoutOrder(DEFAULT_ORDER);
+        setHiddenSet(new Set());
+      });
+    return () => {
+      alive = false;
+    };
+  }, [account?.id]);
+
+  async function saveLayout(order: HomeModuleKey[], hidden: HomeModuleKey[]) {
+    setLayoutOrder(order); // optimistic
+    setHiddenSet(new Set(hidden));
+    try {
+      await putHomeLayout({ order, hidden });
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    }
+  }
 
   // Load this account's learned portions (correction engine). Reloads when the
   // signed-in account changes so we never apply one user's habits to another.
@@ -854,6 +897,251 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
 
+  // Each dashboard module rendered on demand in the user's chosen order. These
+  // are the exact sections that were previously hard-coded top-to-bottom in the
+  // scroll; order + visibility now come from the synced layout.
+  function renderModule(key: HomeModuleKey): React.ReactNode {
+    switch (key) {
+      case "summary":
+        return (
+          <View style={styles.dayCard}>
+            <Text style={styles.dayLabel}>TODAY</Text>
+            <View style={styles.ringWrap}>
+              <CalorieRing value={dayKcal} goal={goal.kcal} />
+            </View>
+            <Text style={styles.remaining}>
+              {dayKcal <= goal.kcal
+                ? `${goal.kcal - dayKcal} kcal remaining today`
+                : `${dayKcal - goal.kcal} kcal over your target`}
+            </Text>
+
+            <View style={styles.dayMacroBar}>
+              <MacroProgress label="Protein" have={dm.protein_g} goalV={goal.protein_g} color={colors.protein} />
+              <MacroProgress label="Carbs" have={dm.carbs_g} goalV={goal.carbs_g} color={colors.carbs} />
+              <MacroProgress label="Fat" have={dm.fat_g} goalV={goal.fat_g} color={colors.fat} />
+            </View>
+
+            <View style={styles.dayFootRow}>
+              <Text style={styles.daySub}>{meals.length} meals logged</Text>
+              {meals.length > 0 && (
+                <Pressable style={styles.shareBtn} onPress={() => setShowShare(true)}>
+                  <Icon name="share" size={14} color={colors.green} />
+                  <Text style={styles.shareBtnText}>Share my day</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        );
+      case "todayPlan":
+        return (
+          <TodayPlanCard
+            goal={goal}
+            diet={profile.diet}
+            goalName={profile.goal}
+            date={today}
+            account={account}
+            onRequireAuth={onRequireAuth}
+            consumed={{ kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g }}
+          />
+        );
+      case "training":
+        return AI_COACH_ENABLED ? (
+          <View style={styles.trainCard}>
+            <View style={styles.trainHeadRow}>
+              <Icon name="pulse" size={14} color={colors.green} />
+              <Text style={styles.trainHead}>Today's training</Text>
+            </View>
+            <View style={styles.trainChips}>
+              {TRAINING_META.map((m) => {
+                const on = training === m.key;
+                return (
+                  <Pressable
+                    key={m.key}
+                    onPress={() => pickTraining(m.key)}
+                    style={[styles.trainChip, on && styles.trainChipOn]}
+                  >
+                    <Icon name={m.icon} size={13} color={on ? "#fff" : colors.inkSoft} />
+                    <Text style={[styles.trainChipText, on && styles.trainChipTextOn]}>{m.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.trainHint}>
+              {trainTip ?? "Tag today's plan and we'll tune your next-meal and fuelling tips to match."}
+            </Text>
+          </View>
+        ) : null;
+      case "nextMeal":
+        return AI_COACH_ENABLED ? (
+          <View style={styles.nextCard}>
+            <View style={styles.nextHeaderRow}>
+              <Icon name="sparkles" size={15} color={colors.green} />
+              <Text style={styles.nextHeader}>{nextPlan.headline}</Text>
+            </View>
+            <View style={styles.nextFocusRow}>
+              {nextPlan.focus.map((f) => (
+                <View key={f} style={styles.nextChip}>
+                  <Text style={styles.nextChipText}>{f}</Text>
+                </View>
+              ))}
+            </View>
+            {nextPlan.options.map((opt, i) => (
+              <Text key={`${opt.name}-${i}`} style={styles.nextIdea}>
+                <Text style={styles.nextIdeaLabel}>{i === 0 ? "Try: " : "or: "}</Text>
+                {opt.name}
+                {opt.detail ? <Text style={styles.nextIdeaKcal}>{`  (${opt.detail})`}</Text> : null}
+                {opt.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${opt.kcal} kcal`}</Text> : null}
+              </Text>
+            ))}
+            <Text style={styles.nextRationale}>{nextPlan.rationale}</Text>
+            {!!aiSuggestion && nextPlan.options[0]?.source === "db" && (
+              <View style={styles.nextCoachRow}>
+                <Icon name="nutrition" size={12} color={colors.mute} />
+                <Text style={styles.nextCoach}>{aiSuggestion}</Text>
+              </View>
+            )}
+            {nextPlan.poolSize > nextPlan.options.length && (
+              <Pressable
+                style={styles.nextMoreBtn}
+                onPress={() => setMealShuffle((n) => n + 1)}
+                hitSlop={8}
+              >
+                <Icon name="refresh" size={13} color={colors.green} />
+                <Text style={styles.nextMoreText}>More ideas</Text>
+              </Pressable>
+            )}
+          </View>
+        ) : null;
+      case "streak":
+        return <MonthStreak logs={logs} goalKcal={goal.kcal} />;
+      case "micros":
+        return AI_COACH_ENABLED ? (
+          <View style={styles.microCard}>
+            <View style={styles.microHeadRow}>
+              <Icon name="nutrition" size={15} color={colors.green} />
+              <Text style={styles.microHead}>Micronutrients today</Text>
+            </View>
+            {micro.trackedMeals > 0 ? (
+              <>
+                {micro.rows.map((r) => {
+                  const barColor =
+                    r.state === "ok" ? colors.green : r.state === "low" ? colors.carbs : colors.red;
+                  const fill = Math.min(100, r.pct);
+                  return (
+                    <View key={r.key} style={styles.microRow}>
+                      <View style={styles.microTop}>
+                        <Text style={styles.microLabel}>
+                          {r.label}
+                          {r.kind === "limit" ? <Text style={styles.microNote}>  · keep under</Text> : null}
+                        </Text>
+                        <Text style={styles.microVal}>
+                          {r.have}
+                          <Text style={styles.microTarget}>
+                            {" "}
+                            / {r.target} {r.unit}
+                          </Text>
+                        </Text>
+                      </View>
+                      <View style={styles.microTrack}>
+                        <View style={[styles.microFill, { width: `${fill}%`, backgroundColor: barColor }]} />
+                      </View>
+                    </View>
+                  );
+                })}
+                <Text style={styles.microFoot}>
+                  From {micro.trackedMeals} of {micro.totalMeals} logged{" "}
+                  {micro.totalMeals === 1 ? "meal" : "meals"} matched to our food database. Reference
+                  intakes for a healthy adult — not medical advice.
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.microEmpty}>
+                Log a food from a barcode or the food database to see fibre, iron, sodium and more vs
+                your daily targets. Photo-only estimates don't carry full micronutrient data yet.
+              </Text>
+            )}
+          </View>
+        ) : null;
+      case "wellness":
+        return (
+          <View style={styles.wellRow}>
+            <View style={styles.wellCard}>
+              <View style={styles.wellHead}>
+                <Icon name="water" size={16} color={colors.fat} />
+                <Text style={styles.wellTitle}>Water</Text>
+              </View>
+              <Text style={styles.wellValue}>
+                {(waterMl / 1000).toFixed(2)}
+                <Text style={styles.wellUnit}> / {(waterGoalMl / 1000).toFixed(1)} L</Text>
+              </Text>
+              <View style={styles.wellTrack}>
+                <View
+                  style={[
+                    styles.wellFill,
+                    { width: `${Math.min(100, Math.round((waterMl / waterGoalMl) * 100))}%`, backgroundColor: colors.fat },
+                  ]}
+                />
+              </View>
+              <View style={styles.wellBtns}>
+                <Pressable style={styles.wellStep} onPress={() => changeWater(-WATER_GLASS_ML)}>
+                  <Icon name="minus" size={16} color={colors.mute} />
+                </Pressable>
+                <Text style={styles.wellStepLabel}>+1 glass</Text>
+                <Pressable style={styles.wellStep} onPress={() => changeWater(WATER_GLASS_ML)}>
+                  <Icon name="plus" size={16} color={colors.green} />
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.wellCard}>
+              <View style={styles.wellHead}>
+                <Icon name="walk" size={16} color={colors.green} />
+                <Text style={styles.wellTitle}>Steps</Text>
+              </View>
+              <Text style={styles.wellValue}>
+                {steps.toLocaleString()}
+                <Text style={styles.wellUnit}> / {stepGoal.toLocaleString()}</Text>
+              </Text>
+              <View style={styles.wellTrack}>
+                <View
+                  style={[
+                    styles.wellFill,
+                    { width: `${Math.min(100, Math.round((steps / stepGoal) * 100))}%`, backgroundColor: colors.green },
+                  ]}
+                />
+              </View>
+              <View style={styles.wellBtns}>
+                <Pressable style={styles.wellStep} onPress={() => changeSteps(-1000)}>
+                  <Icon name="minus" size={16} color={colors.mute} />
+                </Pressable>
+                <Text style={styles.wellStepLabel}>±1,000</Text>
+                <Pressable style={styles.wellStep} onPress={() => changeSteps(1000)}>
+                  <Icon name="plus" size={16} color={colors.green} />
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        );
+      case "exercise":
+        return (
+          <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
+            <View style={styles.exerciseIcon}>
+              <Icon name="dumbbell" size={18} color={colors.green} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.exerciseTitle}>Exercise</Text>
+              <Text style={styles.exerciseSub}>
+                {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
+              </Text>
+            </View>
+            <Icon name="chevronRight" size={18} color={colors.mute} />
+          </PressableScale>
+        );
+      default:
+        return null;
+    }
+  }
+
   return (
     <View style={styles.root}>
       <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
@@ -870,235 +1158,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        <View style={styles.dayCard}>
-          <Text style={styles.dayLabel}>TODAY</Text>
-          <View style={styles.ringWrap}>
-            <CalorieRing value={dayKcal} goal={goal.kcal} />
-          </View>
-          <Text style={styles.remaining}>
-            {dayKcal <= goal.kcal
-              ? `${goal.kcal - dayKcal} kcal remaining today`
-              : `${dayKcal - goal.kcal} kcal over your target`}
-          </Text>
-
-          <View style={styles.dayMacroBar}>
-            <MacroProgress label="Protein" have={dm.protein_g} goalV={goal.protein_g} color={colors.protein} />
-            <MacroProgress label="Carbs" have={dm.carbs_g} goalV={goal.carbs_g} color={colors.carbs} />
-            <MacroProgress label="Fat" have={dm.fat_g} goalV={goal.fat_g} color={colors.fat} />
-          </View>
-
-          <View style={styles.dayFootRow}>
-            <Text style={styles.daySub}>{meals.length} meals logged</Text>
-            {meals.length > 0 && (
-              <Pressable style={styles.shareBtn} onPress={() => setShowShare(true)}>
-                <Icon name="share" size={14} color={colors.green} />
-                <Text style={styles.shareBtnText}>Share my day</Text>
-              </Pressable>
-            )}
-          </View>
+        <View style={styles.customizeRow}>
+          <Pressable style={styles.customizeBtn} onPress={() => setShowCustomize(true)} hitSlop={6}>
+            <Icon name="settings" size={13} color={colors.mute} />
+            <Text style={styles.customizeText}>Customize</Text>
+          </Pressable>
         </View>
 
-        <TodayPlanCard
-          goal={goal}
-          diet={profile.diet}
-          goalName={profile.goal}
-          date={today}
-          account={account}
-          onRequireAuth={onRequireAuth}
-          consumed={{ kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g }}
-        />
-
-        {AI_COACH_ENABLED && (
-        <View style={styles.trainCard}>
-          <View style={styles.trainHeadRow}>
-            <Icon name="pulse" size={14} color={colors.green} />
-            <Text style={styles.trainHead}>Today's training</Text>
-          </View>
-          <View style={styles.trainChips}>
-            {TRAINING_META.map((m) => {
-              const on = training === m.key;
-              return (
-                <Pressable
-                  key={m.key}
-                  onPress={() => pickTraining(m.key)}
-                  style={[styles.trainChip, on && styles.trainChipOn]}
-                >
-                  <Icon name={m.icon} size={13} color={on ? "#fff" : colors.inkSoft} />
-                  <Text style={[styles.trainChipText, on && styles.trainChipTextOn]}>{m.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text style={styles.trainHint}>
-            {trainTip ?? "Tag today's plan and we'll tune your next-meal and fuelling tips to match."}
-          </Text>
-        </View>
-        )}
-
-        {AI_COACH_ENABLED && (
-        <View style={styles.nextCard}>
-          <View style={styles.nextHeaderRow}>
-            <Icon name="sparkles" size={15} color={colors.green} />
-            <Text style={styles.nextHeader}>{nextPlan.headline}</Text>
-          </View>
-          <View style={styles.nextFocusRow}>
-            {nextPlan.focus.map((f) => (
-              <View key={f} style={styles.nextChip}>
-                <Text style={styles.nextChipText}>{f}</Text>
-              </View>
-            ))}
-          </View>
-          {nextPlan.options.map((opt, i) => (
-            <Text key={`${opt.name}-${i}`} style={styles.nextIdea}>
-              <Text style={styles.nextIdeaLabel}>{i === 0 ? "Try: " : "or: "}</Text>
-              {opt.name}
-              {opt.detail ? <Text style={styles.nextIdeaKcal}>{`  (${opt.detail})`}</Text> : null}
-              {opt.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${opt.kcal} kcal`}</Text> : null}
-            </Text>
-          ))}
-          <Text style={styles.nextRationale}>{nextPlan.rationale}</Text>
-          {!!aiSuggestion && nextPlan.options[0]?.source === "db" && (
-            <View style={styles.nextCoachRow}>
-              <Icon name="nutrition" size={12} color={colors.mute} />
-              <Text style={styles.nextCoach}>{aiSuggestion}</Text>
-            </View>
-          )}
-          {nextPlan.poolSize > nextPlan.options.length && (
-            <Pressable
-              style={styles.nextMoreBtn}
-              onPress={() => setMealShuffle((n) => n + 1)}
-              hitSlop={8}
-            >
-              <Icon name="refresh" size={13} color={colors.green} />
-              <Text style={styles.nextMoreText}>More ideas</Text>
-            </Pressable>
-          )}
-        </View>
-        )}
-
-        <MonthStreak logs={logs} goalKcal={goal.kcal} />
-
-        {AI_COACH_ENABLED && (
-        <View style={styles.microCard}>
-          <View style={styles.microHeadRow}>
-            <Icon name="nutrition" size={15} color={colors.green} />
-            <Text style={styles.microHead}>Micronutrients today</Text>
-          </View>
-          {micro.trackedMeals > 0 ? (
-            <>
-              {micro.rows.map((r) => {
-                const barColor =
-                  r.state === "ok" ? colors.green : r.state === "low" ? colors.carbs : colors.red;
-                const fill = Math.min(100, r.pct);
-                return (
-                  <View key={r.key} style={styles.microRow}>
-                    <View style={styles.microTop}>
-                      <Text style={styles.microLabel}>
-                        {r.label}
-                        {r.kind === "limit" ? <Text style={styles.microNote}>  · keep under</Text> : null}
-                      </Text>
-                      <Text style={styles.microVal}>
-                        {r.have}
-                        <Text style={styles.microTarget}>
-                          {" "}
-                          / {r.target} {r.unit}
-                        </Text>
-                      </Text>
-                    </View>
-                    <View style={styles.microTrack}>
-                      <View style={[styles.microFill, { width: `${fill}%`, backgroundColor: barColor }]} />
-                    </View>
-                  </View>
-                );
-              })}
-              <Text style={styles.microFoot}>
-                From {micro.trackedMeals} of {micro.totalMeals} logged{" "}
-                {micro.totalMeals === 1 ? "meal" : "meals"} matched to our food database. Reference
-                intakes for a healthy adult — not medical advice.
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.microEmpty}>
-              Log a food from a barcode or the food database to see fibre, iron, sodium and more vs
-              your daily targets. Photo-only estimates don't carry full micronutrient data yet.
-            </Text>
-          )}
-        </View>
-        )}
-
-        <View style={styles.wellRow}>
-          <View style={styles.wellCard}>
-            <View style={styles.wellHead}>
-              <Icon name="water" size={16} color={colors.fat} />
-              <Text style={styles.wellTitle}>Water</Text>
-            </View>
-            <Text style={styles.wellValue}>
-              {(waterMl / 1000).toFixed(2)}
-              <Text style={styles.wellUnit}> / {(waterGoalMl / 1000).toFixed(1)} L</Text>
-            </Text>
-            <View style={styles.wellTrack}>
-              <View
-                style={[
-                  styles.wellFill,
-                  { width: `${Math.min(100, Math.round((waterMl / waterGoalMl) * 100))}%`, backgroundColor: colors.fat },
-                ]}
-              />
-            </View>
-            <View style={styles.wellBtns}>
-              <Pressable style={styles.wellStep} onPress={() => changeWater(-WATER_GLASS_ML)}>
-                <Icon name="minus" size={16} color={colors.mute} />
-              </Pressable>
-              <Text style={styles.wellStepLabel}>+1 glass</Text>
-              <Pressable style={styles.wellStep} onPress={() => changeWater(WATER_GLASS_ML)}>
-                <Icon name="plus" size={16} color={colors.green} />
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.wellCard}>
-            <View style={styles.wellHead}>
-              <Icon name="walk" size={16} color={colors.green} />
-              <Text style={styles.wellTitle}>Steps</Text>
-            </View>
-            <Text style={styles.wellValue}>
-              {steps.toLocaleString()}
-              <Text style={styles.wellUnit}> / {stepGoal.toLocaleString()}</Text>
-            </Text>
-            <View style={styles.wellTrack}>
-              <View
-                style={[
-                  styles.wellFill,
-                  { width: `${Math.min(100, Math.round((steps / stepGoal) * 100))}%`, backgroundColor: colors.green },
-                ]}
-              />
-            </View>
-            <View style={styles.wellBtns}>
-              <Pressable style={styles.wellStep} onPress={() => changeSteps(-1000)}>
-                <Icon name="minus" size={16} color={colors.mute} />
-              </Pressable>
-              <Text style={styles.wellStepLabel}>±1,000</Text>
-              <Pressable style={styles.wellStep} onPress={() => changeSteps(1000)}>
-                <Icon name="plus" size={16} color={colors.green} />
-              </Pressable>
-            </View>
-          </View>
-        </View>
-
-        {/* Exercise: opens a full picker sheet. Calories burned are computed
-            server-side from the saved weight, so this stays part of the one
-            connected system rather than a static number. */}
-        <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
-          <View style={styles.exerciseIcon}>
-            <Icon name="dumbbell" size={18} color={colors.green} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.exerciseTitle}>Exercise</Text>
-            <Text style={styles.exerciseSub}>
-              {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
-            </Text>
-          </View>
-          <Icon name="chevronRight" size={18} color={colors.mute} />
-        </PressableScale>
+        {layoutOrder.map((key) => {
+          if (hiddenSet.has(key)) return null;
+          const node = renderModule(key);
+          return node ? <React.Fragment key={key}>{node}</React.Fragment> : null;
+        })}
 
         {/* One button, one sheet (AddFoodSheet) -- camera, gallery, barcode
             and describe used to each get their own row on this screen, which
@@ -1376,6 +1447,16 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
+      {showCustomize && (
+        <CustomizeHomeSheet
+          visible={showCustomize}
+          order={layoutOrder}
+          hidden={hiddenSet}
+          onClose={() => setShowCustomize(false)}
+          onSave={saveLayout}
+        />
+      )}
+
       {showPaywall && (
         <Paywall
           visible={showPaywall}
@@ -1449,6 +1530,9 @@ const styles = StyleSheet.create({
   brand: { color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.3 },
   tagline: { color: "#CDEBD9", fontSize: 13, marginTop: 2 },
   body: { padding: 16, paddingBottom: 24, marginTop: -12 },
+  customizeRow: { flexDirection: "row", justifyContent: "flex-end", marginBottom: 8 },
+  customizeBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingVertical: 4, paddingHorizontal: 6 },
+  customizeText: { color: colors.mute, fontWeight: "700", fontSize: 12.5 },
   dayCard: { backgroundColor: colors.card, borderRadius: 22, padding: 20, marginBottom: 16, ...elevation.md },
   nextCard: { backgroundColor: colors.greenTint, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8 },
   nextHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },

@@ -48,6 +48,7 @@ import barcode
 import wellness
 import plan
 import exercise
+import prefs
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -205,6 +206,11 @@ app.include_router(wellness.router)
 # connected system, no third-party service or scan credit involved.
 exercise.init_db()
 app.include_router(exercise.router)
+
+# Per-account UI preferences (Home dashboard layout: module order + hidden set),
+# synced across devices via GET/PUT /prefs/home.
+prefs.init_db()
+app.include_router(prefs.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key

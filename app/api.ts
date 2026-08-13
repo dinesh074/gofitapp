@@ -851,7 +851,23 @@ export async function deleteExerciseLog(id: number): Promise<ExerciseDay> {
   return (await res.json()) as ExerciseDay;
 }
 
-/* ------------------------------- Feed API -------------------------------- */
+/* --------------------------- Home layout prefs --------------------------- */
+// Per-account dashboard layout (which Home modules show + their order), synced
+// across devices. `order` is a list of module keys top-to-bottom; `hidden` is
+// the set the user chose to hide. Null means "never customized" -> client uses
+// its own default order.
+
+export type HomeLayout = { order: string[]; hidden: string[] };
+
+export async function getHomeLayout(): Promise<HomeLayout | null> {
+  const res = await getJson<{ layout: HomeLayout | null }>("/prefs/home");
+  return res.layout;
+}
+
+export async function putHomeLayout(layout: HomeLayout): Promise<HomeLayout> {
+  const res = await postAuth<{ layout: HomeLayout }>("/prefs/home", layout, "PUT");
+  return res.layout;
+}
 
 export type FeedMeal = {
   dish: string;
