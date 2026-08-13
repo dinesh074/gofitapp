@@ -46,6 +46,7 @@ import feedback
 import progress
 import barcode
 import wellness
+import plan
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -688,6 +689,18 @@ def foods_search(q: str, request: Request, limit: int = 20):
 # offered egg dishes but never meat/fish.
 _MEAT_FISH_WORDS = tuple(w for w in _NON_VEG_WORDS if w not in ("egg", "eggs", "anda"))
 
+# Dairy / other animal-derived words -- excluded ON TOP of the non-veg words for
+# a vegan diet, so a vegan is never offered paneer, curd, ghee, milk sweets, etc.
+# (bare "butter" also drops peanut butter for vegans -- an acceptable edge case
+# vs. correctly excluding the far more common butter naan / paneer-butter dishes).
+_DAIRY_WORDS = (
+    "paneer", "curd", "dahi", "yogurt", "yoghurt", "milk", "cheese", "cream",
+    "malai", "ghee", "butter", "khoya", "mawa", "lassi", "buttermilk", "chaas",
+    "kheer", "payasam", "raita", "makhan", "rabri", "rabdi", "kulfi", "condensed",
+    "honey", "custard", "srikhand", "shrikhand", "basundi", "peda", "barfi",
+    "burfi", "gulab", "jamun", "rasgulla", "rasmalai",
+)
+
 
 def _food_text(food: dict) -> str:
     """All the naming text we can diet-classify a food from."""
@@ -700,15 +713,18 @@ def _food_text(food: dict) -> str:
 def _food_diet_ok(food: dict, diet: str) -> bool:
     """Whether a DB food is allowed for the user's diet. Uses the same word
     lists that drive jain/sattvic classification, so it's consistent with the
-    rest of the app. Non-veg sees everything; eggetarian sees veg + egg;
-    veg/vegan/jain/sattvic see vegetarian foods only (v1 parity with the
-    client's dietAllows)."""
+    rest of the app. Non-veg sees everything; eggetarian sees veg + egg; vegan
+    sees vegetarian foods with dairy/animal-derived items also excluded;
+    veg/jain/sattvic see vegetarian foods (dairy allowed)."""
     if diet == "nonveg":
         return True
     text = _food_text(food)
     if diet == "eggetarian":
         return not _word_in(_MEAT_FISH_WORDS, text)
-    # veg, vegan, jain, sattvic -> vegetarian only
+    if diet == "vegan":
+        # No meat/fish/egg AND no dairy or other animal-derived foods.
+        return not _word_in(_NON_VEG_WORDS, text) and not _word_in(_DAIRY_WORDS, text)
+    # veg, jain, sattvic -> vegetarian only (dairy allowed)
     return not _word_in(_NON_VEG_WORDS, text)
 
 
@@ -1493,3 +1509,55 @@ def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guar
     account = _require_scan_slot(request)
     prompt = f'{TEXT_PROMPT}\n\nUser\'s description: "{body.description.strip()}"'
     return _run_gemini_analysis(account, prompt, None, "description")
+
+
+# --------------------------------------------------------------------------- #
+#  AI daily meal plan (see plan.py) -- persisted, profile-driven, not random.
+# --------------------------------------------------------------------------- #
+# The plan module owns its table, persistence and routes but delegates the two
+# things only this module can do -- picking real foods from FOOD_DB for a slot's
+# budget, and composing a grounded Gemini coach note -- back to these callables.
+def _plan_pick_for_slot(budget: dict, diet: str, goal_str: str, limit: int) -> list:
+    """Top real DB foods that fit a single slot's calorie/macro budget, already
+    diet-filtered and in the client-friendly _food_suggestion shape. Reuses the
+    exact ranking the /foods/recommend endpoint uses so the plan and the (later)
+    recommender stay consistent."""
+    goal = {"goal": goal_str, "protein_g": budget.get("protein_g", 0) * 3}
+    top = _rank_foods(budget, goal, diet, limit)
+    return [_food_suggestion(f) for f in top]
+
+
+def _plan_ai_note(plan_data: dict, diet: str, goal_str: str) -> str:
+    """ONE short, grounded sentence about how the planned day supports the goal.
+    Best-effort: returns '' on any failure so plan.build_plan falls back to its
+    deterministic note. Not cached here -- build_plan only runs on a real
+    (re)generate, and the result is persisted, so this hits Gemini rarely."""
+    lines = []
+    for s in plan_data.get("slots", []):
+        for it in s.get("items", []):
+            lines.append(f"{s['label']}: {it['name']}")
+    if not lines:
+        return ""
+    t = plan_data.get("targets", {})
+    prompt = (
+        "You are a concise, encouraging Indian nutrition coach. A user's planned day is:\n"
+        + "\n".join(lines)
+        + f"\n\nDaily targets: {int(t.get('kcal', 0))} kcal, {int(t.get('protein_g', 0))} g protein. "
+        f"Diet: {diet}, goal: {goal_str}.\n"
+        "Write ONE short sentence (max 24 words) on how this plan supports their goal. "
+        "No medical claims, no calorie numbers in the sentence. "
+        'Respond as JSON: {"note": "<sentence>"}'
+    )
+    try:
+        resp = get_model().generate_content(prompt)
+        data = extract_json(resp.text)
+        return (data.get("note") or "").strip()
+    except Exception as ex:
+        log.info("plan: AI note generation failed (%s)", ex)
+        return ""
+
+
+plan.init_db()
+plan.configure(pick_for_slot=_plan_pick_for_slot, ai_note=_plan_ai_note)
+app.include_router(plan.router)
+

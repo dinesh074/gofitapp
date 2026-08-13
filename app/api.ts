@@ -344,6 +344,79 @@ export async function fetchMealVerdict(input: {
   }
 }
 
+// --------------------------------------------------------------------------- //
+//  AI daily meal plan (see backend/plan.py) -- persisted server-side per
+//  account/day, generated from the user's real targets + the food DB, stable
+//  until the profile/goal/pace (hence targets) change. Needs auth, consumes NO
+//  scan credit, never hits the vision model. Never throws -- returns null on any
+//  failure so the caller can fall back gracefully.
+// --------------------------------------------------------------------------- //
+export type PlanMacros = { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+
+export type PlanItem = {
+  key: string;
+  name: string;
+  unit: string;
+  count: number;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+};
+
+export type PlanSlot = {
+  slot: string;
+  label: string;
+  target_kcal: number;
+  items: PlanItem[];
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+};
+
+export type DayPlan = {
+  date: string;
+  signature: string;
+  targets: PlanMacros;
+  totals: PlanMacros;
+  slots: PlanSlot[];
+  coach_note?: string;
+  generated_at: number;
+};
+
+export async function fetchTodayPlan(input: {
+  targets: PlanMacros;
+  diet: Diet;
+  goal: string; // "lose" | "maintain" | "gain"
+  date: string; // "YYYY-MM-DD" (the user's local day)
+  regenerate?: boolean;
+}): Promise<DayPlan | null> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/plan/today`, {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        targets: input.targets,
+        diet: input.diet,
+        goal: input.goal,
+        date: input.date,
+        regenerate: input.regenerate ?? false,
+      }),
+    });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  try {
+    const data = (await res.json()) as { plan?: DayPlan };
+    return data.plan ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function friendlyError(res: Response): Promise<string> {
   let detail = "";
   try {
