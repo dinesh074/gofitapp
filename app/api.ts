@@ -3,7 +3,7 @@ import { API_BASE, API_KEY } from "./config";
 import { Account, getToken } from "./auth";
 import { Profile, Diet } from "./nutrition";
 import { Meal, LogMap, WeightEntry } from "./storage";
-import { dbSeedsForDiet, dbFoodToCandidate, Candidate } from "./mealSuggest";
+import { dbFoodToCandidate, Candidate } from "./mealSuggest";
 
 // Full vitamin/mineral panel, keyed by friendly name (e.g. "vitamin_c_mg",
 // "saturated_fat_mg") -- see backend/build_db_v2.py for the exact field list.
@@ -255,37 +255,42 @@ export async function searchFoods(q: string, limit = 20): Promise<FoodSuggestion
   return data.results;
 }
 
-// Pull a diet-appropriate pool of real foods from the DB to feed the "what to
-// eat next" suggester (real nutrition + variety beyond the built-in idea list).
-// Runs the seed searches in parallel, dedupes by name, and NEVER throws -- on
-// any failure (offline, signed out, server down) it returns whatever it got so
-// the caller can just fall back to the built-in ideas. Consumes no scan credit.
-export async function fetchMealCandidatePool(
+// Real "what to eat next" over the WHOLE food DB, ranked server-side against the
+// user's ACTUAL remaining macros and filtered to their diet (that's where the
+// veg/non-veg data lives) -- plus an optional Gemini one-liner grounded in the
+// ranked foods. This is a plain DB+ranking call (like search/barcode): it needs
+// auth but consumes NO scan credit and never hits the vision model. Never throws
+// -- on any failure it returns an empty pool so the caller falls back to the
+// built-in ideas + the user's own recents.
+export async function recommendMeals(
+  remaining: { kcal: number; protein_g: number; carbs_g: number; fat_g: number },
   diet: Diet,
-  perSeed = 4,
-): Promise<Candidate[]> {
-  const seeds = dbSeedsForDiet(diet);
-  const results = await Promise.all(
-    seeds.map(async (s) => {
-      try {
-        const hits = await searchFoods(s.q, perSeed);
-        return hits.map((h) => dbFoodToCandidate(h, s.contains));
-      } catch {
-        return [];
-      }
-    }),
-  );
-  const seen = new Set<string>();
-  const pool: Candidate[] = [];
-  for (const group of results) {
-    for (const c of group) {
-      const key = c.name.trim().toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      pool.push(c);
-    }
+  goal: string,
+  slot = "",
+  limit = 12,
+): Promise<{ candidates: Candidate[]; suggestion: string | null }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/foods/recommend`, {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({ remaining, diet, goal, slot, limit, phrase: true }),
+    });
+  } catch {
+    return { candidates: [], suggestion: null };
   }
-  return pool;
+  if (!res.ok) return { candidates: [], suggestion: null };
+  let data: { results?: FoodSuggestion[]; suggestion?: string };
+  try {
+    data = (await res.json()) as { results?: FoodSuggestion[]; suggestion?: string };
+  } catch {
+    return { candidates: [], suggestion: null };
+  }
+  // The backend already diet-filtered for THIS user, so tag every candidate as
+  // universally allowed ("veg") -- the client must not re-filter and drop a
+  // valid pick (e.g. a chicken dish that a non-veg user should see).
+  const candidates = (data.results ?? []).map((h) => dbFoodToCandidate(h, "veg"));
+  return { candidates, suggestion: data.suggestion ?? null };
 }
 
 async function friendlyError(res: Response): Promise<string> {

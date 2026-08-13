@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, fetchMealCandidatePool } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -184,7 +184,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // beyond the built-in list. Fetched once per diet per session; empty until it
   // resolves (the suggester falls back to built-in ideas meanwhile).
   const [dbPool, setDbPool] = useState<Candidate[]>([]);
-  const dbPoolDiet = useRef<string | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const recoSig = useRef<string | null>(null);
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -231,26 +232,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     };
   }, [account?.id]);
 
-  // Fetch a diet-appropriate pool of real foods for next-meal ideas. Only when
-  // signed in (the endpoint needs auth) and only once per diet per session --
-  // cached in a ref so changing macros doesn't refetch. Never throws.
-  useEffect(() => {
-    if (!account) return;
-    if (dbPoolDiet.current === profile.diet) return;
-    let alive = true;
-    dbPoolDiet.current = profile.diet;
-    fetchMealCandidatePool(profile.diet)
-      .then((pool) => {
-        if (alive) setDbPool(pool);
-      })
-      .catch(() => {
-        // best-effort enrichment -- fall back to built-in ideas + recents
-        if (alive) setDbPool([]);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [account?.id, profile.diet]);
+  // The live-remaining-macro recommendation effect lives lower down, after
+  // dayKcal/dm/goal are computed (it needs the actual remaining budget).
 
   const isPro = !!account?.isPro;
   const scansLeft = account?.scansLeft ?? account?.scansLimit ?? null;
@@ -263,6 +246,53 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // not the same flat number for every account regardless of who they are.
   const waterGoalMl = useMemo(() => computeWaterGoalMl(profile), [profile.weightKg, profile.activity]);
   const stepGoal = useMemo(() => computeStepGoal(profile), [profile.activity]);
+
+  // Real "what to eat next": ask the backend to rank the WHOLE food DB against
+  // today's ACTUAL remaining macros + this user's diet, and (best-effort) return
+  // a Gemini one-liner. This is the proper AI/DB path -- NOT a static cached
+  // list. It refetches when the remaining budget changes meaningfully (coarse
+  // buckets so tiny edits don't spam), debounced ~700ms. Needs auth, costs no
+  // scan credit. On any failure the pool just stays empty and the suggester
+  // falls back to the built-in ideas + the user's own recents.
+  const remKcal = Math.max(0, goal.kcal - dayKcal);
+  const remP = Math.max(0, goal.protein_g - dm.protein_g);
+  const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
+  const remF = Math.max(0, goal.fat_g - dm.fat_g);
+  useEffect(() => {
+    if (!account) {
+      setDbPool([]);
+      setAiSuggestion(null);
+      recoSig.current = null;
+      return;
+    }
+    // Coarse signature -- refetch only when it shifts (100 kcal / 10 g buckets).
+    const sig = `${profile.diet}|${profile.goal}|${Math.round(remKcal / 100)}|${Math.round(remP / 10)}|${Math.round(remC / 10)}`;
+    if (sig === recoSig.current) return;
+    let alive = true;
+    const timer = setTimeout(() => {
+      recoSig.current = sig;
+      recommendMeals(
+        { kcal: remKcal, protein_g: remP, carbs_g: remC, fat_g: remF },
+        profile.diet,
+        profile.goal,
+      )
+        .then(({ candidates, suggestion }) => {
+          if (!alive) return;
+          setDbPool(candidates);
+          setAiSuggestion(suggestion);
+        })
+        .catch(() => {
+          if (alive) {
+            setDbPool([]);
+            setAiSuggestion(null);
+          }
+        });
+    }, 700);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [account?.id, profile.diet, profile.goal, remKcal, remP, remC, remF]);
 
   // Water + habit (steps) load from local cache instantly, then reconcile with
   // the server. Pure data entry -- no AI, no scan credit touched here.
@@ -784,6 +814,12 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             </Text>
           )}
           <Text style={styles.nextRationale}>{nextMeal.rationale}</Text>
+          {!!aiSuggestion && nextMeal.source === "db" && (
+            <View style={styles.nextCoachRow}>
+              <Icon name="nutrition" size={12} color={colors.mute} />
+              <Text style={styles.nextCoach}>{aiSuggestion}</Text>
+            </View>
+          )}
         </View>
 
         <MonthStreak logs={logs} goalKcal={goal.kcal} />
@@ -1200,6 +1236,8 @@ const styles = StyleSheet.create({
   nextIdeaLabel: { color: colors.green, fontWeight: "900" },
   nextIdeaKcal: { color: colors.mute, fontSize: 12, fontWeight: "700" },
   nextRationale: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 16 },
+  nextCoachRow: { flexDirection: "row", alignItems: "flex-start", gap: 5, marginTop: 8 },
+  nextCoach: { flex: 1, color: colors.mute, fontSize: 11.5, fontStyle: "italic", lineHeight: 15 },
 
   trainCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 10, ...elevation.sm },
   trainHeadRow: { flexDirection: "row", alignItems: "center", gap: 6 },

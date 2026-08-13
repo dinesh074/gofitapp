@@ -341,6 +341,13 @@ def _init_foods_table(c) -> None:
         c.execute("ALTER TABLE foods ADD COLUMN jain_status TEXT")
     if "sattvic_status" not in cols:
         c.execute("ALTER TABLE foods ADD COLUMN sattvic_status TEXT")
+    # source_name/source drive the India-first ranking in /foods/recommend.
+    # Older tables (created before these columns) get them backfilled here so
+    # the recommender can tell Indian dishes from continental ones.
+    if "source_name" not in cols:
+        c.execute("ALTER TABLE foods ADD COLUMN source_name TEXT")
+    if "source" not in cols:
+        c.execute("ALTER TABLE foods ADD COLUMN source TEXT")
 
 
 # --- Jain / Sattvic classification -------------------------------------------
@@ -480,6 +487,16 @@ def _row_to_food(r) -> dict:
             d[field] = json.loads(v) if isinstance(v, str) else v
     aliases = r["aliases_json"]
     d["aliases"] = (json.loads(aliases) if isinstance(aliases, str) else aliases) or []
+    # Carry the seed provenance through so the recommender's India-first tiering
+    # works (curated staples vs INDB vs continental). Guarded: a very old table
+    # might not have these columns even after _init (e.g. if _init wasn't run).
+    for field, col in (("_source_name", "source_name"), ("_source", "source")):
+        try:
+            v = r[col]
+        except (KeyError, IndexError):
+            v = None
+        if v is not None:
+            d[field] = v
     return d
 
 
@@ -589,6 +606,254 @@ def foods_search(q: str, request: Request, limit: int = 20):
     scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
     limit = max(1, min(50, limit))
     return {"results": [_food_suggestion(f) for _, _, f in scored[:limit]]}
+
+
+# --------------------------------------------------------------------------- #
+#  "What to eat next" -- real recommendation over the whole food DB
+# --------------------------------------------------------------------------- #
+# Meat/fish words = the non-veg set minus egg, so an eggetarian can still be
+# offered egg dishes but never meat/fish.
+_MEAT_FISH_WORDS = tuple(w for w in _NON_VEG_WORDS if w not in ("egg", "eggs", "anda"))
+
+
+def _food_text(food: dict) -> str:
+    """All the naming text we can diet-classify a food from."""
+    parts = [food.get("key", "")] + list(food.get("_aliases", []))
+    if food.get("_source_name"):
+        parts.append(food["_source_name"])
+    return _norm(" ".join(p for p in parts if p))
+
+
+def _food_diet_ok(food: dict, diet: str) -> bool:
+    """Whether a DB food is allowed for the user's diet. Uses the same word
+    lists that drive jain/sattvic classification, so it's consistent with the
+    rest of the app. Non-veg sees everything; eggetarian sees veg + egg;
+    veg/vegan/jain/sattvic see vegetarian foods only (v1 parity with the
+    client's dietAllows)."""
+    if diet == "nonveg":
+        return True
+    text = _food_text(food)
+    if diet == "eggetarian":
+        return not _word_in(_MEAT_FISH_WORDS, text)
+    # veg, vegan, jain, sattvic -> vegetarian only
+    return not _word_in(_NON_VEG_WORDS, text)
+
+
+# Clearly non-Indian / continental dish tokens. The 815-food INDB set is broad
+# and includes Western recipes (pasta, lasagne, souffle...) alongside Indian
+# staples. gofit is India-first, so we gently DOWN-weight obviously-Western
+# dishes rather than filter them out (the whole DB stays eligible for variety
+# and real nutrition). This is a ranking nudge, not a food allow/deny list.
+_WESTERN_WORDS = {
+    "pasta", "spaghetti", "macaroni", "lasagne", "lasagna", "bolognese",
+    "souffle", "quiche", "casserole", "stroganoff", "risotto", "ravioli",
+    "pizza", "burger", "hotdog", "taco", "burrito", "nachos", "gratin",
+    "meatloaf", "waffle", "pancake", "croissant", "bagel", "muffin",
+}
+
+
+def _india_tier(food: dict) -> int:
+    """India-first ranking tier. gofit is India-first but the INDB set mixes
+    continental recipes (pasta, lasagne...) in with Indian staples and there is
+    no reliable cuisine flag in the data. So we bucket foods and rank Indian
+    ones ahead of continental ones, letting macro-fit order within each tier
+    (keeps real-DB variety without surfacing spaghetti for an Indian thali).
+      2 = hand-curated staple (idli, dosa, dal...)
+      1 = carries a Hindi/regional name (translit paren in _source_name)
+      0 = neutral (Indian DB food with no explicit Indian name signal)
+     -1 = clearly continental dish (see _WESTERN_WORDS)"""
+    text = _food_text(food)
+    if _word_in(_WESTERN_WORDS, text):
+        return -1
+    if not food.get("_source"):
+        return 2
+    sn = food.get("_source_name") or ""
+    if "(" in sn and ")" in sn:
+        return 1
+    return 0
+
+
+def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
+    """Rank a single real DB food by how well one serving fits what's LEFT in
+    the user's day. Mirrors the client's deterministic scorer (protein-first,
+    penalise calorie/fat overshoot, small goal tilt) so server and client agree,
+    plus a gentle nudge toward the app's health_score. Training-context bias
+    stays on the client."""
+    kcal = food.get("kcal_per_unit", 0) or 0
+    if kcal <= 0:
+        return -1e9
+    remKcal = rem["kcal"]
+    remP = max(0, rem["protein_g"])
+    remC = max(0, rem["carbs_g"])
+    remF = max(0, rem["fat_g"])
+
+    protein_fill = min(food.get("protein_g", 0) or 0, remP)
+    carb_fill = min(food.get("carbs_g", 0) or 0, remC)
+    kcal_over = max(0, kcal - remKcal)
+    fat_over = max(0, (food.get("fat_g", 0) or 0) - remF)
+
+    protein_priority = goal.get("protein_g", 0) > 0 and (remP / goal["protein_g"]) >= 0.3
+    g = goal.get("goal", "maintain")
+    goal_bias = -0.15 if g == "lose" else 0.1 if g == "gain" else 0.0
+
+    score = (
+        (2.2 if protein_priority else 1.0) * protein_fill
+        + 0.12 * carb_fill
+        - 0.06 * kcal_over
+        - 0.4 * fat_over
+        + goal_bias * (kcal / 100.0)
+    )
+    # Nudge toward healthier real foods (health_score is 0-100, 50 is neutral).
+    hs = food.get("health_score")
+    if isinstance(hs, (int, float)):
+        score += (hs - 50) * 0.03
+    return score
+
+
+def _rank_foods(rem: dict, goal: dict, diet: str, limit: int) -> list:
+    """Return the top real DB foods for the remaining budget + diet. A serving
+    must fit the calorie headroom (with a little slack) so we never suggest a
+    600 kcal thali when only 200 kcal remain."""
+    remKcal = rem["kcal"]
+    ceiling = max(remKcal * 1.2, 150)  # allow small foods even when nearly full
+    scored = []
+    for food in FOOD_DB:
+        if not _food_diet_ok(food, diet):
+            continue
+        kcal = food.get("kcal_per_unit", 0) or 0
+        if kcal <= 0 or kcal > ceiling:
+            continue
+        s = _recommend_score(food, rem, goal)
+        scored.append((_india_tier(food), s, -kcal, food))
+    # India-first tier is the primary key, then macro-fit, then smaller serving.
+    scored.sort(key=lambda x: (x[0], x[1], x[2]), reverse=True)
+    return [f for _, _, _, f in scored[:limit]]
+
+
+# AI phrasing is cached so rapid re-renders / similar budgets don't re-hit
+# Gemini. Keyed by a COARSE bucket of the request (diet, goal, slot, calorie
+# bucket, protein bucket, top-food key) with a short TTL. Best-effort: any AI
+# failure falls back to deterministic text, so the endpoint never breaks.
+_PHRASE_TTL = 600  # seconds
+_PHRASE_CACHE_MAX = 512
+_phrase_cache: dict = {}
+_phrase_lock = threading.Lock()
+
+
+def _phrase_key(diet, goal, slot, rem, top_key) -> tuple:
+    return (
+        diet,
+        goal.get("goal", "maintain"),
+        slot or "",
+        int(round(rem["kcal"] / 100.0)),
+        int(round(rem["protein_g"] / 10.0)),
+        top_key,
+    )
+
+
+def _deterministic_phrase(top: list, rem: dict) -> str:
+    if not top:
+        return "A balanced plate — dal, a roti and some sabzi."
+    name = top[0]["key"].replace("_", " ").title()
+    p = int(round(rem["protein_g"]))
+    if rem["protein_g"] >= 15:
+        return f"Try {name} — it helps close your ~{p}g protein gap for the day."
+    return f"Try {name} — a sensible fit for what's left in your budget."
+
+
+def _ai_phrase(diet: str, goal: dict, slot: str, rem: dict, top: list) -> str:
+    """One friendly, India-first sentence recommending what to eat next, GROUNDED
+    in the real ranked foods (the model may only choose among the names we pass).
+    Cached + best-effort."""
+    if not top:
+        return _deterministic_phrase(top, rem)
+    key = _phrase_key(diet, goal, slot, rem, top[0]["key"])
+    now = time.time()
+    with _phrase_lock:
+        hit = _phrase_cache.get(key)
+        if hit and (now - hit[0]) < _PHRASE_TTL:
+            return hit[1]
+
+    names = [t["key"].replace("_", " ") for t in top[:5]]
+    prompt = (
+        "You are a concise Indian nutrition assistant. Recommend ONE next thing to "
+        "eat, choosing ONLY from this list of real foods (do not invent others):\n"
+        f"{', '.join(names)}\n\n"
+        f"Context: diet={diet}, goal={goal.get('goal','maintain')}, meal_slot={slot or 'any'}.\n"
+        f"Remaining today: {int(rem['kcal'])} kcal, {int(rem['protein_g'])} g protein, "
+        f"{int(rem['carbs_g'])} g carbs, {int(rem['fat_g'])} g fat.\n\n"
+        "Write ONE short, friendly sentence (max 22 words) telling the user what to eat "
+        "next and why, referencing the biggest gap (usually protein). No medical claims, "
+        "no calorie numbers in the sentence. Respond as JSON: "
+        '{"suggestion": "<sentence>"}'
+    )
+    try:
+        resp = get_model().generate_content(prompt)
+        data = extract_json(resp.text)
+        text = (data.get("suggestion") or "").strip()
+        if not text:
+            raise ValueError("empty suggestion")
+        # Keep it grounded: the model must be talking about a food we offered.
+        low = text.lower()
+        if not any(n.split()[0] in low for n in names):
+            raise ValueError("suggestion drifted off the offered foods")
+    except Exception as ex:
+        log.info("recommend: AI phrasing failed (%s) -- using deterministic text", ex)
+        text = _deterministic_phrase(top, rem)
+
+    with _phrase_lock:
+        if len(_phrase_cache) > _PHRASE_CACHE_MAX:
+            _phrase_cache.clear()
+        _phrase_cache[key] = (now, text)
+    return text
+
+
+class Remaining(BaseModel):
+    kcal: float = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+
+
+class RecommendBody(BaseModel):
+    remaining: Remaining
+    diet: str = "veg"
+    goal: str = "maintain"
+    slot: str = ""
+    limit: int = 12
+    phrase: bool = True
+
+
+@app.post("/foods/recommend")
+def foods_recommend(body: RecommendBody, request: Request):
+    """Real "what to eat next" over the WHOLE food DB (839+ dishes), ranked
+    against the user's ACTUAL remaining macros and filtered to their diet
+    server-side (where the veg/non-veg/jain data lives). Optionally adds a
+    Gemini-composed one-liner grounded in the ranked foods. Like /foods/search
+    this is a plain DB lookup -- it requires a signed-in account but NEVER
+    consumes a free-scan credit and never calls the vision model."""
+    auth.require_account(request)
+    rem = {
+        "kcal": max(0.0, body.remaining.kcal),
+        "protein_g": max(0.0, body.remaining.protein_g),
+        "carbs_g": max(0.0, body.remaining.carbs_g),
+        "fat_g": max(0.0, body.remaining.fat_g),
+    }
+    goal = {"goal": (body.goal or "maintain").strip().lower()}
+    # protein target isn't sent; derive a proxy so the protein-priority switch
+    # still works: if a real gap exists, treat protein as a priority.
+    goal["protein_g"] = rem["protein_g"] * 3 if rem["protein_g"] > 0 else 0
+    diet = (body.diet or "veg").strip().lower()
+    limit = max(1, min(24, body.limit))
+
+    top = _rank_foods(rem, goal, diet, limit)
+    out = {"results": [_food_suggestion(f) for f in top]}
+    if body.phrase:
+        try:
+            out["suggestion"] = _ai_phrase(diet, goal, (body.slot or "").strip().lower(), rem, top)
+        except Exception:
+            out["suggestion"] = _deterministic_phrase(top, rem)
+    return out
 
 
 def anchor_items(data: dict) -> dict:

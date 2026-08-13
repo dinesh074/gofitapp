@@ -300,31 +300,9 @@ export function recentsToCandidates(
   });
 }
 
-// Diet-appropriate seed searches for pulling real foods out of the food DB.
-// We choose the seeds per diet so a vegetarian user is only ever seeded with
-// vegetarian foods (the DB rows don't expose a veg flag to the client), giving
-// real nutrition + variety without ever suggesting off-diet food.
-const DB_SEEDS: { q: string; contains: Contains }[] = [
-  { q: "dal", contains: "veg" },
-  { q: "paneer", contains: "veg" },
-  { q: "curd", contains: "veg" },
-  { q: "rajma", contains: "veg" },
-  { q: "chana", contains: "veg" },
-  { q: "roti", contains: "veg" },
-  { q: "idli", contains: "veg" },
-  { q: "poha", contains: "veg" },
-  { q: "sprouts", contains: "veg" },
-  { q: "tofu", contains: "veg" },
-  { q: "egg", contains: "egg" },
-  { q: "chicken", contains: "nonveg" },
-  { q: "fish", contains: "nonveg" },
-];
-
-export function dbSeedsForDiet(diet: Diet): { q: string; contains: Contains }[] {
-  return DB_SEEDS.filter((s) => dietAllows(diet, s.contains));
-}
-
-// Map a food-DB search hit (per-unit macros) into a single-serving candidate.
+// Map a food-DB record (per-unit macros) into a single-serving candidate.
+// The backend now ranks + diet-filters the whole DB in /foods/recommend, so the
+// client no longer needs its own seed-word searches.
 export function dbFoodToCandidate(
   f: { name: string; unit: string; kcal_per_unit: number; protein_g_per_unit: number; carbs_g_per_unit: number; fat_g_per_unit: number },
   contains: Contains,
