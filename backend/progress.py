@@ -46,9 +46,11 @@ router = APIRouter(tags=["progress"])
 
 def _ensure_column(c, table: str, column: str, decl: str) -> None:
     """Add a column if it's missing, so older databases pick up new fields
-    without a migration framework. SQLite has no ADD COLUMN IF NOT EXISTS."""
-    cols = {r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()}
-    if column not in cols:
+    without a migration framework. Works on both SQLite and Postgres by using
+    db.table_columns() for introspection (PRAGMA is SQLite-only and errors on
+    Postgres). Neither backend's ALTER TABLE ADD COLUMN needs the column to be
+    absent-checked beyond this."""
+    if column not in db.table_columns(c, table):
         c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
 
 
