@@ -544,6 +544,79 @@ def match_food(name: str):
     return best
 
 
+
+def anchor_items(data: dict) -> dict:
+    """Override per-unit calories AND macros with DB values when matched, then
+    compute per-item and meal-level totals.
+
+    v2: also carries through the extended DB fields where present --
+    micronutrients (fiber/sugar/sodium/potassium/calcium/iron) scale with
+    count just like the macros; health_score/benefits/watch_outs describe the
+    food itself and are copied as-is (a "high in sodium" tag doesn't change
+    because you ate two servings, so these are not multiplied by count)."""
+    macros = ("protein_g", "carbs_g", "fat_g")
+    micro_fields = ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg")
+    for it in data.get("items", []):
+        food = match_food(it.get("item", ""))
+        if food:
+            it["kcal_per_unit"] = food["kcal_per_unit"]
+            for m in macros:
+                it[m + "_per_unit"] = food.get(m, 0)
+            for m in micro_fields:
+                if m in food:
+                    it[m + "_per_unit"] = food[m]
+            it["unit"] = food.get("unit", it.get("unit", "piece"))
+            it["source"] = "db"
+            # Descriptive, not scaled by count -- see docstring.
+            if "health_score" in food:
+                it["health_score"] = food["health_score"]
+            if food.get("benefits"):
+                it["benefits"] = food["benefits"]
+            if food.get("watch_outs"):
+                it["watch_outs"] = food["watch_outs"]
+            if food.get("jain_status"):
+                it["jain_status"] = food["jain_status"]
+            if food.get("sattvic_status"):
+                it["sattvic_status"] = food["sattvic_status"]
+            # Full vitamin/mineral panel ("all the minute details"), per-unit.
+            if food.get("micros"):
+                it["micros_per_unit"] = food["micros"]
+        else:
+            # fall back to the model's own per-unit macro estimates
+            for m in macros:
+                it[m + "_per_unit"] = it.get(m, 0)
+            it["source"] = "ai"
+        count = it.get("count", 1)
+        it["kcal_total"] = round(count * it.get("kcal_per_unit", 0))
+        for m in macros:
+            it[m] = round(count * it.get(m + "_per_unit", 0), 1)
+        for m in micro_fields:
+            if (m + "_per_unit") in it:
+                it[m] = round(count * it[m + "_per_unit"], 1)
+        if "micros_per_unit" in it:
+            it["micros"] = {k: round(v * count, 4) for k, v in it["micros_per_unit"].items()}
+
+    items = data.get("items", [])
+    data["calories_kcal"] = sum(it["kcal_total"] for it in items)
+    totals = {
+        "kcal": data["calories_kcal"],
+        "protein_g": round(sum(it.get("protein_g", 0) for it in items), 1),
+        "carbs_g": round(sum(it.get("carbs_g", 0) for it in items), 1),
+        "fat_g": round(sum(it.get("fat_g", 0) for it in items), 1),
+    }
+    for m in micro_fields:
+        vals = [it[m] for it in items if m in it]
+        if vals:
+            totals[m] = round(sum(vals), 1)
+    micro_totals: dict = {}
+    for it in items:
+        for k, v in it.get("micros", {}).items():
+            micro_totals[k] = micro_totals.get(k, 0) + v
+    if micro_totals:
+        totals["micros"] = {k: round(v, 4) for k, v in micro_totals.items()}
+    data["totals"] = totals
+    return data
+
 def _food_suggestion(food: dict) -> dict:
     """Map a FOOD_DB record to the shape the client turns into a FoodItem when
     a user swaps a mis-identified ingredient. DB macros are already per-unit."""
