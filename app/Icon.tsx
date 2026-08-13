@@ -31,6 +31,7 @@ export const ICONS = {
   chevronDown: "chevron-down",
   eye: "eye-outline",
   eyeOff: "eye-off-outline",
+  playCircle: "play-circle-outline",
   settings: "settings-outline",
   logout: "log-out-outline",
   check: "checkmark-circle",

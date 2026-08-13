@@ -19,6 +19,7 @@ import FoodSearchSheet from "./FoodSearchSheet";
 import ExerciseSheet from "./ExerciseSheet";
 import WeightSheet from "./WeightSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
+import WorkoutLibrary from "./WorkoutLibrary";
 import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
@@ -187,6 +188,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [steps, setSteps] = useState(0);
   const [exerciseKcal, setExerciseKcal] = useState(0);
   const [showExercise, setShowExercise] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [showWeight, setShowWeight] = useState(false);
   const [layoutOrder, setLayoutOrder] = useState<HomeModuleKey[]>(DEFAULT_ORDER);
   const [hiddenSet, setHiddenSet] = useState<Set<HomeModuleKey>>(new Set());
@@ -1124,18 +1126,31 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         );
       case "exercise":
         return (
-          <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
-            <View style={styles.exerciseIcon}>
-              <Icon name="dumbbell" size={18} color={colors.green} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.exerciseTitle}>Exercise</Text>
-              <Text style={styles.exerciseSub}>
-                {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
-              </Text>
-            </View>
-            <Icon name="chevronRight" size={18} color={colors.mute} />
-          </PressableScale>
+          <>
+            <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
+              <View style={styles.exerciseIcon}>
+                <Icon name="dumbbell" size={18} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exerciseTitle}>Exercise</Text>
+                <Text style={styles.exerciseSub}>
+                  {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
+                </Text>
+              </View>
+              <Icon name="chevronRight" size={18} color={colors.mute} />
+            </PressableScale>
+
+            <PressableScale style={styles.exerciseCard} onPress={() => setShowLibrary(true)}>
+              <View style={styles.exerciseIcon}>
+                <Icon name="playCircle" size={18} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exerciseTitle}>Guided workouts</Text>
+                <Text style={styles.exerciseSub}>Exercises with demo photos & step-by-step form</Text>
+              </View>
+              <Icon name="chevronRight" size={18} color={colors.mute} />
+            </PressableScale>
+          </>
         );
       default:
         return null;
@@ -1429,6 +1444,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           onChanged={(d) => setExerciseKcal(d.totalKcal)}
           onRequireAuth={() => {
             setShowExercise(false);
+            onRequireAuth();
+          }}
+        />
+      )}
+
+      {showLibrary && (
+        <WorkoutLibrary
+          visible={showLibrary}
+          date={today}
+          onClose={() => setShowLibrary(false)}
+          onLogged={(d) => setExerciseKcal(d.totalKcal)}
+          onRequireAuth={() => {
+            setShowLibrary(false);
             onRequireAuth();
           }}
         />

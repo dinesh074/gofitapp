@@ -830,12 +830,15 @@ export async function getExerciseSummary(days: number): Promise<ExerciseSummary>
 }
 
 // Logs one activity for the day; returns the updated day (with computed kcal).
+// For guided-library exercises (not in the built-in MET catalog), pass the
+// display name + a category MET so the backend can still compute calories.
 export async function addExerciseLog(
   date: string,
   key: string,
-  minutes: number
+  minutes: number,
+  opts?: { name?: string; met?: number }
 ): Promise<ExerciseDay> {
-  return postAuth<ExerciseDay>("/exercise/log", { date, key, minutes });
+  return postAuth<ExerciseDay>("/exercise/log", { date, key, minutes, ...opts });
 }
 
 export async function deleteExerciseLog(id: number): Promise<ExerciseDay> {

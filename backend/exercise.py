@@ -33,6 +33,7 @@ Endpoints (all Bearer-authenticated):
 import time
 import logging
 from datetime import date as _date, timedelta
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -234,17 +235,27 @@ def get_summary(request: Request, days: int = 30):
 
 class ExerciseBody(BaseModel):
     date: str = Field(..., min_length=10, max_length=10)  # "YYYY-MM-DD"
-    key: str = Field(..., min_length=1, max_length=40)
+    key: str = Field(..., min_length=1, max_length=64)
     minutes: float = Field(..., gt=0, le=1440)
+    # For guided-library exercises that aren't in the built-in MET catalog, the
+    # client sends the display name + a category MET so calories still compute
+    # server-side (from the account's saved weight) -- same connected system.
+    name: Optional[str] = Field(None, max_length=80)
+    met: Optional[float] = Field(None, gt=0, le=20)
 
 
 @router.post("/log")
 def add_log(body: ExerciseBody, request: Request):
     acct = auth.require_account(request)
     entry = _CATALOG.get(body.key)
-    if not entry:
+    if entry:
+        name, met = entry
+    elif body.name and body.met:
+        # A guided-library movement (e.g. "Barbell Squat") mapped to a category
+        # MET by the client -- accepted as long as both name + MET are present.
+        name, met = body.name.strip()[:80], float(body.met)
+    else:
         raise HTTPException(status_code=400, detail=f"Unknown exercise '{body.key}'.")
-    name, met = entry
     now = time.time()
     with db.write_lock(), db.connect() as c:
         weight = _weight_for(c, acct["id"])
