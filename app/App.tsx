@@ -335,6 +335,7 @@ export default function App() {
             onRequireAuth={requireAuth}
             onAccountUpdate={updateAccount}
             scanTrigger={scanTrigger}
+            onWeightLogged={onWeightLogged}
           />
         )}
         {tab === "progress" && (

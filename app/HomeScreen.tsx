@@ -17,6 +17,7 @@ import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
 import ExerciseSheet from "./ExerciseSheet";
+import WeightSheet from "./WeightSheet";
 import { APP_NAME, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
@@ -85,6 +86,9 @@ type Props = {
   // Bumped by the TabBar's center camera button (see App.tsx) -- opens the
   // camera immediately even if you tapped it from a different tab.
   scanTrigger?: number;
+  // Keeps profile.weightKg (and every dependent target) in sync when weight is
+  // logged from the global Add hub -- same handler ProgressScreen uses.
+  onWeightLogged?: (kg: number) => void;
 };
 
 function itemTotal(it: FoodItem): number {
@@ -167,7 +171,7 @@ function MacroProgress({ label, have, goalV, color }: { label: string; have: num
   );
 }
 
-export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger }: Props) {
+export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger, onWeightLogged }: Props) {
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -181,6 +185,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [steps, setSteps] = useState(0);
   const [exerciseKcal, setExerciseKcal] = useState(0);
   const [showExercise, setShowExercise] = useState(false);
+  const [showWeight, setShowWeight] = useState(false);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   // Thali clarification: selected option index per question id. Empty = every
@@ -531,7 +536,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Single dispatcher for every option in AddFoodSheet -- one gate (auth +
   // paywall) shared across all four entry points instead of each button
   // repeating its own copy of the same two checks.
-  function handleAddOption(option: "camera" | "gallery" | "barcode" | "describe") {
+  function handleAddOption(option: "camera" | "gallery" | "barcode" | "describe" | "voice" | "exercise" | "water" | "weight") {
     setShowAddSheet(false);
     if (!account) {
       onRequireAuth();
@@ -549,7 +554,20 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       setShowBarcode(true);
       return;
     }
-    // describe
+    // Non-meal trackers -- each routes to a real, already-implemented flow.
+    if (option === "exercise") {
+      setShowExercise(true);
+      return;
+    }
+    if (option === "water") {
+      void changeWater(WATER_GLASS_ML);
+      return;
+    }
+    if (option === "weight") {
+      setShowWeight(true);
+      return;
+    }
+    // describe / voice -- both open the same manual-entry sheet (it has a mic).
     if (!isPro && (scansLeft ?? 0) <= 0) {
       setShowPaywall(true);
       return;
@@ -1088,7 +1106,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             (via scanTrigger) opens the exact same sheet. */}
         <PressableScale style={[styles.btn, styles.btnPrimary, styles.addFoodBtn]} onPress={() => setShowAddSheet(true)}>
           <Icon name="camera" size={18} color="#fff" />
-          <Text style={styles.btnPrimaryText}>Add food</Text>
+          <Text style={styles.btnPrimaryText}>Add / track</Text>
         </PressableScale>
 
         {account && !isPro && (
@@ -1340,6 +1358,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           onChanged={(d) => setExerciseKcal(d.totalKcal)}
           onRequireAuth={() => {
             setShowExercise(false);
+            onRequireAuth();
+          }}
+        />
+      )}
+
+      {showWeight && (
+        <WeightSheet
+          visible={showWeight}
+          initialKg={profile.weightKg}
+          onClose={() => setShowWeight(false)}
+          onLogged={(kg) => onWeightLogged?.(kg)}
+          onRequireAuth={() => {
+            setShowWeight(false);
             onRequireAuth();
           }}
         />

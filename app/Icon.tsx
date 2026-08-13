@@ -58,6 +58,7 @@ export const ICONS = {
   water: "water",
   walk: "walk-outline",
   dumbbell: "barbell-outline",
+  scale: "scale-outline",
   sparkles: "sparkles-outline",
   bicycle: "bicycle-outline",
   moon: "moon-outline",

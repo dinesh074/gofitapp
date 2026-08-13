@@ -4,7 +4,15 @@ import { colors, elevation } from "./theme";
 import Icon, { IconName } from "./Icon";
 import { SavedMeal } from "./storage";
 
-type OptionKey = "camera" | "gallery" | "barcode" | "describe";
+type OptionKey =
+  | "camera"
+  | "gallery"
+  | "barcode"
+  | "describe"
+  | "voice"
+  | "exercise"
+  | "water"
+  | "weight";
 
 type Props = {
   visible: boolean;
@@ -16,11 +24,25 @@ type Props = {
   onToggleFav?: (dish: string) => void;
 };
 
-const OPTIONS: { key: OptionKey; icon: IconName; title: string; sub: string }[] = [
-  { key: "camera", icon: "camera", title: "Take a photo", sub: "Point your camera at the plate" },
+type Option = { key: OptionKey; icon: IconName; title: string; sub: string };
+
+// Meal Scan stays the core gofit interaction, so the camera sits at the top as
+// the highlighted primary action; the rest of the meal-logging paths follow.
+const MEAL_OPTIONS: Option[] = [
+  { key: "camera", icon: "camera", title: "Scan a meal", sub: "Point your camera at the plate" },
   { key: "gallery", icon: "gallery", title: "Choose from gallery", sub: "Use a photo you already took" },
   { key: "barcode", icon: "barcode", title: "Scan a barcode", sub: "For packaged / branded food" },
-  { key: "describe", icon: "edit", title: "Describe it", sub: "No photo? Just type or speak it" },
+  { key: "describe", icon: "edit", title: "Log food manually", sub: "No photo? Just type what you ate" },
+  { key: "voice", icon: "mic", title: "Voice log", sub: "Speak your meal out loud" },
+];
+
+// Every non-meal tracker reachable from the same hub -- each routes to a real,
+// implemented flow (workout -> ExerciseSheet, water -> today's water, weight ->
+// WeightSheet). No dead options.
+const TRACK_OPTIONS: Option[] = [
+  { key: "exercise", icon: "dumbbell", title: "Log a workout", sub: "Track exercise & calories burned" },
+  { key: "water", icon: "water", title: "Add water", sub: "Log a glass towards today's goal" },
+  { key: "weight", icon: "scale", title: "Log weight", sub: "Update today's weight" },
 ];
 
 // Single entry point for "log a meal" -- replaces what used to be four
@@ -44,16 +66,34 @@ export default function AddFoodSheet({
         <Pressable style={styles.backdropTap} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.grabber} />
-          <Text style={styles.title}>Add a meal</Text>
-          <Text style={styles.sub}>Choose how you'd like to log this.</Text>
+          <Text style={styles.title}>What do you want to add?</Text>
+          <Text style={styles.sub}>Meal scan is fastest, but you can track anything here.</Text>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
-            {OPTIONS.map((opt) => (
-              <Pressable
-                key={opt.key}
-                style={styles.row}
-                onPress={() => onPick(opt.key)}
-              >
+            <Text style={styles.groupLabel}>Log a meal</Text>
+            {MEAL_OPTIONS.map((opt, i) => {
+              const primary = i === 0;
+              return (
+                <Pressable
+                  key={opt.key}
+                  style={[styles.row, primary && styles.rowPrimary]}
+                  onPress={() => onPick(opt.key)}
+                >
+                  <View style={[styles.rowIcon, primary && styles.rowIconPrimary]}>
+                    <Icon name={opt.icon} size={20} color={primary ? "#fff" : colors.green} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.rowTitle, primary && styles.rowTitlePrimary]}>{opt.title}</Text>
+                    <Text style={[styles.rowSub, primary && styles.rowSubPrimary]}>{opt.sub}</Text>
+                  </View>
+                  <Icon name="chevronRight" size={18} color={primary ? "rgba(255,255,255,0.8)" : colors.faint} />
+                </Pressable>
+              );
+            })}
+
+            <Text style={styles.groupLabel}>Track something else</Text>
+            {TRACK_OPTIONS.map((opt) => (
+              <Pressable key={opt.key} style={styles.row} onPress={() => onPick(opt.key)}>
                 <View style={styles.rowIcon}>
                   <Icon name={opt.icon} size={20} color={colors.green} />
                 </View>
@@ -140,6 +180,15 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: "900", color: colors.ink, letterSpacing: -0.3 },
   sub: { fontSize: 13, color: colors.mute, marginTop: 4, marginBottom: 14, lineHeight: 18 },
+  groupLabel: {
+    color: colors.mute,
+    fontWeight: "800",
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginTop: 4,
+    marginBottom: 8,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -150,6 +199,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     ...elevation.sm,
   },
+  rowPrimary: { backgroundColor: colors.green },
+  rowIconPrimary: { backgroundColor: "rgba(255,255,255,0.2)" },
+  rowTitlePrimary: { color: "#fff" },
+  rowSubPrimary: { color: "rgba(255,255,255,0.85)" },
   rowIcon: {
     width: 42,
     height: 42,
