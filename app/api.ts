@@ -815,6 +815,20 @@ export async function getExerciseLogs(date: string): Promise<ExerciseDay> {
   return getJson<ExerciseDay>(`/exercise/logs?date=${encodeURIComponent(date)}`);
 }
 
+export type ExerciseDaySummary = { kcal: number; minutes: number; sessions: number };
+export type ExerciseSummary = {
+  days: number;
+  activeDays: number;
+  totalKcal: number;
+  totalMinutes: number;
+  byDate: Record<string, ExerciseDaySummary>;
+};
+
+// Range rollup (7/30/90 days) for the Progress/Reports section.
+export async function getExerciseSummary(days: number): Promise<ExerciseSummary> {
+  return getJson<ExerciseSummary>(`/exercise/summary?days=${days}`);
+}
+
 // Logs one activity for the day; returns the updated day (with computed kcal).
 export async function addExerciseLog(
   date: string,

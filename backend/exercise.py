@@ -32,6 +32,7 @@ Endpoints (all Bearer-authenticated):
 """
 import time
 import logging
+from datetime import date as _date, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -195,6 +196,40 @@ def get_logs(request: Request, date: str):
     acct = auth.require_account(request)
     with db.connect() as c:
         return _day(c, acct["id"], date)
+
+
+@router.get("/summary")
+def get_summary(request: Request, days: int = 30):
+    """Range rollup for the Progress/Reports section: per-day burned kcal +
+    minutes across the last `days` days, plus totals and how many days had any
+    activity ("training consistency"). Real data straight from exercise_logs --
+    no fabricated activity."""
+    acct = auth.require_account(request)
+    days = max(1, min(365, int(days)))
+    start_key = (_date.today() - timedelta(days=days - 1)).isoformat()
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT date, SUM(kcal) AS kcal, SUM(minutes) AS minutes, COUNT(*) AS n "
+            "FROM exercise_logs WHERE account_id=? AND date>=? GROUP BY date",
+            (acct["id"], start_key),
+        ).fetchall()
+    by_date = {
+        r["date"]: {
+            "kcal": round(r["kcal"] or 0, 1),
+            "minutes": round(r["minutes"] or 0, 1),
+            "sessions": r["n"],
+        }
+        for r in rows
+    }
+    total_kcal = round(sum(v["kcal"] for v in by_date.values()), 1)
+    total_minutes = round(sum(v["minutes"] for v in by_date.values()), 1)
+    return {
+        "days": days,
+        "activeDays": len(by_date),
+        "totalKcal": total_kcal,
+        "totalMinutes": total_minutes,
+        "byDate": by_date,
+    }
 
 
 class ExerciseBody(BaseModel):

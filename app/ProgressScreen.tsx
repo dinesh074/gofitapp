@@ -26,7 +26,7 @@ import { colors, radius, shadow, gradients } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
 import WeeklySummary from "./WeeklySummary";
-import { getServerWeights, addServerWeight, deleteServerLog, AuthRequiredError } from "./api";
+import { getServerWeights, addServerWeight, deleteServerLog, getExerciseSummary, ExerciseSummary, AuthRequiredError } from "./api";
 
 type Props = {
   profile: Profile;
@@ -38,10 +38,18 @@ type Props = {
   accountId: number | null;
 };
 
+const RANGES = [
+  { key: 7, label: "7 days" },
+  { key: 30, label: "30 days" },
+  { key: 90, label: "90 days" },
+] as const;
+
 export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightLogged, onRequireAuth, accountId }: Props) {
   const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [entry, setEntry] = useState<number>(Math.round(profile.weightKg));
   const [detailDay, setDetailDay] = useState<string | null>(null);
+  const [range, setRange] = useState<number>(7);
+  const [exSummary, setExSummary] = useState<ExerciseSummary | null>(null);
 
   useEffect(() => {
     loadWeights().then(setWeights);
@@ -71,10 +79,75 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const week = useMemo(() => lastNDays(logs, 7), [logs]);
+  // Training data for the selected range comes from the server (exercise_logs),
+  // reloaded whenever the range changes. Best-effort: if it fails the training
+  // card just shows nothing rather than a fake value.
+  useEffect(() => {
+    let alive = true;
+    getExerciseSummary(range)
+      .then((s) => {
+        if (alive) setExSummary(s);
+      })
+      .catch((e) => {
+        if (e instanceof AuthRequiredError) onRequireAuth();
+      });
+    return () => {
+      alive = false;
+    };
+  }, [range]);
+
+  const series = useMemo(() => lastNDays(logs, range), [logs, range]);
   const streak = useMemo(() => computeStreak(logs), [logs]);
   const best = useMemo(() => bestStreak(logs), [logs]);
   const history = useMemo(() => loggedDaysDesc(logs), [logs]);
+
+  // --- range report (real logged data) ------------------------------------ #
+  const report = useMemo(() => {
+    const logged = series.filter((d) => d.meals > 0);
+    const n = logged.length;
+    const avg = (sel: (d: (typeof logged)[number]) => number) =>
+      n ? Math.round(logged.reduce((s, d) => s + sel(d), 0) / n) : 0;
+    // "On target" = a logged day whose calories land within ±10% of the goal
+    // (neither well under nor over). Real adherence, not just "did they log".
+    const lo = goal.kcal * 0.9;
+    const hi = goal.kcal * 1.1;
+    const onTarget = logged.filter((d) => d.kcal >= lo && d.kcal <= hi).length;
+    return {
+      loggedDays: n,
+      consistencyPct: Math.round((n / range) * 100),
+      onTarget,
+      avgKcal: avg((d) => d.kcal),
+      avgP: avg((d) => d.protein_g),
+      avgC: avg((d) => d.carbs_g),
+      avgF: avg((d) => d.fat_g),
+      proteinPct: goal.protein_g > 0 ? Math.round((avg((d) => d.protein_g) / goal.protein_g) * 100) : 0,
+    };
+  }, [series, range, goal]);
+
+  // Bucket the calorie series into <= 14 bars: daily for short ranges, weekly
+  // averages (of logged days) for 30/90 so the chart stays readable.
+  const chartBars = useMemo(() => {
+    if (series.length <= 14) {
+      return series.map((d) => ({ kcal: d.kcal, label: d.label, meals: d.meals, date: d.date }));
+    }
+    const size = 7;
+    const out: { kcal: number; label: string; meals: number; date: string }[] = [];
+    for (let i = 0; i < series.length; i += size) {
+      const chunk = series.slice(i, i + size);
+      const logged = chunk.filter((d) => d.meals > 0);
+      const avgKcal = logged.length ? Math.round(logged.reduce((s, d) => s + d.kcal, 0) / logged.length) : 0;
+      out.push({
+        kcal: avgKcal,
+        label: `W${Math.floor(i / size) + 1}`,
+        meals: logged.length,
+        date: chunk[0].date,
+      });
+    }
+    return out;
+  }, [series]);
+
+  const trainingActive = exSummary?.activeDays ?? 0;
+  const trainingPct = Math.round((trainingActive / range) * 100);
 
   function openDay(dateKey: string) {
     setDetailDay(dateKey);
@@ -97,22 +170,9 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
     }
   }
 
-  const loggedDays = week.filter((d) => d.meals > 0);
-  const avgKcal = loggedDays.length
-    ? Math.round(loggedDays.reduce((s, d) => s + d.kcal, 0) / loggedDays.length)
-    : 0;
-  const avgP = loggedDays.length
-    ? Math.round(loggedDays.reduce((s, d) => s + d.protein_g, 0) / loggedDays.length)
-    : 0;
-  const avgC = loggedDays.length
-    ? Math.round(loggedDays.reduce((s, d) => s + d.carbs_g, 0) / loggedDays.length)
-    : 0;
-  const avgF = loggedDays.length
-    ? Math.round(loggedDays.reduce((s, d) => s + d.fat_g, 0) / loggedDays.length)
-    : 0;
   const totalMeals = Object.values(logs).reduce((s, d) => s + d.meals.length, 0);
 
-  const maxKcal = Math.max(goal.kcal, ...week.map((d) => d.kcal), 1);
+  const maxKcal = Math.max(goal.kcal, ...chartBars.map((d) => d.kcal), 1);
 
   // weight trend
   const startWeight = weights.length ? weights[0].kg : profile.weightKg;
@@ -137,7 +197,7 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
     <View style={styles.root}>
       <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
         <Text style={styles.hTitle}>Progress</Text>
-        <Text style={styles.hSub}>Your last 7 days at a glance</Text>
+        <Text style={styles.hSub}>Your trends over the last {range} days</Text>
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -148,23 +208,73 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
           <StatCard icon="meal" color={colors.green} value={`${totalMeals}`} label="Meals logged" />
         </View>
 
-        {/* Rule-based weekly coach (local, no AI) */}
+        {/* Range selector — every report below reflects the chosen window */}
+        <View style={styles.rangeRow}>
+          {RANGES.map((r) => {
+            const active = range === r.key;
+            return (
+              <Pressable
+                key={r.key}
+                style={[styles.rangeChip, active && styles.rangeChipActive]}
+                onPress={() => setRange(r.key)}
+              >
+                <Text style={[styles.rangeText, active && styles.rangeTextActive]}>{r.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Reports: real adherence metrics over the selected range */}
+        <Text style={styles.section}>Report · last {range} days</Text>
+        <View style={styles.reportGrid}>
+          <ReportCard
+            icon="check"
+            color={colors.green}
+            value={`${report.onTarget}`}
+            unit={`/ ${report.loggedDays} days`}
+            label="Days on target"
+          />
+          <ReportCard
+            icon="progress"
+            color={colors.gold}
+            value={`${report.consistencyPct}%`}
+            unit={`${report.loggedDays}/${range} logged`}
+            label="Logging consistency"
+          />
+          <ReportCard
+            icon="protein"
+            color={colors.green}
+            value={`${report.proteinPct}%`}
+            unit={`${report.avgP}g avg`}
+            label="Protein adherence"
+          />
+          <ReportCard
+            icon="dumbbell"
+            color={colors.orange}
+            value={`${trainingActive}`}
+            unit={exSummary ? `${trainingPct}% · ${Math.round(exSummary.totalKcal)} kcal` : "—"}
+            label="Training days"
+          />
+        </View>
+
+        {/* Rule-based weekly coach (local, no AI) — always a 7-day snapshot */}
         <Text style={styles.section}>This week</Text>
         <WeeklySummary logs={logs} goal={goal} />
 
-        {/* Weekly calories bar chart */}
-        <Text style={styles.section}>Calories this week</Text>
+        {/* Calories chart — daily bars for 7 days, weekly averages for 30/90 */}
+        <Text style={styles.section}>Calories · last {range} days</Text>
         <View style={styles.card}>
           <View style={styles.chart}>
-            {week.map((d, i) => {
+            {chartBars.map((d, i) => {
               const h = Math.max(4, Math.round((d.kcal / maxKcal) * 120));
               const over = d.kcal > goal.kcal;
-              const isToday = i === week.length - 1;
+              const isLast = i === chartBars.length - 1;
+              const dailyChart = range <= 14;
               return (
                 <Pressable
-                  key={d.date}
+                  key={d.date + i}
                   style={styles.barCol}
-                  onPress={() => d.meals > 0 && openDay(d.date)}
+                  onPress={() => dailyChart && d.meals > 0 && openDay(d.date)}
                 >
                   <Text style={styles.barVal}>{d.kcal > 0 ? d.kcal : ""}</Text>
                   <View style={styles.barTrack}>
@@ -177,28 +287,30 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
                       ]}
                     />
                   </View>
-                  <Text style={[styles.barLabel, isToday && styles.barLabelToday]}>{d.label}</Text>
+                  <Text style={[styles.barLabel, isLast && styles.barLabelToday]}>{d.label}</Text>
                 </Pressable>
               );
             })}
           </View>
           <View style={styles.goalLineRow}>
             <View style={styles.goalDot} />
-            <Text style={styles.goalLineText}>Daily target {goal.kcal} kcal · tap a bar for details</Text>
+            <Text style={styles.goalLineText}>
+              Daily target {goal.kcal} kcal{range <= 14 ? " · tap a bar for details" : " · weekly averages"}
+            </Text>
           </View>
         </View>
 
-        {/* Averages */}
-        <Text style={styles.section}>Daily averages (logged days)</Text>
+        {/* Averages over the selected range */}
+        <Text style={styles.section}>Daily averages · logged days</Text>
         <View style={styles.card}>
           <View style={styles.avgTop}>
-            <Text style={styles.avgKcal}>{avgKcal}</Text>
+            <Text style={styles.avgKcal}>{report.avgKcal}</Text>
             <Text style={styles.avgKcalUnit}>kcal / day</Text>
           </View>
           <View style={styles.avgMacros}>
-            <AvgMacro label="Protein" value={avgP} goalV={goal.protein_g} color={colors.green} />
-            <AvgMacro label="Carbs" value={avgC} goalV={goal.carbs_g} color={colors.gold} />
-            <AvgMacro label="Fat" value={avgF} goalV={goal.fat_g} color={colors.orange} />
+            <AvgMacro label="Protein" value={report.avgP} goalV={goal.protein_g} color={colors.green} />
+            <AvgMacro label="Carbs" value={report.avgC} goalV={goal.carbs_g} color={colors.gold} />
+            <AvgMacro label="Fat" value={report.avgF} goalV={goal.fat_g} color={colors.orange} />
           </View>
         </View>
 
@@ -312,6 +424,23 @@ function StatCard({ icon, color, value, label }: { icon: IconName; color: string
   );
 }
 
+function ReportCard({ icon, color, value, unit, label }: { icon: IconName; color: string; value: string; unit: string; label: string }) {
+  return (
+    <View style={styles.reportCard}>
+      <View style={styles.reportHead}>
+        <View style={[styles.reportIcon, { backgroundColor: color + "1A" }]}>
+          <Icon name={icon} size={15} color={color} />
+        </View>
+        <Text style={styles.reportLabel}>{label}</Text>
+      </View>
+      <View style={styles.reportValRow}>
+        <Text style={styles.reportValue}>{value}</Text>
+        <Text style={styles.reportUnit}>{unit}</Text>
+      </View>
+    </View>
+  );
+}
+
 function AvgMacro({ label, value, goalV, color }: { label: string; value: number; goalV: number; color: string }) {
   const pct = goalV > 0 ? Math.min(100, Math.round((value / goalV) * 100)) : 0;
   return (
@@ -337,6 +466,21 @@ const styles = StyleSheet.create({
   statIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   statValue: { fontSize: 22, fontWeight: "900", color: colors.ink, marginTop: 8 },
   statLabel: { fontSize: 11, color: colors.mute, marginTop: 2 },
+
+  rangeRow: { flexDirection: "row", gap: 8, marginTop: 14 },
+  rangeChip: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, ...shadow.card },
+  rangeChipActive: { backgroundColor: colors.green, borderColor: colors.green },
+  rangeText: { fontSize: 13, fontWeight: "800", color: colors.mute },
+  rangeTextActive: { color: "#fff" },
+
+  reportGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  reportCard: { width: "47.8%", flexGrow: 1, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, ...shadow.card },
+  reportHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  reportIcon: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  reportLabel: { flex: 1, fontSize: 11.5, color: colors.mute, fontWeight: "700" },
+  reportValRow: { flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 10 },
+  reportValue: { fontSize: 24, fontWeight: "900", color: colors.ink },
+  reportUnit: { fontSize: 11.5, color: colors.mute, fontWeight: "700" },
 
   section: { fontSize: 13, fontWeight: "800", color: colors.mute, letterSpacing: 0.5, textTransform: "uppercase", marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, ...shadow.card },
