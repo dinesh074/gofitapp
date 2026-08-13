@@ -50,6 +50,7 @@ import wellness
 import plan
 import exercise
 import prefs
+import entitlements
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -212,6 +213,11 @@ app.include_router(exercise.router)
 # synced across devices via GET/PUT /prefs/home.
 prefs.init_db()
 app.include_router(prefs.router)
+
+# Free / Pro feature entitlements (product-level, not just hidden UI).
+# GET /entitlements returns the account's resolved tier + per-feature access.
+entitlements.init_db()
+app.include_router(entitlements.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key

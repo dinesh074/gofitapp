@@ -622,6 +622,36 @@ export async function upgradeToPro(): Promise<{ account: Account }> {
   return postAuth("/auth/upgrade", {});
 }
 
+/* --------------------------- Entitlements -------------------------------- */
+// Free / Pro feature entitlements, resolved server-side (product-level, not
+// hidden UI). The client uses this to show correct Pro badges + an honest
+// paywall; genuine enforcement is on the server (see backend/entitlements.py).
+
+export type FeatureKey =
+  | "food_logging" | "calorie_tracking" | "basic_progress" | "water_tracking"
+  | "weight_tracking" | "exercise_logging" | "barcode"
+  | "unlimited_scan" | "ai_recommendations" | "meal_planning"
+  | "advanced_insights" | "grocery_lists" | "adaptive_targets";
+
+export type EntitlementCatalogItem = {
+  key: FeatureKey;
+  tier: "free" | "pro";
+  label: string;
+  desc: string;
+};
+
+export type Entitlements = {
+  isPro: boolean;
+  enforced: boolean;
+  features: Record<FeatureKey, boolean>;
+  catalog: EntitlementCatalogItem[];
+  scans: { used: number; limit: number; left: number | null };
+};
+
+export async function getEntitlements(): Promise<Entitlements> {
+  return getJson<Entitlements>("/entitlements");
+}
+
 /* ------------------------------ Feedback --------------------------------- */
 
 export type FeedbackCategory = "bug" | "feature" | "general";

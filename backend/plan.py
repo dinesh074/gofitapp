@@ -46,6 +46,7 @@ from pydantic import BaseModel, Field
 
 import db
 import auth
+import entitlements
 
 log = logging.getLogger("gofit.plan")
 router = APIRouter(tags=["plan"])
@@ -473,7 +474,9 @@ class PlanBody(BaseModel):
 
 @router.post("/plan/today")
 def plan_today(body: PlanBody, request: Request):
-    acct = auth.require_account(request)
+    # Personalized meal planning is a Pro feature. require_pro resolves the
+    # account and (when ENFORCE_PRO is on) 402s Free accounts with a paywall.
+    acct = entitlements.require_pro(request, "meal_planning")
     if _pick_for_slot is None:
         raise HTTPException(status_code=503, detail="plan engine not configured")
     date_key = (body.date or "").strip()[:10]
