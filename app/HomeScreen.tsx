@@ -65,6 +65,12 @@ import Paywall from "./Paywall";
 import PressableScale from "./PressableScale";
 import { Account } from "./auth";
 
+// Deferred to a later phase: the AI meal-coaching surfaces (Today's training,
+// "Your next meal" suggester, and the Micronutrients roll-up) plus their backend
+// AI endpoints (/foods/recommend and /meals/verdict). Flip this to `true` to
+// bring them back once the plan-driven coaching is designed.
+const AI_COACH_ENABLED = false;
+
 type Props = {
   profile: Profile;
   goal: GoalTargets;
@@ -270,7 +276,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
   const remF = Math.max(0, goal.fat_g - dm.fat_g);
   useEffect(() => {
-    if (!account) {
+    if (!AI_COACH_ENABLED || !account) {
       setDbPool([]);
       setAiSuggestion(null);
       recoSig.current = null;
@@ -418,7 +424,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // only refetch on real changes. Best-effort: on failure the on-device verdict
   // stands. Needs an account + a real target + at least one verdict line.
   useEffect(() => {
-    if (!result || !verdict || verdict.lines.length === 0 || !account || goal.kcal <= 0) {
+    if (!AI_COACH_ENABLED || !result || !verdict || verdict.lines.length === 0 || !account || goal.kcal <= 0) {
       setAiVerdict(null);
       verdictSig.current = null;
       return;
@@ -864,6 +870,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         </View>
 
+        {AI_COACH_ENABLED && (
         <View style={styles.trainCard}>
           <View style={styles.trainHeadRow}>
             <Icon name="pulse" size={14} color={colors.green} />
@@ -888,7 +895,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             {trainTip ?? "Tag today's plan and we'll tune your next-meal and fuelling tips to match."}
           </Text>
         </View>
+        )}
 
+        {AI_COACH_ENABLED && (
         <View style={styles.nextCard}>
           <View style={styles.nextHeaderRow}>
             <Icon name="sparkles" size={15} color={colors.green} />
@@ -927,9 +936,11 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             </Pressable>
           )}
         </View>
+        )}
 
         <MonthStreak logs={logs} goalKcal={goal.kcal} />
 
+        {AI_COACH_ENABLED && (
         <View style={styles.microCard}>
           <View style={styles.microHeadRow}>
             <Icon name="nutrition" size={15} color={colors.green} />
@@ -975,6 +986,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             </Text>
           )}
         </View>
+        )}
 
         <View style={styles.wellRow}>
           <View style={styles.wellCard}>
