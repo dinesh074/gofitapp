@@ -15,6 +15,7 @@ import {
   computeStreak,
   deleteMeal,
   lastNDays,
+  loadCacheOwner,
   loadWeights,
   loggedDaysDesc,
   LogMap,
@@ -34,9 +35,10 @@ type Props = {
   setLogs: React.Dispatch<React.SetStateAction<LogMap>>;
   onWeightLogged: (kg: number) => void;
   onRequireAuth: () => void;
+  accountId: number | null;
 };
 
-export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightLogged, onRequireAuth }: Props) {
+export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightLogged, onRequireAuth, accountId }: Props) {
   const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [entry, setEntry] = useState<number>(Math.round(profile.weightKg));
   const [detailDay, setDetailDay] = useState<string | null>(null);
@@ -51,9 +53,15 @@ export default function ProgressScreen({ profile, goal, logs, setLogs, onWeightL
         if (serverWeights.length > 0) {
           setWeights(serverWeights);
         } else {
-          const local = await loadWeights();
-          for (const w of local) {
-            await addServerWeight(w.kg).catch(() => {});
+          // Only back up local-only weight history if this device's cache
+          // provably belongs to the signed-in account -- otherwise a previous
+          // user's leftover weights would be written into this account's rows.
+          const owner = await loadCacheOwner();
+          if (accountId !== null && owner === accountId) {
+            const local = await loadWeights();
+            for (const w of local) {
+              await addServerWeight(w.kg).catch(() => {});
+            }
           }
         }
       })

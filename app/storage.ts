@@ -25,6 +25,41 @@ const COMMUNITY_KEY = "calai.community.v1";
 const DEVICE_KEY = "calai.device.v1";
 const RECENTS_KEY = "calai.recents.v1";
 const REMINDERS_KEY = "calai.reminders.v1";
+// The account id that the locally-cached profile/logs/extras currently belong
+// to. Local storage keys are global (not namespaced per account), so on a shared
+// device we must be able to tell WHOSE data is sitting in the cache. This gates
+// the local->server "backup" upload in App.tsx so one account's leftover local
+// data can never be written into a different account's server rows.
+const OWNER_KEY = "calai.owner.v1";
+
+// Returns the account id that owns the current local cache, or null if unknown
+// (fresh install, just-cleared cache, or legacy data from before this stamp).
+export async function loadCacheOwner(): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(OWNER_KEY);
+    if (raw === null) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveCacheOwner(accountId: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(OWNER_KEY, String(accountId));
+  } catch {
+    // ignore
+  }
+}
+
+export async function clearCacheOwner(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(OWNER_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 // Stable per-install identity for the community backend (no accounts/passwords).
 export async function getDeviceId(): Promise<string> {

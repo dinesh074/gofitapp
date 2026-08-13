@@ -30,13 +30,16 @@ import {
 import { initNotifications } from "./push";
 import { signOutGoogleWeb } from "./googleWeb";
 import {
+  clearCacheOwner,
   clearExtras,
   clearLogs,
   clearProfile,
   computeStreak,
+  loadCacheOwner,
   loadLogs,
   loadProfile,
   LogMap,
+  saveCacheOwner,
   saveLogs,
   saveProfile,
 } from "./storage";
@@ -80,7 +83,7 @@ export default function App() {
           .catch((e) => {
             if (e instanceof AuthRequiredError) void requireAuth();
           });
-        void syncProfileAndLogs(p, l);
+        void syncProfileAndLogs(p, l, a.account.id);
       }
     });
   }, []);
@@ -91,14 +94,39 @@ export default function App() {
   // copy if it has one (this device might be new, or storage was cleared);
   // otherwise, this local data predates the server table existing at all --
   // back it up once so it isn't stuck local-only forever.
-  async function syncProfileAndLogs(localProfile: Profile | null, localLogs: LogMap) {
+  async function syncProfileAndLogs(
+    localProfile: Profile | null,
+    localLogs: LogMap,
+    accountId: number
+  ) {
+    // Whose data is actually sitting in this device's (global, non-namespaced)
+    // local cache? This decides whether the local->server "backup" upload below
+    // is safe. Three cases:
+    //   owner === accountId : the cache is THIS account's own data -> trusted,
+    //                         may upload local-only data to fill empty server rows.
+    //   owner === null      : unknown/legacy (pre-dates this stamp, or fresh) ->
+    //                         ambiguous, so never upload, but leave the cache as-is
+    //                         (server data still wins when present).
+    //   owner === other id  : the cache belongs to a DIFFERENT account (leftover
+    //                         from a previous user on a shared device) -> never
+    //                         upload it, and drop it so it can't leak into this
+    //                         account's view or its server rows.
+    const owner = await loadCacheOwner();
+    const trusted = owner === accountId; // safe to upload local -> server
+    const foreign = owner !== null && owner !== accountId; // another account's data
+
     try {
       const { profile: serverProfile } = await getProfile();
       if (isCompleteProfile(serverProfile)) {
         setProfile(serverProfile);
         void saveProfile(serverProfile);
-      } else if (localProfile) {
+      } else if (localProfile && trusted) {
         await putProfile(localProfile).catch(() => {});
+      } else if (foreign) {
+        // Someone else's profile is cached and this account has none of its own.
+        // Treat this account as un-onboarded rather than showing stale data.
+        setProfile(null);
+        void clearProfile();
       }
     } catch (e: any) {
       if (e instanceof AuthRequiredError) {
@@ -112,16 +140,25 @@ export default function App() {
       if (Object.keys(serverLogs).length > 0) {
         setLogs(serverLogs);
         void saveLogs(serverLogs);
-      } else {
+      } else if (trusted) {
         for (const day of Object.values(localLogs)) {
           for (const meal of day.meals) {
             await addServerLog(day.date, meal).catch(() => {});
           }
         }
+      } else if (foreign) {
+        // Don't let a previous user's meals show up under this account.
+        setLogs({});
+        void clearLogs();
       }
     } catch (e: any) {
       if (e instanceof AuthRequiredError) void requireAuth();
     }
+
+    // The local cache now reflects THIS account (hydrated from its server rows,
+    // or confirmed as its own local data). Stamp ownership so the next sync /
+    // account switch can tell whose data this is.
+    void saveCacheOwner(accountId);
   }
 
   const goal = useMemo(() => (profile ? computeGoal(profile) : null), [profile]);
@@ -130,6 +167,7 @@ export default function App() {
   function completeOnboarding(p: Profile) {
     setProfile(p);
     saveProfile(p);
+    if (auth) void saveCacheOwner(auth.account.id);
     putProfile(p).catch((e) => {
       if (e instanceof AuthRequiredError) void requireAuth();
     });
@@ -138,6 +176,7 @@ export default function App() {
   function saveSettings(p: Profile) {
     setProfile(p);
     saveProfile(p);
+    if (auth) void saveCacheOwner(auth.account.id);
     setShowSettings(false);
     putProfile(p).catch((e) => {
       if (e instanceof AuthRequiredError) void requireAuth();
@@ -145,7 +184,7 @@ export default function App() {
   }
 
   async function resetAll() {
-    await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearAuth()]);
+    await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearAuth(), clearCacheOwner()]);
     setLogs({});
     setProfile(null);
     setAuth(null);
@@ -162,7 +201,7 @@ export default function App() {
     // (skipped) and meal history. The correct data for THIS account is then
     // pulled from its own server rows below; a brand-new account ends up with
     // no profile → the onboarding gate shows as intended.
-    await Promise.all([clearProfile(), clearLogs(), clearExtras()]);
+    await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearCacheOwner()]);
     setProfile(null);
     setLogs({});
     setAuth(state);
@@ -175,7 +214,7 @@ export default function App() {
     // flash the onboarding screen before their profile loads.
     setHydrating(true);
     try {
-      await syncProfileAndLogs(null, {});
+      await syncProfileAndLogs(null, {}, state.account.id);
     } finally {
       setHydrating(false);
     }
@@ -198,7 +237,7 @@ export default function App() {
     // Clear this account's cached data too, not just the token -- otherwise the
     // next account to sign in on this device would inherit the previous user's
     // profile and logs (local storage keys are not per-account).
-    await Promise.all([clearAuth(), clearProfile(), clearLogs(), clearExtras()]);
+    await Promise.all([clearAuth(), clearProfile(), clearLogs(), clearExtras(), clearCacheOwner()]);
     setAuth(null);
     setProfile(null);
     setLogs({});
@@ -306,6 +345,7 @@ export default function App() {
             setLogs={setLogs}
             onWeightLogged={onWeightLogged}
             onRequireAuth={requireAuth}
+            accountId={auth.account.id}
           />
         )}
         {tab === "community" && (
