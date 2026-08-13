@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { analyzeBarcode, AnalysisResult, AuthRequiredError, BarcodeNotFoundError } from "./api";
+import { canPhotoScan, pickBarcodeImage, decodeBarcodeFromUri, BarcodeDecodeError } from "./barcodeDecode";
 import { colors, radius, elevation } from "./theme";
 import PressableScale from "./PressableScale";
 import Icon from "./Icon";
@@ -106,6 +107,28 @@ export default function BarcodeScanner({
     void lookup(res.data);
   }
 
+  // Decode a barcode from a still photo (primary path on web, where live camera
+  // decoding isn't reliable). Picks an image, decodes locally, then looks it up.
+  async function scanFromPhoto() {
+    if (busy) return;
+    setError(null);
+    setNotFound(false);
+    try {
+      const uri = await pickBarcodeImage();
+      if (!uri) return; // cancelled
+      setBusy(true);
+      const digits = await decodeBarcodeFromUri(uri);
+      await lookup(digits);
+    } catch (e: any) {
+      setBusy(false);
+      if (e instanceof BarcodeDecodeError) {
+        setError(e.message);
+      } else {
+        setError(e?.message || "Couldn't read that photo. Try again.");
+      }
+    }
+  }
+
   function useAsPhoto() {
     close();
     onFallbackToPhoto();
@@ -150,6 +173,18 @@ export default function BarcodeScanner({
                 </PressableScale>
               )}
             </View>
+          )}
+
+          {/* Scan from a still photo — the reliable path on web, and a fallback
+              on native. Decodes the barcode locally in the browser. */}
+          {canPhotoScan && (
+            <PressableScale
+              style={[styles.photoBtn, busy && styles.lookupBtnDisabled]}
+              onPress={scanFromPhoto}
+            >
+              <Icon name="camera" size={16} color="#fff" />
+              <Text style={styles.photoBtnText}>Scan a barcode from a photo</Text>
+            </PressableScale>
           )}
 
           {/* Manual entry — always available, and the primary path on web. */}
@@ -254,6 +289,17 @@ const styles = StyleSheet.create({
   },
   permBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   manualLabel: { fontSize: 12, color: colors.mute, marginBottom: 6, fontWeight: "600" },
+  photoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.green,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    marginBottom: 14,
+  },
+  photoBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   manualRow: { flexDirection: "row", gap: 8 },
   input: {
     flex: 1,
