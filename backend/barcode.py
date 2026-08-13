@@ -36,10 +36,10 @@ router = APIRouter(tags=["barcode"])
 
 # OpenFoodFacts asks every API client to identify itself with a descriptive
 # User-Agent (unidentified traffic can be rate-limited/blocked).
-# Production is tried first; staging (.net) is a same-API fallback used only when
-# production is unreachable (e.g. the recurring .org 502 outages), so a barcode
-# scan still resolves instead of hard-failing.
-_OFF_HOSTS = ("world.openfoodfacts.org", "world.openfoodfacts.net")
+# .net is tried first because the .org production API has recurring 502 outages
+# that were making barcode scans hard-fail; .org is kept as a same-API fallback
+# so a scan still resolves if .net is ever unreachable.
+_OFF_HOSTS = ("world.openfoodfacts.net", "world.openfoodfacts.org")
 _OFF_URL = "https://{host}/api/v2/product/{code}.json"
 _OFF_FIELDS = (
     "product_name,brands,serving_size,serving_quantity,nutriments,"
@@ -103,10 +103,10 @@ class _OffUnavailable(Exception):
 def _fetch_off(code: str) -> dict | None:
     """Return the OpenFoodFacts product dict, or None if not found.
 
-    Tries production first, then falls back to staging when production is
-    unreachable (the .org API has recurring 502 outages). A definitive
-    "not found" from any reachable host short-circuits -- we only move on when a
-    host is actually down. If every host is unavailable, surface a 502."""
+    Tries .net first, then falls back to .org when .net is unreachable (the .org
+    production API has recurring 502 outages). A definitive "not found" from any
+    reachable host short-circuits -- we only move on when a host is actually
+    down. If every host is unavailable, surface a 502."""
     last_error: str | None = None
     for host in _OFF_HOSTS:
         try:
