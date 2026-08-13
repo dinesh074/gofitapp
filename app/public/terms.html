@@ -5,22 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Terms of Service — gofit.today</title>
 <style>
-  :root { color-scheme: light dark; }
+  /* Force a single explicit high-contrast light theme. We do NOT rely on
+     prefers-color-scheme / color-scheme here: on some mobile browsers the UA
+     applied a dark canvas while our light text/card colors stayed, leaving
+     white-on-white (invisible) text. Legal pages must be readable everywhere,
+     so we pin both background and text colors on html+body. */
+  html, body { background: #ffffff; color: #14231c; }
   body {
     font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     max-width: 720px; margin: 0 auto; padding: 32px 20px 80px;
-    line-height: 1.6; color: #1a2b23; background: #fff;
+    line-height: 1.6;
   }
-  @media (prefers-color-scheme: dark) {
-    body { color: #e8f2ec; background: #0f1712; }
-    a { color: #6fd6a0; }
-    .card { background: #16211b; border-color: #24352c; }
-  }
-  h1 { font-size: 28px; margin-bottom: 4px; }
-  .updated { color: #6b8577; font-size: 13px; margin-bottom: 32px; }
-  h2 { font-size: 19px; margin-top: 36px; }
-  .card { background: #f3f8f5; border: 1px solid #dcebe3; border-radius: 12px; padding: 16px 20px; margin: 20px 0; }
-  a { color: #0b7a4b; font-weight: 600; }
+  h1 { font-size: 28px; margin-bottom: 4px; color: #0f1b15; }
+  .updated { color: #5a6b62; font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 19px; margin-top: 36px; color: #0f1b15; }
+  .card { background: #f3f8f5; border: 1px solid #dcebe3; border-radius: 12px; padding: 16px 20px; margin: 20px 0; color: #14231c; }
+  a { color: #0a6a41; font-weight: 600; }
   ul { padding-left: 20px; }
   li { margin-bottom: 6px; }
 </style>

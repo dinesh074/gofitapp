@@ -370,7 +370,10 @@ function NumberField({
         onPressIn={() => startHold(-1)}
         onPressOut={stopHold}
       >
-        <Icon name="minus" size={26} color={GREEN} />
+        {/* Font-independent glyphs: drawn with Views so they render identically
+            on desktop web, mobile web (where an icon/glyph font may not load)
+            and native, and are always dark enough to see. */}
+        <View style={styles.barH} />
       </Pressable>
       <View style={styles.numCenter}>
         <TextInput
@@ -394,7 +397,10 @@ function NumberField({
         onPressIn={() => startHold(1)}
         onPressOut={stopHold}
       >
-        <Icon name="plus" size={26} color={GREEN} />
+        <View style={styles.plusBox}>
+          <View style={styles.barH} />
+          <View style={styles.barV} />
+        </View>
       </Pressable>
     </View>
   );
@@ -510,6 +516,9 @@ const styles = StyleSheet.create({
   numberField: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 20 },
   numBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#fff", borderWidth: 2, borderColor: "#EAEFEB", alignItems: "center", justifyContent: "center" },
   numBtnPressed: { backgroundColor: "#EAF5EE", borderColor: GREEN },
+  barH: { width: 22, height: 3.5, borderRadius: 2, backgroundColor: GREEN },
+  barV: { position: "absolute", width: 3.5, height: 22, borderRadius: 2, backgroundColor: GREEN },
+  plusBox: { width: 22, height: 22, alignItems: "center", justifyContent: "center" },
   numCenter: { alignItems: "center", minWidth: 120 },
   numInput: { fontSize: 48, fontWeight: "900", color: INK, textAlign: "center", minWidth: 100, padding: 0 },
   numUnit: { fontSize: 15, color: MUTE, marginTop: -4 },
