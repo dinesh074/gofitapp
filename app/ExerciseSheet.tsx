@@ -24,9 +24,14 @@ import Icon from "./Icon";
 type Props = {
   visible: boolean;
   date: string; // "YYYY-MM-DD"
+  // Bump to force a reload of today's entries (e.g. after a guided workout was
+  // logged from the library while this sheet stayed open).
+  reloadToken?: number;
   onClose: () => void;
   // Bubble the day's burned total up so Home can reflect it immediately.
   onChanged?: (day: ExerciseDay) => void;
+  // Open the guided workout library (photos + step-by-step form).
+  onBrowseGuided?: () => void;
   onRequireAuth?: () => void;
 };
 
@@ -37,7 +42,7 @@ const DURATIONS = [10, 20, 30, 45, 60];
 // The catalog is static, so cache it across opens for the whole app session.
 let _catalogCache: ExerciseCatalog | null = null;
 
-export default function ExerciseSheet({ visible, date, onClose, onChanged, onRequireAuth }: Props) {
+export default function ExerciseSheet({ visible, date, reloadToken, onClose, onChanged, onBrowseGuided, onRequireAuth }: Props) {
   const [categories, setCategories] = useState<ExerciseCategory[]>(_catalogCache?.categories ?? []);
   const [day, setDay] = useState<ExerciseDay | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,7 +84,7 @@ export default function ExerciseSheet({ visible, date, onClose, onChanged, onReq
     return () => {
       alive = false;
     };
-  }, [visible, date]);
+  }, [visible, date, reloadToken]);
 
   async function log(key: string, minutes: number) {
     setBusy(true);
@@ -146,6 +151,16 @@ export default function ExerciseSheet({ visible, date, onClose, onChanged, onReq
           </View>
         ) : (
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            {onBrowseGuided && (
+              <Pressable style={styles.guidedBtn} onPress={onBrowseGuided} disabled={busy}>
+                <Icon name="playCircle" size={18} color={colors.green} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.guidedTitle}>Guided workouts</Text>
+                  <Text style={styles.guidedSub}>Demo photos & step-by-step form · adds to today</Text>
+                </View>
+                <Icon name="chevronRight" size={18} color={colors.mute} />
+              </Pressable>
+            )}
             {/* Today's logged entries */}
             {day && day.entries.length > 0 && (
               <View style={styles.loggedWrap}>
@@ -237,6 +252,9 @@ const styles = StyleSheet.create({
   error: { color: colors.red, fontSize: 12.5, marginTop: 8 },
   center: { paddingTop: 40, alignItems: "center", flex: 1 },
   loggedWrap: { marginTop: 8, marginBottom: 4 },
+  guidedBtn: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 14, padding: 14, marginTop: 12, borderWidth: 1, borderColor: colors.green, ...elevation.sm },
+  guidedTitle: { color: colors.ink, fontWeight: "800", fontSize: 15 },
+  guidedSub: { color: colors.mute, fontWeight: "600", fontSize: 12, marginTop: 2 },
   sectionLabel: { fontSize: 12, fontWeight: "800", color: colors.mute, textTransform: "uppercase", letterSpacing: 0.4, marginTop: 14, marginBottom: 8 },
   loggedRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.card, borderRadius: 14, padding: 14, marginBottom: 8, ...elevation.sm },
   loggedName: { color: colors.ink, fontWeight: "800", fontSize: 15 },

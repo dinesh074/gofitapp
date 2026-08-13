@@ -189,6 +189,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [exerciseKcal, setExerciseKcal] = useState(0);
   const [showExercise, setShowExercise] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  // Bumped whenever a guided workout is logged so an open ExerciseSheet reloads
+  // today's entries (they share one exercise_logs day).
+  const [exReload, setExReload] = useState(0);
   const [showWeight, setShowWeight] = useState(false);
   const [layoutOrder, setLayoutOrder] = useState<HomeModuleKey[]>(DEFAULT_ORDER);
   const [hiddenSet, setHiddenSet] = useState<Set<HomeModuleKey>>(new Set());
@@ -1126,31 +1129,20 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         );
       case "exercise":
         return (
-          <>
-            <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
-              <View style={styles.exerciseIcon}>
-                <Icon name="dumbbell" size={18} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exerciseTitle}>Exercise</Text>
-                <Text style={styles.exerciseSub}>
-                  {exerciseKcal > 0 ? `${Math.round(exerciseKcal)} kcal burned today` : "Log today's activity"}
-                </Text>
-              </View>
-              <Icon name="chevronRight" size={18} color={colors.mute} />
-            </PressableScale>
-
-            <PressableScale style={styles.exerciseCard} onPress={() => setShowLibrary(true)}>
-              <View style={styles.exerciseIcon}>
-                <Icon name="playCircle" size={18} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exerciseTitle}>Guided workouts</Text>
-                <Text style={styles.exerciseSub}>Exercises with demo photos & step-by-step form</Text>
-              </View>
-              <Icon name="chevronRight" size={18} color={colors.mute} />
-            </PressableScale>
-          </>
+          <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
+            <View style={styles.exerciseIcon}>
+              <Icon name="dumbbell" size={18} color={colors.green} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.exerciseTitle}>Exercise</Text>
+              <Text style={styles.exerciseSub}>
+                {exerciseKcal > 0
+                  ? `${Math.round(exerciseKcal)} kcal burned today · tap to add more`
+                  : "Quick log or guided workouts with demo photos"}
+              </Text>
+            </View>
+            <Icon name="chevronRight" size={18} color={colors.mute} />
+          </PressableScale>
         );
       default:
         return null;
@@ -1440,8 +1432,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         <ExerciseSheet
           visible={showExercise}
           date={today}
+          reloadToken={exReload}
           onClose={() => setShowExercise(false)}
           onChanged={(d) => setExerciseKcal(d.totalKcal)}
+          onBrowseGuided={() => setShowLibrary(true)}
           onRequireAuth={() => {
             setShowExercise(false);
             onRequireAuth();
@@ -1454,7 +1448,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           visible={showLibrary}
           date={today}
           onClose={() => setShowLibrary(false)}
-          onLogged={(d) => setExerciseKcal(d.totalKcal)}
+          onLogged={(d) => {
+            setExerciseKcal(d.totalKcal);
+            setExReload((n) => n + 1);
+          }}
           onRequireAuth={() => {
             setShowLibrary(false);
             onRequireAuth();
