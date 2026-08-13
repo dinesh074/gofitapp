@@ -50,6 +50,14 @@ import {
   forgetPortion,
   PortionMemory,
 } from "./corrections";
+import {
+  TrainingContext,
+  TRAINING_META,
+  trainingTip,
+  loadTrainingContext,
+  saveTrainingContext,
+} from "./training";
+import { dayMicros, sumMealMicros } from "./micros";
 import MonthStreak from "./MonthStreak";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
@@ -169,6 +177,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // the user's usual portion (so we can show a "your usual" chip + undo).
   const portionMemory = useRef<PortionMemory>({});
   const [learnedIdx, setLearnedIdx] = useState<Record<number, number>>({});
+  // Today's training context (long run / lifting / rest / performance). Drives a
+  // fuelling tip + biases the "what to eat next" ideas. Per account + per date.
+  const [training, setTraining] = useState<TrainingContext | null>(null);
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -197,6 +208,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     let alive = true;
     loadPortionMemory(account?.id ?? null).then((m) => {
       if (alive) portionMemory.current = m;
+    });
+    return () => {
+      alive = false;
+    };
+  }, [account?.id]);
+
+  // Load today's training context for this account (per account + per date, so
+  // it never leaks across logins and never carries over to a new day).
+  useEffect(() => {
+    let alive = true;
+    loadTrainingContext(account?.id ?? null, todayKey()).then((c) => {
+      if (alive) setTraining(c);
     });
     return () => {
       alive = false;
@@ -518,6 +541,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   function addToDay() {
     if (!result) return;
+    const { micros, hasData } = sumMealMicros(result.items);
     const meal: Meal = {
       dish: result.dish,
       kcal: mealTotal,
@@ -525,6 +549,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       carbs_g: mealMacros.carbs_g,
       fat_g: mealMacros.fat_g,
       at: Date.now(),
+      ...(hasData ? { micros } : {}),
     };
     logMeal(meal);
     // Correction engine: learn the portions the user settled on for each food,
@@ -591,17 +616,49 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   const shareDateLabel = useMemo(() => prettyDate(today), [today]);
 
+  // Set / toggle today's training context (tap a selected chip to clear it).
+  function pickTraining(ctx: TrainingContext) {
+    const next = training === ctx ? null : ctx;
+    setTraining(next);
+    void saveTrainingContext(account?.id ?? null, today, next);
+  }
+
   // "What to eat next" -- deterministic, recomputed as the day's totals change.
   // Recomputes on each render's day totals; the Date() inside keys off wall time
-  // which is fine (it only reads the hour to pick a meal slot).
+  // which is fine (it only reads the hour to pick a meal slot). Today's training
+  // context biases which idea wins (carbs before endurance, protein for lifting).
   const nextMeal = useMemo(
     () => suggestNextMeal(
       { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
       goal,
       profile,
+      new Date(),
+      training,
     ),
-    [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal],
+    [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal, training],
   );
+
+  // Fuelling tip for today's training context (null when none selected).
+  const trainTip = useMemo(
+    () =>
+      training
+        ? trainingTip(
+            training,
+            {
+              kcal: Math.max(0, goal.kcal - dayKcal),
+              protein_g: Math.max(0, goal.protein_g - dm.protein_g),
+              carbs_g: Math.max(0, goal.carbs_g - dm.carbs_g),
+              fat_g: Math.max(0, goal.fat_g - dm.fat_g),
+            },
+            goal,
+            profile,
+          )
+        : null,
+    [training, dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.goal],
+  );
+
+  // Daily micronutrient roll-up (from DB-matched foods only -- see micros.ts).
+  const micro = useMemo(() => dayMicros(logs, today), [logs, today]);
 
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
 
@@ -649,6 +706,31 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         </View>
 
+        <View style={styles.trainCard}>
+          <View style={styles.trainHeadRow}>
+            <Icon name="pulse" size={14} color={colors.green} />
+            <Text style={styles.trainHead}>Today's training</Text>
+          </View>
+          <View style={styles.trainChips}>
+            {TRAINING_META.map((m) => {
+              const on = training === m.key;
+              return (
+                <Pressable
+                  key={m.key}
+                  onPress={() => pickTraining(m.key)}
+                  style={[styles.trainChip, on && styles.trainChipOn]}
+                >
+                  <Icon name={m.icon} size={13} color={on ? "#fff" : colors.inkSoft} />
+                  <Text style={[styles.trainChipText, on && styles.trainChipTextOn]}>{m.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.trainHint}>
+            {trainTip ?? "Tag today's plan and we'll tune your next-meal and fuelling tips to match."}
+          </Text>
+        </View>
+
         <View style={styles.nextCard}>
           <View style={styles.nextHeaderRow}>
             <Icon name="sparkles" size={15} color={colors.green} />
@@ -672,6 +754,52 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         </View>
 
         <MonthStreak logs={logs} goalKcal={goal.kcal} />
+
+        <View style={styles.microCard}>
+          <View style={styles.microHeadRow}>
+            <Icon name="nutrition" size={15} color={colors.green} />
+            <Text style={styles.microHead}>Micronutrients today</Text>
+          </View>
+          {micro.trackedMeals > 0 ? (
+            <>
+              {micro.rows.map((r) => {
+                const barColor =
+                  r.state === "ok" ? colors.green : r.state === "low" ? colors.carbs : colors.red;
+                const fill = Math.min(100, r.pct);
+                return (
+                  <View key={r.key} style={styles.microRow}>
+                    <View style={styles.microTop}>
+                      <Text style={styles.microLabel}>
+                        {r.label}
+                        {r.kind === "limit" ? <Text style={styles.microNote}>  · keep under</Text> : null}
+                      </Text>
+                      <Text style={styles.microVal}>
+                        {r.have}
+                        <Text style={styles.microTarget}>
+                          {" "}
+                          / {r.target} {r.unit}
+                        </Text>
+                      </Text>
+                    </View>
+                    <View style={styles.microTrack}>
+                      <View style={[styles.microFill, { width: `${fill}%`, backgroundColor: barColor }]} />
+                    </View>
+                  </View>
+                );
+              })}
+              <Text style={styles.microFoot}>
+                From {micro.trackedMeals} of {micro.totalMeals} logged{" "}
+                {micro.totalMeals === 1 ? "meal" : "meals"} matched to our food database. Reference
+                intakes for a healthy adult — not medical advice.
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.microEmpty}>
+              Log a food from a barcode or the food database to see fibre, iron, sodium and more vs
+              your daily targets. Photo-only estimates don't carry full micronutrient data yet.
+            </Text>
+          )}
+        </View>
 
         <View style={styles.wellRow}>
           <View style={styles.wellCard}>
@@ -1039,6 +1167,40 @@ const styles = StyleSheet.create({
   nextIdeaLabel: { color: colors.green, fontWeight: "900" },
   nextIdeaKcal: { color: colors.mute, fontSize: 12, fontWeight: "700" },
   nextRationale: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 16 },
+
+  trainCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 10, ...elevation.sm },
+  trainHeadRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  trainHead: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  trainChips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  trainChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: colors.cardMuted,
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  trainChipOn: { backgroundColor: colors.green, borderColor: colors.green },
+  trainChipText: { color: colors.inkSoft, fontSize: 12, fontWeight: "800" },
+  trainChipTextOn: { color: "#fff" },
+  trainHint: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 17 },
+
+  microCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 10, ...elevation.sm },
+  microHeadRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 },
+  microHead: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  microRow: { gap: 5 },
+  microTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  microLabel: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "700" },
+  microNote: { color: colors.mute, fontSize: 10.5, fontWeight: "600" },
+  microVal: { color: colors.ink, fontSize: 12.5, fontWeight: "800" },
+  microTarget: { color: colors.mute, fontSize: 11, fontWeight: "600" },
+  microTrack: { height: 6, borderRadius: 3, backgroundColor: colors.cardMuted, overflow: "hidden" },
+  microFill: { height: "100%", borderRadius: 3 },
+  microFoot: { color: colors.mute, fontSize: 11, fontWeight: "500", lineHeight: 15, marginTop: 2 },
+  microEmpty: { color: colors.mute, fontSize: 12.5, fontWeight: "500", lineHeight: 17 },
   dayLabel: { color: colors.mute, fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
   ringWrap: { alignItems: "center", marginTop: 10, marginBottom: 6 },
   dayKcal: { color: colors.green, fontSize: 34, fontWeight: "900", marginTop: 2 },

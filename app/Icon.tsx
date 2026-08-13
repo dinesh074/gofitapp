@@ -59,6 +59,11 @@ export const ICONS = {
   walk: "walk-outline",
   dumbbell: "barbell-outline",
   sparkles: "sparkles-outline",
+  bicycle: "bicycle-outline",
+  moon: "moon-outline",
+  music: "musical-notes-outline",
+  nutrition: "nutrition-outline",
+  pulse: "pulse-outline",
 } as const;
 
 export type IconName = keyof typeof ICONS;

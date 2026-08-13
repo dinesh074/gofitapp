@@ -12,6 +12,11 @@ export type Meal = {
   // absent for a meal that only exists locally so far (e.g. offline, or the
   // sync call hasn't resolved yet).
   id?: number;
+  // Summed micronutrients for this meal (fibre, iron, sodium, etc.), captured
+  // at log time from any DB-matched items. Only present when at least one item
+  // carried micro data; a pure-AI photo estimate logs without it. Local-only --
+  // powers the daily micronutrient view (see micros.ts), not synced.
+  micros?: Record<string, number>;
 };
 export type DayLog = { date: string; meals: Meal[] };
 export type LogMap = Record<string, DayLog>;

@@ -6,6 +6,7 @@
 // credit, works offline. This is guidance, not medical advice.
 
 import type { Diet, Goal, GoalTargets, Profile } from "./nutrition";
+import { biasFor, trainingMeta, TrainingBias, TrainingContext } from "./training";
 
 export type MealSlot = "breakfast" | "snack" | "lunch" | "dinner";
 
@@ -76,6 +77,12 @@ function slotForHour(hour: number): MealSlot {
   return "snack";
 }
 
+// The one-word focus label for today's training context (e.g. "Carb-load"),
+// surfaced first in the meal card's focus chips when a context is set.
+function trainingMetaFocus(ctx: TrainingContext): string {
+  return trainingMeta(ctx).bias.focus;
+}
+
 function dietAllows(diet: Diet, contains: Contains): boolean {
   if (contains === "nonveg") return diet === "nonveg";
   if (contains === "egg") return diet === "nonveg" || diet === "eggetarian";
@@ -106,7 +113,9 @@ export function suggestNextMeal(
   goal: GoalTargets,
   profile: Pick<Profile, "diet" | "goal">,
   now: Date = new Date(),
+  training: TrainingContext | null = null,
 ): MealSuggestion {
+  const bias: TrainingBias = biasFor(training);
   const remKcal = goal.kcal - consumed.kcal;
   const remP = Math.max(0, goal.protein_g - consumed.protein_g);
   const remC = Math.max(0, goal.carbs_g - consumed.carbs_g);
@@ -136,6 +145,7 @@ export function suggestNextMeal(
   }
 
   const focus = [
+    training ? trainingMetaFocus(training) : null,
     macroFocus("protein", remP, goal.protein_g),
     macroFocus("fat", remF, goal.fat_g),
     macroFocus("carbs", remC, goal.carbs_g),
@@ -143,7 +153,9 @@ export function suggestNextMeal(
 
   // Score candidates. Protein is the priority macro; reward filling the protein
   // gap, gently penalise blowing past the remaining calorie or fat budget, and
-  // nudge by goal (losing -> leaner picks, gaining -> heartier picks).
+  // nudge by goal (losing -> leaner picks, gaining -> heartier picks). Today's
+  // training context layers on top: endurance rewards carbs, strength doubles
+  // down on protein, performance/rest keep it lighter (see training.ts).
   const proteinPriority = goal.protein_g > 0 && remP / goal.protein_g >= 0.3;
   const goalKcalBias = (g: Goal): number => (g === "lose" ? -0.15 : g === "gain" ? 0.1 : 0);
 
@@ -151,13 +163,15 @@ export function suggestNextMeal(
     (i) => dietAllows(profile.diet, i.contains) && i.slots.includes(slot) && i.kcal <= remKcal * 1.2,
   ).map((i) => {
     const proteinFill = Math.min(i.protein, remP); // useful protein toward the gap
+    const carbFill = Math.min(i.carbs, remC); // useful carbs toward the gap
     const kcalOver = Math.max(0, i.kcal - remKcal); // penalise overshoot
     const fatOver = Math.max(0, i.fat - remF);
     let score =
-      (proteinPriority ? 2.2 : 1.0) * proteinFill -
+      (proteinPriority ? 2.2 : 1.0) * bias.proteinBoost * proteinFill +
+      bias.carbBoost * 0.12 * carbFill -
       0.06 * kcalOver -
-      0.4 * fatOver +
-      goalKcalBias(profile.goal) * (i.kcal / 100);
+      (0.4 + bias.fatPenalty * 0.3) * fatOver +
+      (goalKcalBias(profile.goal) + bias.kcalBias) * (i.kcal / 100);
     // Prefer ideas that roughly fit the calorie budget over tiny snacks when a
     // real meal is due (breakfast/lunch/dinner).
     if (slot !== "snack") score += Math.min(i.kcal, remKcal) * 0.02;
