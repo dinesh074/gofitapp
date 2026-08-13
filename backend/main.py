@@ -29,7 +29,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 # Load backend/.env (DATABASE_URL, GEMINI_API_KEY, GOOGLE_CLIENT_ID, ...) before
 # importing modules that read these environment variables at import time.
@@ -57,11 +58,11 @@ MODEL = os.environ.get("FOOD_MODEL", "gemini-3.5-flash-lite")
 
 # temperature=0 => deterministic: the same photo yields the same numbers.
 # response_mime_type => model returns strict JSON (no markdown fences).
-GEN_CONFIG = {
-    "temperature": 0,
-    "top_p": 1,
-    "response_mime_type": "application/json",
-}
+GEN_CONFIG = types.GenerateContentConfig(
+    temperature=0,
+    top_p=1,
+    response_mime_type="application/json",
+)
 
 PROMPT = """You are the nutrition engine for an Indian food calorie-tracking app.
 Analyse the food photo and return ONLY strict JSON (no markdown), schema:
@@ -891,7 +892,7 @@ def _ai_phrase(diet: str, goal: dict, slot: str, rem: dict, top: list) -> str:
         '{"suggestion": "<sentence>"}'
     )
     try:
-        resp = get_model().generate_content(prompt)
+        resp = _generate(prompt)
         data = extract_json(resp.text)
         text = (data.get("suggestion") or "").strip()
         if not text:
@@ -1127,7 +1128,7 @@ def _ai_verdict_advice(dish: str, meal: dict, consumed: dict, goal: dict, traini
     )
     text = rules["advice"]
     try:
-        resp = get_model().generate_content(prompt)
+        resp = _generate(prompt)
         data = extract_json(resp.text)
         out = (data.get("advice") or "").strip()
         if not out:
@@ -1278,18 +1279,26 @@ def meals_verdict(body: VerdictBody, request: Request):
     return data
 # -----------------------------------------------------------------------------
 
-_model = None
+_client = None
 
 
-def get_model():
-    global _model
-    if _model is None:
+def get_client():
+    global _client
+    if _client is None:
         key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         if not key:
             raise RuntimeError("GEMINI_API_KEY not set")
-        genai.configure(api_key=key)
-        _model = genai.GenerativeModel(MODEL, generation_config=GEN_CONFIG)
-    return _model
+        _client = genai.Client(api_key=key)
+    return _client
+
+
+def _generate(contents):
+    """Single entry point for all Gemini calls. `contents` is a prompt string,
+    or a [prompt, PIL.Image] list for the photo path. Uses the google-genai
+    SDK (the google.generativeai package it replaced is end-of-life)."""
+    return get_client().models.generate_content(
+        model=MODEL, contents=contents, config=GEN_CONFIG
+    )
 
 
 def extract_json(text: str) -> dict:
@@ -1453,7 +1462,7 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
     for attempt in range(3):
         try:
             parts = [prompt, media] if media is not None else [prompt]
-            resp = get_model().generate_content(parts)
+            resp = _generate(parts)
             data = extract_json(resp.text)
             if not isinstance(data, dict) or "items" not in data:
                 raise ValueError("model returned unexpected shape")
@@ -1563,7 +1572,7 @@ def _plan_ai_note(plan_data: dict, diet: str, goal_str: str) -> str:
         'Respond as JSON: {"note": "<sentence>"}'
     )
     try:
-        resp = get_model().generate_content(prompt)
+        resp = _generate(prompt)
         data = extract_json(resp.text)
         return (data.get("note") or "").strip()
     except Exception as ex:
