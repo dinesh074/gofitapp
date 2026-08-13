@@ -370,7 +370,7 @@ function NumberField({
         onPressIn={() => startHold(-1)}
         onPressOut={stopHold}
       >
-        <Text style={styles.numBtnText}>−</Text>
+        <Icon name="minus" size={26} color={GREEN} />
       </Pressable>
       <View style={styles.numCenter}>
         <TextInput
@@ -394,7 +394,7 @@ function NumberField({
         onPressIn={() => startHold(1)}
         onPressOut={stopHold}
       >
-        <Text style={styles.numBtnText}>+</Text>
+        <Icon name="plus" size={26} color={GREEN} />
       </Pressable>
     </View>
   );
@@ -510,7 +510,6 @@ const styles = StyleSheet.create({
   numberField: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 20 },
   numBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#fff", borderWidth: 2, borderColor: "#EAEFEB", alignItems: "center", justifyContent: "center" },
   numBtnPressed: { backgroundColor: "#EAF5EE", borderColor: GREEN },
-  numBtnText: { fontSize: 28, fontWeight: "800", color: GREEN },
   numCenter: { alignItems: "center", minWidth: 120 },
   numInput: { fontSize: 48, fontWeight: "900", color: INK, textAlign: "center", minWidth: 100, padding: 0 },
   numUnit: { fontSize: 15, color: MUTE, marginTop: -4 },
