@@ -37,6 +37,7 @@ model):
 """
 import json
 import time
+import random
 import logging
 from typing import Callable, Optional
 
@@ -97,12 +98,64 @@ MAX_ITEM_SERVINGS = 2.0
 MAX_ITEMS_PER_SLOT = 3
 # Stop adding to a slot once this little of its calorie budget is left.
 SLOT_FILL_STOP = 0.12
-# A dish may appear at most this many times across the whole day. Strict "never
-# repeat" reads as more varied but exhausts the limited pool of protein-dense
-# staples (paneer/rajma/dal) early, forcing low-protein fillers into later
-# slots; allowing a staple to recur once keeps the day's protein far closer to
-# target while still avoiding the "same dish four times" look.
-MAX_DISH_PER_DAY = 2
+# A dish may appear at most this many times across the whole day. Repetition was
+# the #1 complaint ("paneer / rajma three times a day"), so an EXACT dish now
+# never repeats within a day.
+MAX_DISH_PER_DAY = 1
+# ...and the same primary ingredient (its "family": paneer, rajma, aloo, dal,
+# chicken) is capped too, so near-duplicate DB entries ("rajma", "rajma curry",
+# "rajma masala") can't sneak the same thing onto the plate three times. Two
+# lets a protein staple anchor two meals without dominating the whole day.
+MAX_FAMILY_PER_DAY = 2
+# The plan is built by SAMPLING from the top of the ranked pool rather than
+# always taking the single best-fit dish. This is what gives variety across
+# meals AND makes "New plan" produce a genuinely different day each time (the
+# ranking still keeps every pick a sensible macro fit -- we just don't always
+# grab rank #1). Pull a wider pool so the sampler has room to vary.
+CANDIDATE_POOL = 24
+# Sample each pick from the top-N eligible candidates, weighted toward the best
+# fit. Bigger = more variety / looser macro fit; smaller = tighter / repetitive.
+TOP_SAMPLE = 6
+
+# Tokens that describe a preparation rather than the core ingredient. Stripped
+# when deriving a dish's "family" so "paneer butter masala" and "kadai paneer"
+# both resolve to the family "paneer".
+_PREP_WORDS = {
+    "curry", "masala", "gravy", "dry", "fry", "fried", "sabzi", "sabji", "bhaji",
+    "tadka", "tikka", "roasted", "grilled", "steamed", "boiled", "spicy", "hot",
+    "special", "home", "style", "homestyle", "plain", "fresh", "classic", "with",
+    "and", "the", "of", "in", "ka", "ki", "ke", "wala", "wali", "veg", "non",
+    "half", "full", "plate", "bowl", "serving", "regular", "large", "small",
+}
+
+
+def _family(food: dict) -> str:
+    """The dish's primary ingredient, used to stop three near-identical dishes
+    (rajma / rajma curry / rajma masala) all landing on the same day. Takes the
+    first meaningful token of the name, skipping preparation words."""
+    name = (food.get("name") or food.get("key", "")).lower().replace("_", " ").replace("-", " ")
+    for tok in name.split():
+        t = tok.strip()
+        if len(t) > 2 and t not in _PREP_WORDS:
+            return t
+    return name.strip() or food.get("key", "")
+
+
+def _choose(rng: random.Random, cands: list, sample: bool):
+    """Pick a dish. For a slot's ANCHOR (first) pick we sample from the top of
+    the eligible pool, weighted steeply toward the best fit, so meals vary and
+    'New plan' yields a different day. For FILLER picks we take the single best
+    fit so the slot still lands on its macro budget (variety shouldn't cost
+    accuracy on the dishes that top up protein/calories)."""
+    if not cands:
+        return None
+    if not sample:
+        return cands[0]
+    top = cands[:TOP_SAMPLE]
+    # gentle falloff -> higher-ranked (better macro fit) dishes are favoured but
+    # the anchor genuinely varies across meals and across 'New plan' taps.
+    weights = [1.0 / (i + 1) for i in range(len(top))]
+    return rng.choices(top, weights=weights, k=1)[0]
 
 
 def _signature(targets: dict, diet: str, goal: str) -> str:
@@ -161,14 +214,15 @@ def _sum_items(items: list) -> dict:
     }
 
 
-def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str, goal: str, used: dict) -> dict:
+def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str, goal: str, used: dict, used_family: dict, rng: random.Random) -> dict:
     """Greedily fill one slot toward its share of the day's budget, re-ranking
     the food DB against the SHRINKING remaining budget after each pick. Because
     the scorer penalises fat/calorie overshoot, once protein or fat is met the
     next pick naturally skews leaner/carbier -- so a slot ends up balanced rather
-    than one macro-lopsided dish scaled up. `used` counts how many times each
-    dish has been placed today so nothing appears more than MAX_DISH_PER_DAY
-    times (variety) while still letting protein staples recur once."""
+    than one macro-lopsided dish scaled up. `used`/`used_family` count how many
+    times each exact dish and each ingredient family have been placed today so
+    nothing repeats (variety); picks are SAMPLED from the top of the pool so the
+    day varies and 'New plan' yields a different day."""
     budget = {
         "kcal": targets["kcal"] * frac,
         "protein_g": targets["protein_g"] * frac,
@@ -180,28 +234,34 @@ def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str
     for _ in range(MAX_ITEMS_PER_SLOT):
         if rem["kcal"] < budget["kcal"] * SLOT_FILL_STOP:
             break
-        foods = _pick_for_slot(rem, diet, goal, 16) or []
-        # First candidate that isn't already used up for the day, isn't already
-        # in THIS slot, and (once the slot has something) wouldn't blow the fat
-        # budget even at the minimum portion -- so a lean protein still gets in
-        # but another fat-dense dish is skipped in favour of a leaner option.
+        foods = _pick_for_slot(rem, diet, goal, CANDIDATE_POOL) or []
+        # Candidates that aren't already used up for the day (by exact dish OR by
+        # ingredient family), aren't already in THIS slot, and (once the slot has
+        # something) wouldn't blow the fat budget even at the minimum portion --
+        # so a lean protein still gets in but another fat-dense dish is skipped
+        # in favour of a leaner option.
         slot_keys = {it["key"] for it in items}
 
         def _ok(f: dict) -> bool:
             if used.get(f["key"], 0) >= MAX_DISH_PER_DAY or f["key"] in slot_keys:
+                return False
+            if used_family.get(_family(f), 0) >= MAX_FAMILY_PER_DAY:
                 return False
             fpu = f.get("fat_g_per_unit", 0) or 0
             if items and fpu > 0 and rem["fat_g"] > 0 and MIN_SERVINGS * fpu > rem["fat_g"] * 1.6:
                 return False
             return True
 
-        food = next((f for f in foods if _ok(f)), None)
+        eligible = [f for f in foods if _ok(f)]
+        food = _choose(rng, eligible, sample=(len(items) == 0))
         if food is None:
             break
         servings = _size_item(food, rem)
         item = _scale_item(food, servings)
         items.append(item)
         used[food["key"]] = used.get(food["key"], 0) + 1
+        fam = _family(food)
+        used_family[fam] = used_family.get(fam, 0) + 1
         rem["kcal"] -= item["kcal"]
         rem["protein_g"] -= item["protein_g"]
         rem["carbs_g"] -= item["carbs_g"]
@@ -225,9 +285,11 @@ def _deterministic_note(plan: dict) -> str:
     )
 
 
-def build_plan(targets: dict, diet: str, goal: str, date_key: str) -> dict:
+def build_plan(targets: dict, diet: str, goal: str, date_key: str, rng: Optional[random.Random] = None) -> dict:
+    rng = rng or random.Random()
     used: dict = {}
-    slots = [_build_slot(k, l, f, targets, diet, goal, used) for k, l, f in SLOTS]
+    used_family: dict = {}
+    slots = [_build_slot(k, l, f, targets, diet, goal, used, used_family, rng) for k, l, f in SLOTS]
     totals = _sum_items([it for s in slots for it in s["items"]])
     plan = {
         "date": date_key,
