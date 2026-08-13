@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -151,6 +151,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [steps, setSteps] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  // Thali clarification: selected option index per question id. Empty = every
+  // question sits on its baseline (default) option, so totals match the AI's
+  // first estimate until the user answers.
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -345,6 +349,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // same AnalysisResult shape, so applying one to screen state is identical.
   function applyResult(data: AnalysisResult) {
     setResult(data);
+    setAnswers({}); // new scan -> reset any thali clarifications
     if (data.usage && account) {
       onAccountUpdate({
         ...account,
@@ -375,6 +380,47 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }
   }
 
+  // Thali clarification: the user picks how much ghee / bowl size / etc. Each
+  // option carries a `factor` that multiplies the target item's per-unit kcal
+  // AND macros. We apply it relative to the previously-selected option (ratio =
+  // new/prev) so re-answering is exact and idempotent, and keep the per-unit
+  // values at full precision so repeated toggles never drift.
+  function answerQuestion(q: PortionQuestion, optIdx: number) {
+    const prevIdx = answers[q.id] ?? q.default_index;
+    const prevFactor = q.options[prevIdx]?.factor ?? 1;
+    const newFactor = q.options[optIdx]?.factor ?? 1;
+    if (!prevFactor) return;
+    const ratio = newFactor / prevFactor;
+    setResult((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((it, i) => {
+        if (i !== q.target_item) return it;
+        const scale = (v?: number) => (v == null ? v : v * ratio);
+        const next: FoodItem = {
+          ...it,
+          kcal_per_unit: it.kcal_per_unit * ratio,
+          protein_g_per_unit: it.protein_g_per_unit * ratio,
+          carbs_g_per_unit: it.carbs_g_per_unit * ratio,
+          fat_g_per_unit: it.fat_g_per_unit * ratio,
+        };
+        // Scale any per-unit micros too so the details panel stays consistent.
+        next.fiber_g = scale(it.fiber_g);
+        next.sugar_g = scale(it.sugar_g);
+        next.sodium_mg = scale(it.sodium_mg);
+        next.potassium_mg = scale(it.potassium_mg);
+        next.calcium_mg = scale(it.calcium_mg);
+        next.iron_mg = scale(it.iron_mg);
+        next.kcal_total = Math.round(next.count * next.kcal_per_unit);
+        next.protein_g = Math.round(next.count * next.protein_g_per_unit * 10) / 10;
+        next.carbs_g = Math.round(next.count * next.carbs_g_per_unit * 10) / 10;
+        next.fat_g = Math.round(next.count * next.fat_g_per_unit * 10) / 10;
+        return next;
+      });
+      return { ...prev, items };
+    });
+    setAnswers((a) => ({ ...a, [q.id]: optIdx }));
+  }
+
   function adjust(index: number, delta: number) {
     setResult((prev) => {
       if (!prev) return prev;
@@ -395,6 +441,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       if (!prev) return prev;
       const items = prev.items.map((it, i) => (i === index ? itemFromSuggestion(s) : it));
       return { ...prev, items };
+    });
+    // Any thali questions that adjusted this item no longer apply -- the food
+    // changed -- so reset them to baseline to avoid mis-scaling the new item.
+    setAnswers((a) => {
+      const next = { ...a };
+      for (const q of result?.questions ?? []) {
+        if (q.target_item === index) delete next[q.id];
+      }
+      return next;
     });
     setSwapIndex(null);
   }
@@ -625,7 +680,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                       )}
                     </View>
                     <Text style={styles.itemSub}>
-                      {it.kcal_per_unit} kcal / {it.unit}
+                      {Math.round(it.kcal_per_unit)} kcal / {it.unit}
                       {it.countable ? "" : "  (size)"}
                     </Text>
                     <Text style={styles.itemMacros}>
@@ -675,6 +730,47 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                 </View>
               </View>
             ))}
+
+            {!!result.questions?.length && (
+              <View style={styles.qBlock}>
+                <View style={styles.qHeaderRow}>
+                  <Icon name="sparkles" size={14} color={colors.green} />
+                  <Text style={styles.qHeader}>Fine-tune your thali</Text>
+                </View>
+                <Text style={styles.qSubtitle}>
+                  A photo can't see everything — a tap makes the numbers more accurate.
+                </Text>
+                {result.questions.map((q) => {
+                  const selected = answers[q.id] ?? q.default_index;
+                  return (
+                    <View key={q.id} style={styles.qItem}>
+                      <Text style={styles.qPrompt}>
+                        {q.prompt}
+                        {result.items[q.target_item] ? (
+                          <Text style={styles.qTarget}>{"  · " + result.items[q.target_item].item}</Text>
+                        ) : null}
+                      </Text>
+                      <View style={styles.qOptions}>
+                        {q.options.map((opt, oi) => {
+                          const active = oi === selected;
+                          return (
+                            <Pressable
+                              key={oi}
+                              onPress={() => answerQuestion(q, oi)}
+                              style={[styles.qChip, active && styles.qChipActive]}
+                            >
+                              <Text style={[styles.qChipText, active && styles.qChipTextActive]}>
+                                {opt.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
 
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Meal total</Text>
@@ -890,6 +986,18 @@ const styles = StyleSheet.create({
   itemActions: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8, flexWrap: "wrap" },
   swapLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" },
   swapLinkText: { color: colors.green, fontSize: 11.5, fontWeight: "800", textDecorationLine: "underline" },
+  qBlock: { marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: colors.greenTint, gap: 10 },
+  qHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  qHeader: { fontSize: 14, fontWeight: "900", color: colors.green },
+  qSubtitle: { fontSize: 11.5, color: colors.mute, marginTop: -4, lineHeight: 16 },
+  qItem: { gap: 7 },
+  qPrompt: { fontSize: 13, fontWeight: "700", color: colors.ink },
+  qTarget: { fontSize: 12, fontWeight: "600", color: colors.mute },
+  qOptions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  qChip: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: 999, backgroundColor: "#fff", borderWidth: 1, borderColor: colors.line },
+  qChipActive: { backgroundColor: colors.green, borderColor: colors.green },
+  qChipText: { fontSize: 12.5, fontWeight: "700", color: colors.ink },
+  qChipTextActive: { color: "#fff" },
   stepper: { flexDirection: "row", alignItems: "center", marginHorizontal: 8 },
   stepBtn: { width: 30, height: 30, borderRadius: 8, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
   stepBtnText: { color: colors.green, fontSize: 18, fontWeight: "900" },

@@ -78,12 +78,34 @@ Analyse the food photo and return ONLY strict JSON (no markdown), schema:
       "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>
     }
   ],
+  "questions": [
+    {
+      "id": "short_slug",
+      "prompt": "one short question a photo genuinely can't answer",
+      "target_item": <0-based index into items[] this question adjusts>,
+      "options": [
+        {"label": "short answer", "factor": <multiplier on that item's per-unit kcal AND macros>}
+      ],
+      "default_index": <index of the option you already assumed>
+    }
+  ],
   "calories_kcal": <sum of all items kcal_total>,
   "confidence": <0.0-1.0>
 }
 Use standard Indian household portions. Break a plate into its components
 (rice + dal + sabzi). Estimate kcal_per_unit for a normal home serving.
-Count only what is clearly visible."""
+Count only what is clearly visible.
+
+QUESTIONS: Indian thalis hide calories a photo can't see. Ask ONLY the 1-3
+highest-impact things you had to guess, each tied to one item via target_item:
+- added ghee/oil/butter (on roti, in dal, tempering) -> factors like 1.0 / 1.15 / 1.35
+- bowl/katori or ladle size for curries & dal -> e.g. small 0.7 / medium 1.0 / large 1.4
+- fried vs steamed/roasted, sugar in a sweet, cream/malai in a gravy
+Rules: every question needs 2-4 options; exactly one option is the baseline you
+already used (factor 1.0) and default_index must point to it, so if the user
+answers nothing the totals don't change. Skip questions for clear packaged or
+plainly-visible items. Return "questions": [] when nothing is genuinely
+ambiguous. NEVER ask about things visible in the photo (count, which foods)."""
 
 TEXT_PROMPT = """You are the nutrition engine for an Indian food calorie-tracking app.
 The user typed a description of what they ate (may be dictated from voice, so
@@ -754,6 +776,61 @@ def _require_scan_slot(request: Request) -> dict:
     return account
 
 
+def _sanitize_questions(data: dict) -> list:
+    """Validate & clamp the model's clarifying `questions` so the client can
+    trust them. Drops anything malformed rather than surfacing it. Each option's
+    `factor` multiplies its target item's per-unit kcal AND macros; the baseline
+    option (default) must be factor 1.0 so ignoring a question changes nothing."""
+    raw = data.get("questions")
+    if not isinstance(raw, list):
+        return []
+    item_count = len(data.get("items", []))
+    out: list = []
+    for q in raw:
+        if not isinstance(q, dict):
+            continue
+        target = q.get("target_item")
+        prompt = q.get("prompt")
+        opts_raw = q.get("options")
+        if not isinstance(target, int) or not (0 <= target < item_count):
+            continue
+        if not isinstance(prompt, str) or not prompt.strip():
+            continue
+        if not isinstance(opts_raw, list) or len(opts_raw) < 2:
+            continue
+        options: list = []
+        for o in opts_raw[:4]:
+            if not isinstance(o, dict):
+                continue
+            label = o.get("label")
+            factor = o.get("factor")
+            if not isinstance(label, str) or not label.strip():
+                continue
+            if not isinstance(factor, (int, float)):
+                continue
+            # Clamp to a sane range so a bad factor can't 10x a meal.
+            factor = max(0.3, min(3.0, float(factor)))
+            options.append({"label": label.strip()[:32], "factor": round(factor, 3)})
+        if len(options) < 2:
+            continue
+        default_index = q.get("default_index", 0)
+        if not isinstance(default_index, int) or not (0 <= default_index < len(options)):
+            default_index = 0
+        # The baseline the model already used must be a no-op multiplier so the
+        # displayed totals match until the user actually answers.
+        options[default_index]["factor"] = 1.0
+        out.append({
+            "id": str(q.get("id") or f"q{len(out)}")[:40],
+            "prompt": prompt.strip()[:120],
+            "target_item": target,
+            "options": options,
+            "default_index": default_index,
+        })
+        if len(out) >= 3:
+            break
+    return out
+
+
 def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str) -> dict:
     """Shared retry/anchor/usage/scan-history plumbing for both the image and
     text analysis paths -- media is either a PIL.Image (photo) or omitted
@@ -774,6 +851,9 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
                 it.setdefault("fat_g", 0)
                 it.setdefault("countable", True)
                 it.setdefault("unit", "piece")
+            # Validate clarifying questions BEFORE anchor_items so target_item
+            # indices still line up with the model's original items order.
+            data["questions"] = _sanitize_questions(data)
             data = anchor_items(data)
             data["usage"] = auth.usage_for(account["id"])
             items = data.get("items", [])

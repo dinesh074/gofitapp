@@ -58,6 +58,7 @@ export const ICONS = {
   water: "water",
   walk: "walk-outline",
   dumbbell: "barbell-outline",
+  sparkles: "sparkles-outline",
 } as const;
 
 export type IconName = keyof typeof ICONS;

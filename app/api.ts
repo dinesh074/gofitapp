@@ -42,6 +42,19 @@ export type FoodItem = {
 
 export type Macros = { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 
+// A single clarifying question the photo couldn't resolve (thali flow). Each
+// option's `factor` multiplies its target item's per-unit kcal AND macros; the
+// baseline option (default_index) is always factor 1.0, so leaving a question
+// unanswered keeps the model's original estimate.
+export type PortionOption = { label: string; factor: number };
+export type PortionQuestion = {
+  id: string;
+  prompt: string;
+  target_item: number;
+  options: PortionOption[];
+  default_index: number;
+};
+
 export type Usage = {
   is_pro: boolean;
   scans_used: number;
@@ -56,6 +69,7 @@ export type AnalysisResult = {
   calories_kcal: number;
   confidence: number;
   totals: Macros;
+  questions?: PortionQuestion[];
   usage?: Usage;
 };
 
