@@ -81,20 +81,26 @@ def init_db() -> None:
 
 # The day split -- each slot gets a fraction of the daily calorie budget. Sums
 # to 1.0. Lunch is the biggest meal, a lighter snack bridges the afternoon.
+# `anchor_grain` marks the meals that, for an Indian plate, should be BUILT
+# AROUND a grain staple (rice / roti / etc.) with the protein + veg alongside,
+# rather than being an arbitrary pile of curries. This is what makes lunch and
+# dinner read like real meals ("rice + dal + sabzi") instead of "rajma + chole".
 SLOTS = [
-    ("breakfast", "Breakfast", 0.25),
-    ("lunch", "Lunch", 0.35),
-    ("snack", "Snack", 0.15),
-    ("dinner", "Dinner", 0.25),
+    ("breakfast", "Breakfast", 0.25, True),
+    ("lunch", "Lunch", 0.35, True),
+    ("snack", "Snack", 0.15, False),
+    ("dinner", "Dinner", 0.25, True),
 ]
 
 # Portion is expressed as servings of the chosen dish, rounded to a half serving
 # and clamped. A single item is capped low (MAX_ITEM_SERVINGS) so a slot COMBINES
 # a few complementary dishes to hit its budget rather than asking for one giant
 # helping -- that is what keeps the macros balanced instead of, say, tripling a
-# fat-heavy paneer dish just to reach the calorie number.
+# fat-heavy paneer dish just to reach the calorie number. Capped at 1.5 so the
+# plan never reads as "two poha / two sambar" -- an odd-looking double serving --
+# and instead pairs a second complementary dish.
 MIN_SERVINGS = 0.5
-MAX_ITEM_SERVINGS = 2.0
+MAX_ITEM_SERVINGS = 1.5
 MAX_ITEMS_PER_SLOT = 3
 # Stop adding to a slot once this little of its calorie budget is left.
 SLOT_FILL_STOP = 0.12
@@ -113,6 +119,10 @@ MAX_FAMILY_PER_DAY = 2
 # ranking still keeps every pick a sensible macro fit -- we just don't always
 # grab rank #1). Pull a wider pool so the sampler has room to vary.
 CANDIDATE_POOL = 24
+# A wider pool used only when hunting for a grain anchor -- grains rank below
+# protein dishes on macro-fit, so we look deeper to make sure rice/roti/etc. are
+# actually reachable for the meal's base.
+GRAIN_POOL = 70
 # Sample each pick from the top-N eligible candidates, weighted toward the best
 # fit. Bigger = more variety / looser macro fit; smaller = tighter / repetitive.
 TOP_SAMPLE = 6
@@ -139,6 +149,25 @@ def _family(food: dict) -> str:
         if len(t) > 2 and t not in _PREP_WORDS:
             return t
     return name.strip() or food.get("key", "")
+
+
+# Grain / carbohydrate staples that form the BASE of an Indian meal. A main meal
+# (lunch/dinner) is anchored on one of these so the plate reads like real food
+# ("rice + dal + sabzi") instead of a stack of curries with no grain. Matched as
+# whole words against the dish name so "fried rice" counts but "ricotta" doesn't.
+_GRAIN_WORDS = {
+    "rice", "roti", "chapati", "chapatti", "phulka", "naan", "paratha", "parantha",
+    "puri", "poori", "bhatura", "kulcha", "thepla", "bhakri", "pulao", "pulav",
+    "biryani", "khichdi", "poha", "upma", "idli", "dosa", "uttapam", "appam",
+    "dalia", "daliya", "oats", "vermicelli", "sevai", "paniyaram", "pongal",
+    "sabudana", "millet", "bajra", "jowar", "ragi", "quinoa", "bread", "sandwich",
+}
+
+
+def _is_grain(food: dict) -> bool:
+    name = (food.get("name") or food.get("key", "")).lower().replace("_", " ").replace("-", " ")
+    toks = set(name.split())
+    return bool(toks & _GRAIN_WORDS)
 
 
 def _choose(rng: random.Random, cands: list, sample: bool):
@@ -214,7 +243,7 @@ def _sum_items(items: list) -> dict:
     }
 
 
-def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str, goal: str, used: dict, used_family: dict, rng: random.Random) -> dict:
+def _build_slot(slot_key: str, label: str, frac: float, anchor_grain: bool, targets: dict, diet: str, goal: str, used: dict, used_family: dict, rng: random.Random) -> dict:
     """Greedily fill one slot toward its share of the day's budget, re-ranking
     the food DB against the SHRINKING remaining budget after each pick. Because
     the scorer penalises fat/calorie overshoot, once protein or fat is met the
@@ -222,7 +251,9 @@ def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str
     than one macro-lopsided dish scaled up. `used`/`used_family` count how many
     times each exact dish and each ingredient family have been placed today so
     nothing repeats (variety); picks are SAMPLED from the top of the pool so the
-    day varies and 'New plan' yields a different day."""
+    day varies and 'New plan' yields a different day. When `anchor_grain` is set
+    (lunch/dinner), the FIRST pick is forced to be a grain staple (rice/roti/...)
+    so the meal is built on a real base, not just a pile of curries."""
     budget = {
         "kcal": targets["kcal"] * frac,
         "protein_g": targets["protein_g"] * frac,
@@ -234,18 +265,28 @@ def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str
     for _ in range(MAX_ITEMS_PER_SLOT):
         if rem["kcal"] < budget["kcal"] * SLOT_FILL_STOP:
             break
-        foods = _pick_for_slot(rem, diet, goal, CANDIDATE_POOL) or []
+        is_anchor = len(items) == 0
+        # For a main-meal anchor pull a WIDER pool so the grain staples (which are
+        # carb-heavy and rank below protein dishes on macro-fit) are actually in
+        # reach, then restrict to grains. Fillers use the normal pool.
+        pool = (GRAIN_POOL if (is_anchor and anchor_grain) else CANDIDATE_POOL)
+        foods = _pick_for_slot(rem, diet, goal, pool) or []
         # Candidates that aren't already used up for the day (by exact dish OR by
         # ingredient family), aren't already in THIS slot, and (once the slot has
         # something) wouldn't blow the fat budget even at the minimum portion --
         # so a lean protein still gets in but another fat-dense dish is skipped
         # in favour of a leaner option.
         slot_keys = {it["key"] for it in items}
+        slot_has_grain = any(_is_grain({"key": it["key"], "name": it["name"]}) for it in items)
 
         def _ok(f: dict) -> bool:
             if used.get(f["key"], 0) >= MAX_DISH_PER_DAY or f["key"] in slot_keys:
                 return False
             if used_family.get(_family(f), 0) >= MAX_FAMILY_PER_DAY:
+                return False
+            # One grain base per meal -- once a slot has its grain, further picks
+            # are the protein/veg alongside it, never a second bread/rice.
+            if slot_has_grain and _is_grain(f):
                 return False
             fpu = f.get("fat_g_per_unit", 0) or 0
             if items and fpu > 0 and rem["fat_g"] > 0 and MIN_SERVINGS * fpu > rem["fat_g"] * 1.6:
@@ -253,7 +294,11 @@ def _build_slot(slot_key: str, label: str, frac: float, targets: dict, diet: str
             return True
 
         eligible = [f for f in foods if _ok(f)]
-        food = _choose(rng, eligible, sample=(len(items) == 0))
+        if is_anchor and anchor_grain:
+            grains = [f for f in eligible if _is_grain(f)]
+            if grains:
+                eligible = grains  # meal is built on a grain base
+        food = _choose(rng, eligible, sample=is_anchor)
         if food is None:
             break
         servings = _size_item(food, rem)
@@ -289,7 +334,7 @@ def build_plan(targets: dict, diet: str, goal: str, date_key: str, rng: Optional
     rng = rng or random.Random()
     used: dict = {}
     used_family: dict = {}
-    slots = [_build_slot(k, l, f, targets, diet, goal, used, used_family, rng) for k, l, f in SLOTS]
+    slots = [_build_slot(k, l, f, ag, targets, diet, goal, used, used_family, rng) for k, l, f, ag in SLOTS]
     totals = _sum_items([it for s in slots for it in s["items"]])
     plan = {
         "date": date_key,

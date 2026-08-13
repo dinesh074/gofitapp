@@ -94,13 +94,17 @@ export default function TodayPlanCard({ goal, diet, goalName, date, account, onR
         <Text style={styles.head}>Your plan for today</Text>
         {plan && account && (
           <Pressable
-            style={styles.regenBtn}
+            style={[styles.regenBtn, loading && styles.regenBtnBusy]}
             onPress={() => load(true)}
             hitSlop={8}
             disabled={loading}
           >
-            <Icon name="refresh" size={13} color={colors.green} />
-            <Text style={styles.regenText}>New plan</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.green} />
+            ) : (
+              <Icon name="refresh" size={13} color={colors.green} />
+            )}
+            <Text style={styles.regenText}>{loading ? "Building…" : "New plan"}</Text>
           </Pressable>
         )}
       </View>
@@ -158,7 +162,9 @@ export default function TodayPlanCard({ goal, diet, goalName, date, account, onR
                     <Text key={`${it.key}-${i}`} style={styles.item}>
                       <Text style={styles.itemDot}>· </Text>
                       {it.name}
-                      <Text style={styles.itemMeta}>{`  ×${fmtCount(it.count)} · ${it.kcal} kcal`}</Text>
+                      <Text style={styles.itemMeta}>
+                        {`  ×${fmtCount(it.count)}${it.unit ? " " + it.unit : ""} · ${it.kcal} kcal`}
+                      </Text>
                     </Text>
                   ))
                 ) : (
@@ -206,6 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   regenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  regenBtnBusy: { opacity: 0.7 },
   note: { color: colors.inkSoft, fontSize: 13, fontWeight: "600", lineHeight: 18 },
   remainRow: {
     flexDirection: "row",
