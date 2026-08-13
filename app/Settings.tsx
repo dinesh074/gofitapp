@@ -11,12 +11,10 @@ import {
 import {
   Activity,
   ACTIVITY_LABELS,
-  clamp,
   computeGoal,
   Diet,
   Gender,
   Goal,
-  GoalPace,
   resolveGoalKind,
   resolveGoalPace,
   LIMITS,
@@ -26,6 +24,8 @@ import { APP_NAME } from "./config";
 import { loadRemindersEnabled } from "./storage";
 import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
+import WheelPicker from "./WheelPicker";
+import PaceSlider from "./PaceSlider";
 
 const GREEN = "#0B7A4B";
 const BG = "#F4F6F5";
@@ -48,11 +48,6 @@ const GOALS: { key: Goal; label: string }[] = [
   { key: "lose", label: "Lose" },
   { key: "maintain", label: "Maintain" },
   { key: "gain", label: "Gain" },
-];
-const PACES: { key: GoalPace; label: string }[] = [
-  { key: "relaxed", label: "Relaxed" },
-  { key: "recommended", label: "Recommended" },
-  { key: "ambitious", label: "Ambitious" },
 ];
 const DIETS: { key: Diet; label: string }[] = [
   { key: "veg", label: "Veg" },
@@ -149,7 +144,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
         </Field>
 
         <Field label="Age">
-          <Stepper
+          <WheelPicker
             value={d.age}
             unit="yrs"
             min={LIMITS.age.min}
@@ -159,7 +154,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
         </Field>
 
         <Field label="Height">
-          <Stepper
+          <WheelPicker
             value={d.heightCm}
             unit="cm"
             min={LIMITS.heightCm.min}
@@ -169,7 +164,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
         </Field>
 
         <Field label="Current weight">
-          <Stepper
+          <WheelPicker
             value={d.weightKg}
             unit="kg"
             min={LIMITS.weightKg.min}
@@ -184,7 +179,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
 
         {d.goal !== "maintain" && (
           <Field label="Target weight">
-            <Stepper
+            <WheelPicker
               value={d.targetWeightKg}
               unit="kg"
               min={LIMITS.weightKg.min}
@@ -196,8 +191,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
 
         {d.goal !== "maintain" && (
           <Field label="Goal pace">
-            <Segmented
-              options={PACES}
+            <PaceSlider
               value={resolveGoalPace(d)}
               onChange={(v) => setD({ ...d, goalPace: v })}
             />
@@ -344,46 +338,6 @@ function Chip({
   );
 }
 
-function Stepper({
-  value,
-  unit,
-  min,
-  max,
-  step = 1,
-  onChange,
-}: {
-  value: number;
-  unit: string;
-  min: number;
-  max: number;
-  step?: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <View style={styles.stepper}>
-      <Pressable style={styles.stepBtn} onPress={() => onChange(clamp(value - step, min, max))}>
-        <Text style={styles.stepBtnText}>−</Text>
-      </Pressable>
-      <View style={styles.stepCenter}>
-        <TextInput
-          style={styles.stepInput}
-          keyboardType="numeric"
-          value={String(value)}
-          onChangeText={(t) => {
-            const n = parseInt(t.replace(/[^0-9]/g, ""), 10);
-            if (!isNaN(n)) onChange(clamp(n, min, max));
-            else if (t === "") onChange(min);
-          }}
-        />
-        <Text style={styles.stepUnit}>{unit}</Text>
-      </View>
-      <Pressable style={styles.stepBtn} onPress={() => onChange(clamp(value + step, min, max))}>
-        <Text style={styles.stepBtnText}>+</Text>
-      </Pressable>
-    </View>
-  );
-}
-
 /* ---------- styles ---------- */
 
 const styles = StyleSheet.create({
@@ -429,13 +383,6 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: GREEN, backgroundColor: "#F0F8F3" },
   chipText: { color: INK, fontWeight: "700", fontSize: 13 },
   chipTextActive: { color: GREEN },
-
-  stepper: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  stepBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#EAF4EE", alignItems: "center", justifyContent: "center" },
-  stepBtnText: { fontSize: 24, fontWeight: "800", color: GREEN },
-  stepCenter: { alignItems: "center", flex: 1 },
-  stepInput: { fontSize: 32, fontWeight: "900", color: INK, textAlign: "center", minWidth: 80, padding: 0 },
-  stepUnit: { fontSize: 13, color: MUTE, marginTop: -2 },
 
   reminderCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 12 },
   reminderTitle: { color: INK, fontWeight: "800", fontSize: 15 },

@@ -59,7 +59,7 @@ export default function WheelPicker({
     return best;
   };
 
-  const scrollRef = useRef<Animated.ScrollView>(null);
+  const scrollRef = useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
   const scrollY = useRef(new Animated.Value(indexOf(value) * ITEM_HEIGHT)).current;
   const committedIndex = useRef(indexOf(value));
 
@@ -70,7 +70,7 @@ export default function WheelPicker({
     const idx = indexOf(value);
     if (idx !== committedIndex.current) {
       committedIndex.current = idx;
-      scrollRef.current?.getNode?.().scrollTo?.({ y: idx * ITEM_HEIGHT, animated: false });
+      (scrollRef.current as any)?.getNode?.().scrollTo?.({ y: idx * ITEM_HEIGHT, animated: false });
       // Fallback for platforms where getNode isn't present (newer RN / web).
       (scrollRef.current as any)?.scrollTo?.({ y: idx * ITEM_HEIGHT, animated: false });
       scrollY.setValue(idx * ITEM_HEIGHT);

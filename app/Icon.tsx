@@ -64,6 +64,7 @@ export const ICONS = {
   music: "musical-notes-outline",
   nutrition: "nutrition-outline",
   pulse: "pulse-outline",
+  refresh: "refresh",
 } as const;
 
 export type IconName = keyof typeof ICONS;
