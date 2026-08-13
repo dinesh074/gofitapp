@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -43,6 +43,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
 import { computeSuggestions, recentsToCandidates, BASE_CANDIDATES, Candidate } from "./mealSuggest";
+import { mealVerdict, VerdictState } from "./mealVerdict";
 import {
   loadPortionMemory,
   rememberPortions,
@@ -80,6 +81,11 @@ type Props = {
 
 function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
+}
+
+// Traffic-light colour for the "Should you eat this?" verdict states.
+function verdictColor(state: VerdictState): string {
+  return state === "green" ? colors.green : state === "yellow" ? colors.carbs : colors.red;
 }
 
 // Builds a fresh FoodItem from a food-DB search result when the user swaps a
@@ -186,6 +192,11 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [dbPool, setDbPool] = useState<Candidate[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const recoSig = useRef<string | null>(null);
+  // AI-enhanced "should I eat this?" verdict for the meal under review. Tagged
+  // with the signature it was fetched for so we never show stale advice after a
+  // portion edit; null until it resolves (the on-device verdict shows meanwhile).
+  const [aiVerdict, setAiVerdict] = useState<{ sig: string; v: ApiVerdict } | null>(null);
+  const verdictSig = useRef<string | null>(null);
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -384,6 +395,88 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       fat_g: Math.round(m.fat_g),
     };
   }, [result]);
+
+  // "Should I eat this?" — a pre-meal verdict comparing the scanned plate to
+  // what's LEFT in today's budget (the meal isn't logged yet, so we pass the
+  // day's current totals as `consumed`) and today's training context.
+  const verdict = useMemo(
+    () =>
+      result
+        ? mealVerdict(
+            { kcal: mealTotal, protein_g: mealMacros.protein_g, carbs_g: mealMacros.carbs_g, fat_g: mealMacros.fat_g },
+            { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
+            goal,
+            training,
+          )
+        : null,
+    [result, mealTotal, mealMacros, dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, training],
+  );
+
+  // Fetch the AI-enhanced verdict (grounded advice from the backend) whenever the
+  // reviewed meal or the day's remaining budget shifts meaningfully. Debounced so
+  // rapid +/- portion taps don't spam the API; keyed by a coarse signature so we
+  // only refetch on real changes. Best-effort: on failure the on-device verdict
+  // stands. Needs an account + a real target + at least one verdict line.
+  useEffect(() => {
+    if (!result || !verdict || verdict.lines.length === 0 || !account || goal.kcal <= 0) {
+      setAiVerdict(null);
+      verdictSig.current = null;
+      return;
+    }
+    const sig = [
+      Math.round(mealTotal / 40),
+      Math.round(mealMacros.protein_g / 5),
+      Math.round(mealMacros.carbs_g / 10),
+      Math.round(mealMacros.fat_g / 5),
+      Math.round(dayKcal / 100),
+      training ?? "",
+      result.dish ?? "",
+    ].join("|");
+    if (sig === verdictSig.current) return;
+    let alive = true;
+    const timer = setTimeout(() => {
+      verdictSig.current = sig;
+      fetchMealVerdict({
+        meal: { kcal: mealTotal, protein_g: mealMacros.protein_g, carbs_g: mealMacros.carbs_g, fat_g: mealMacros.fat_g },
+        consumed: { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
+        goal: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
+        goalName: profile.goal,
+        training: training ?? "",
+        dish: result.dish ?? "",
+      })
+        .then((v) => {
+          if (alive && v) setAiVerdict({ sig, v });
+        })
+        .catch(() => {
+          /* keep the on-device verdict */
+        });
+    }, 600);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [result, verdict, account, mealTotal, mealMacros, dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, training, profile.goal]);
+
+  // What the card actually shows: the AI verdict when it matches the current meal
+  // signature (upgraded advice wording), otherwise the instant on-device verdict.
+  const shownVerdict = useMemo(() => {
+    if (!verdict) return null;
+    const sig = [
+      Math.round(mealTotal / 40),
+      Math.round(mealMacros.protein_g / 5),
+      Math.round(mealMacros.carbs_g / 10),
+      Math.round(mealMacros.fat_g / 5),
+      Math.round(dayKcal / 100),
+      training ?? "",
+      result?.dish ?? "",
+    ].join("|");
+    if (aiVerdict && aiVerdict.sig === sig) {
+      // Traffic-lights are authoritative from the on-device rules (identical to
+      // the server's); only the advice wording + source come from the AI.
+      return { ...verdict, advice: aiVerdict.v.advice, source: aiVerdict.v.source as "ai" | "rule" };
+    }
+    return { ...verdict, source: "rule" as const };
+  }, [verdict, aiVerdict, mealTotal, mealMacros, dayKcal, training, result]);
 
   async function pick(fromCamera: boolean) {
     setError(null);
@@ -1111,6 +1204,32 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               </View>
             </View>
 
+            {shownVerdict && shownVerdict.lines.length > 0 && (
+              <View style={[styles.verdictCard, { borderColor: verdictColor(shownVerdict.overall) }]}>
+                <View style={styles.verdictHead}>
+                  <View style={[styles.verdictDot, { backgroundColor: verdictColor(shownVerdict.overall) }]} />
+                  <Text style={styles.verdictTitle}>Should you eat this?</Text>
+                  {shownVerdict.source === "ai" && (
+                    <View style={styles.verdictAiBadge}>
+                      <Icon name="sparkles" size={10} color={colors.green} />
+                      <Text style={styles.verdictAiText}>AI</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.verdictHeadline, { color: verdictColor(shownVerdict.overall) }]}>
+                  {shownVerdict.headline}
+                </Text>
+                {shownVerdict.lines.map((ln, i) => (
+                  <View key={i} style={styles.verdictRow}>
+                    <View style={[styles.verdictBullet, { backgroundColor: verdictColor(ln.state) }]} />
+                    <Text style={styles.verdictLine}>{ln.text}</Text>
+                  </View>
+                ))}
+                <Text style={styles.verdictAdvice}>{shownVerdict.advice}</Text>
+                <Text style={styles.verdictFoot}>Guidance based on your day so far — not medical advice.</Text>
+              </View>
+            )}
+
             <PressableScale style={[styles.btn, styles.btnPrimary, styles.addBtn]} onPress={addToDay}>
               <Icon name="plus" size={18} color="#fff" />
               <Text style={styles.btnPrimaryText}>Add to today</Text>
@@ -1390,5 +1509,17 @@ const styles = StyleSheet.create({
   macroVal: { fontSize: 16, fontWeight: "800", color: colors.ink },
   macroKey: { fontSize: 11, color: colors.mute, marginTop: 2 },
   addBtn: { marginTop: 14 },
+  verdictCard: { marginTop: 14, borderWidth: 1.5, borderRadius: 14, padding: 14, backgroundColor: colors.bg },
+  verdictHead: { flexDirection: "row", alignItems: "center", gap: 7 },
+  verdictDot: { width: 9, height: 9, borderRadius: 5 },
+  verdictTitle: { fontSize: 13, fontWeight: "800", color: colors.ink },
+  verdictAiBadge: { flexDirection: "row", alignItems: "center", gap: 3, marginLeft: "auto", backgroundColor: colors.card, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
+  verdictAiText: { fontSize: 10, fontWeight: "800", color: colors.green },
+  verdictHeadline: { fontSize: 15, fontWeight: "800", marginTop: 6 },
+  verdictRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  verdictBullet: { width: 7, height: 7, borderRadius: 4 },
+  verdictLine: { flex: 1, fontSize: 12.5, color: colors.ink, lineHeight: 17 },
+  verdictAdvice: { fontSize: 13, fontWeight: "700", color: colors.ink, marginTop: 11, lineHeight: 18 },
+  verdictFoot: { fontSize: 10.5, color: colors.mute, marginTop: 8 },
   empty: { textAlign: "center", color: colors.mute, marginTop: 24, paddingHorizontal: 20, lineHeight: 20 },
 });

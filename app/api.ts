@@ -293,6 +293,57 @@ export async function recommendMeals(
   return { candidates, suggestion: data.suggestion ?? null };
 }
 
+// "Should I eat this?" — server-side verdict for a scanned meal vs. the day's
+// remaining budget + training context, with a grounded Gemini advice line. Like
+// recommendMeals this needs auth but consumes NO scan credit and never hits the
+// vision model. Never throws — returns null on any failure so the caller falls
+// back to the on-device deterministic verdict (app/mealVerdict.ts).
+export type ApiVerdictLine = { state: "green" | "yellow" | "red"; text: string };
+export type ApiVerdict = {
+  overall: "green" | "yellow" | "red";
+  headline: string;
+  lines: ApiVerdictLine[];
+  advice: string;
+  fitFraction: number | null;
+  source: "ai" | "rule";
+};
+
+export async function fetchMealVerdict(input: {
+  meal: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+  consumed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+  goal: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+  goalName?: string;
+  training?: string;
+  dish?: string;
+}): Promise<ApiVerdict | null> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/meals/verdict`, {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        meal: input.meal,
+        consumed: input.consumed,
+        goal: input.goal,
+        goal_name: input.goalName ?? "maintain",
+        training: input.training ?? "",
+        dish: input.dish ?? "",
+        phrase: true,
+      }),
+    });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  try {
+    const data = (await res.json()) as ApiVerdict;
+    if (!data || !Array.isArray(data.lines) || !data.overall) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 async function friendlyError(res: Response): Promise<string> {
   let detail = "";
   try {

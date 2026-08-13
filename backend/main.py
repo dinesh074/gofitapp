@@ -856,7 +856,253 @@ def foods_recommend(body: RecommendBody, request: Request):
     return out
 
 
-def anchor_items(data: dict) -> dict:
+# --------------------------------------------------------------------------- #
+#  "Should I eat this?" -- a pre-meal verdict (rules + grounded AI advice)
+# --------------------------------------------------------------------------- #
+# The authoritative traffic-light logic lives here (server-side) so the verdict
+# a user sees is consistent and can't be spoofed by the client, and so the AI
+# layer can be grounded in real, already-computed facts. The client also has an
+# identical deterministic engine (app/mealVerdict.ts) it shows instantly and as
+# an offline fallback; this endpoint upgrades the *advice* wording with Gemini.
+
+def _portion_phrase(frac: float) -> str:
+    if frac >= 0.7:
+        return "about three-quarters of it"
+    if frac >= 0.58:
+        return "about two-thirds of it"
+    if frac >= 0.42:
+        return "about half of it"
+    if frac >= 0.28:
+        return "about a third of it"
+    return "a small portion"
+
+
+_VERDICT_RANK = {"green": 0, "yellow": 1, "red": 2}
+
+
+def _verdict_rules(meal: dict, consumed: dict, goal: dict, training: str) -> dict:
+    """Deterministic verdict for a scanned meal vs. the day's remaining budget
+    and training context. Kept in lock-step with app/mealVerdict.ts."""
+    kcal_goal = goal.get("kcal", 0) or 0
+    if kcal_goal <= 0 or (meal.get("kcal", 0) or 0) <= 0:
+        return {
+            "overall": "green",
+            "headline": "Log it when you're ready",
+            "lines": [],
+            "advice": "Set a daily goal to see whether a meal fits your day.",
+            "fitFraction": None,
+        }
+
+    p_goal = goal.get("protein_g", 0) or 0
+    c_goal = goal.get("carbs_g", 0) or 0
+    f_goal = goal.get("fat_g", 0) or 0
+
+    rem_kcal = kcal_goal - consumed["kcal"]
+    after_kcal = consumed["kcal"] + meal["kcal"]
+    kcal_over = after_kcal - kcal_goal
+    rem_p = p_goal - consumed["protein_g"]
+    rem_c = c_goal - consumed["carbs_g"]
+    after_fat = consumed["fat_g"] + meal["fat_g"]
+    fat_over = after_fat - f_goal
+    after_carb = consumed["carbs_g"] + meal["carbs_g"]
+
+    lines = []
+
+    kcal_slack = max(120.0, kcal_goal * 0.06)
+    if kcal_over <= 0:
+        lines.append({"state": "green", "text": f"Fits your calories — {round(kcal_goal - after_kcal)} kcal still to spare"})
+    elif kcal_over <= kcal_slack:
+        lines.append({"state": "yellow", "text": f"Just over — about {round(kcal_over)} kcal past today's target"})
+    else:
+        lines.append({"state": "red", "text": f"Puts you ~{round(kcal_over)} kcal over today"})
+
+    if meal["protein_g"] >= 15:
+        lines.append({"state": "green", "text": f"Good protein — adds {round(meal['protein_g'])}g"})
+    elif rem_p >= 20 and meal["protein_g"] < 10:
+        lines.append({"state": "yellow", "text": f"Low protein — you still need ~{round(rem_p)}g today"})
+
+    fat_slack = max(15.0, f_goal * 0.15)
+    if f_goal > 0 and fat_over > fat_slack:
+        lines.append({"state": "red", "text": f"High fat — ~{round(fat_over)}g over your fat target"})
+    elif f_goal > 0 and consumed["fat_g"] >= f_goal * 0.8 and meal["fat_g"] >= 12:
+        lines.append({"state": "yellow", "text": "High fat — you're already near your fat target"})
+    elif f_goal > 0 and meal["fat_g"] >= f_goal * 0.6:
+        lines.append({"state": "yellow", "text": "On the oily side for one meal"})
+
+    if training == "endurance" and c_goal > 0 and rem_c >= c_goal * 0.35 and meal["carbs_g"] >= 25:
+        lines.append({"state": "green", "text": "Good carbs to fuel your endurance day"})
+    elif training == "performance" and (meal["fat_g"] >= 18 or meal["kcal"] >= rem_kcal * 0.9):
+        lines.append({"state": "yellow", "text": "Heavy for right before a performance"})
+    elif c_goal > 0 and after_carb > c_goal * 1.2:
+        lines.append({"state": "yellow", "text": "High carbs — over your carb target"})
+
+    overall = "green"
+    for ln in lines:
+        if _VERDICT_RANK[ln["state"]] > _VERDICT_RANK[overall]:
+            overall = ln["state"]
+
+    fit_fraction = 0.0 if rem_kcal <= 0 else min(1.0, rem_kcal / meal["kcal"])
+
+    if rem_kcal <= 0:
+        advice = "You're already at today's target. If you really want it, keep it to a few bites and balance it out tomorrow."
+    elif fit_fraction >= 0.95:
+        if training == "endurance" and c_goal > 0 and rem_c >= c_goal * 0.35:
+            advice = "You're low on carbs and training today — go for it."
+        elif overall == "green":
+            advice = "This fits your day — enjoy it."
+        else:
+            advice = "It fits your calories; just mind the note above."
+    else:
+        phrase = _portion_phrase(fit_fraction)
+        if overall == "red":
+            advice = f"It's a big one. If you want it, have {phrase} and save the rest for later."
+        else:
+            advice = f"Have {phrase} to stay on target, and keep the rest for later."
+        if training == "strength" and meal["protein_g"] >= 15:
+            advice += " The protein is great for recovery."
+
+    headline = (
+        "You can have this" if overall == "green"
+        else "Fits with a small tweak" if overall == "yellow"
+        else "Think twice on the portion"
+    )
+
+    return {"overall": overall, "headline": headline, "lines": lines, "advice": advice, "fitFraction": fit_fraction}
+
+
+# AI advice is cached like the recommend phrasing: coarse bucket + short TTL,
+# best-effort, never breaks the endpoint.
+_VERDICT_TTL = 600
+_VERDICT_CACHE_MAX = 512
+_verdict_cache: dict = {}
+_verdict_lock = threading.Lock()
+
+
+def _verdict_key(dish: str, training: str, overall: str, meal: dict, rem_kcal: float) -> tuple:
+    return (
+        (dish or "")[:40].lower(),
+        training or "",
+        overall,
+        int(round(meal["kcal"] / 50.0)),
+        int(round(meal["protein_g"] / 5.0)),
+        int(round(meal["fat_g"] / 5.0)),
+        int(round(rem_kcal / 100.0)),
+    )
+
+
+def _ai_verdict_advice(dish: str, meal: dict, consumed: dict, goal: dict, training: str, rules: dict) -> str:
+    """Warm, honest one-to-two sentence 'should you eat this' advice, GROUNDED in
+    the already-computed facts (traffic-light state + real numbers). Cached +
+    best-effort; falls back to the deterministic advice on any failure."""
+    rem_kcal = (goal.get("kcal", 0) or 0) - consumed["kcal"]
+    key = _verdict_key(dish, training, rules["overall"], meal, rem_kcal)
+    now = time.time()
+    with _verdict_lock:
+        hit = _verdict_cache.get(key)
+        if hit and (now - hit[0]) < _VERDICT_TTL:
+            return hit[1]
+
+    facts = "; ".join(ln["text"] for ln in rules["lines"]) or "fits the day"
+    frac = rules.get("fitFraction")
+    portion_hint = (
+        "the whole plate fits" if (frac is None or frac >= 0.95)
+        else f"only about {int(round(frac * 100))}% of it fits the remaining calories"
+    )
+    prompt = (
+        "You are a warm, honest Indian nutrition assistant helping someone decide, BEFORE they "
+        "eat, whether a dish fits their day. Base your reply ONLY on these facts (do not invent "
+        "numbers or new claims):\n"
+        f"Dish: {dish or 'this meal'}\n"
+        f"Overall verdict: {rules['overall']} ({rules['headline']})\n"
+        f"Facts: {facts}\n"
+        f"Portion fit: {portion_hint}\n"
+        f"Training context today: {training or 'none'}\n\n"
+        "Write ONE or TWO short, friendly sentences (max 35 words total) telling them whether to "
+        "eat it and, if it doesn't fully fit, a concrete portion tip (e.g. have about half). Be "
+        "encouraging, never shaming. No medical claims, no specific calorie/gram numbers in the "
+        'reply. Respond as JSON: {"advice": "<text>"}'
+    )
+    text = rules["advice"]
+    try:
+        resp = get_model().generate_content(prompt)
+        data = extract_json(resp.text)
+        out = (data.get("advice") or "").strip()
+        if not out:
+            raise ValueError("empty advice")
+        # Guard against numbers leaking in (we asked for none) and runaway length.
+        if len(out) > 240:
+            raise ValueError("advice too long")
+        text = out
+    except Exception as ex:
+        log.info("verdict: AI advice failed (%s) -- using deterministic text", ex)
+        text = rules["advice"]
+
+    with _verdict_lock:
+        if len(_verdict_cache) > _VERDICT_CACHE_MAX:
+            _verdict_cache.clear()
+        _verdict_cache[key] = (now, text)
+    return text
+
+
+class VerdictMacros(BaseModel):
+    kcal: float = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+
+
+class VerdictBody(BaseModel):
+    meal: VerdictMacros
+    consumed: VerdictMacros
+    goal: VerdictMacros
+    goal_name: str = "maintain"
+    training: str = ""
+    dish: str = ""
+    phrase: bool = True
+
+
+@app.post("/meals/verdict")
+def meals_verdict(body: VerdictBody, request: Request):
+    """"Should I eat this?" -- given a scanned meal, the day's totals so far and
+    the daily targets, return a traffic-light verdict (rules-based, authoritative)
+    plus a grounded Gemini one-liner of advice. Requires a signed-in account but
+    NEVER consumes a free-scan credit and never calls the vision model."""
+    auth.require_account(request)
+    meal = {
+        "kcal": max(0.0, body.meal.kcal),
+        "protein_g": max(0.0, body.meal.protein_g),
+        "carbs_g": max(0.0, body.meal.carbs_g),
+        "fat_g": max(0.0, body.meal.fat_g),
+    }
+    consumed = {
+        "kcal": max(0.0, body.consumed.kcal),
+        "protein_g": max(0.0, body.consumed.protein_g),
+        "carbs_g": max(0.0, body.consumed.carbs_g),
+        "fat_g": max(0.0, body.consumed.fat_g),
+    }
+    goal = {
+        "kcal": max(0.0, body.goal.kcal),
+        "protein_g": max(0.0, body.goal.protein_g),
+        "carbs_g": max(0.0, body.goal.carbs_g),
+        "fat_g": max(0.0, body.goal.fat_g),
+        "goal": (body.goal_name or "maintain").strip().lower(),
+    }
+    training = (body.training or "").strip().lower()
+    if training not in ("rest", "endurance", "strength", "performance"):
+        training = ""
+
+    rules = _verdict_rules(meal, consumed, goal, training)
+    source = "rule"
+    if body.phrase and rules["lines"]:
+        try:
+            advice = _ai_verdict_advice((body.dish or "").strip(), meal, consumed, goal, training, rules)
+            if advice and advice != rules["advice"]:
+                source = "ai"
+            rules["advice"] = advice
+        except Exception:
+            pass  # keep deterministic advice
+    rules["source"] = source
+    return rules
     """Override per-unit calories AND macros with DB values when matched, then
     compute per-item and meal-level totals.
 
