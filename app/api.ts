@@ -1,8 +1,9 @@
 import { Platform } from "react-native";
 import { API_BASE, API_KEY } from "./config";
 import { Account, getToken } from "./auth";
-import { Profile } from "./nutrition";
+import { Profile, Diet } from "./nutrition";
 import { Meal, LogMap, WeightEntry } from "./storage";
+import { dbSeedsForDiet, dbFoodToCandidate, Candidate } from "./mealSuggest";
 
 // Full vitamin/mineral panel, keyed by friendly name (e.g. "vitamin_c_mg",
 // "saturated_fat_mg") -- see backend/build_db_v2.py for the exact field list.
@@ -252,6 +253,39 @@ export async function searchFoods(q: string, limit = 20): Promise<FoodSuggestion
   }
   const data = (await res.json()) as { results: FoodSuggestion[] };
   return data.results;
+}
+
+// Pull a diet-appropriate pool of real foods from the DB to feed the "what to
+// eat next" suggester (real nutrition + variety beyond the built-in idea list).
+// Runs the seed searches in parallel, dedupes by name, and NEVER throws -- on
+// any failure (offline, signed out, server down) it returns whatever it got so
+// the caller can just fall back to the built-in ideas. Consumes no scan credit.
+export async function fetchMealCandidatePool(
+  diet: Diet,
+  perSeed = 4,
+): Promise<Candidate[]> {
+  const seeds = dbSeedsForDiet(diet);
+  const results = await Promise.all(
+    seeds.map(async (s) => {
+      try {
+        const hits = await searchFoods(s.q, perSeed);
+        return hits.map((h) => dbFoodToCandidate(h, s.contains));
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const seen = new Set<string>();
+  const pool: Candidate[] = [];
+  for (const group of results) {
+    for (const c of group) {
+      const key = c.name.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      pool.push(c);
+    }
+  }
+  return pool;
 }
 
 async function friendlyError(res: Response): Promise<string> {

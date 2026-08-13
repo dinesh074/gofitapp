@@ -68,7 +68,42 @@ export type MealSuggestion = {
   idea: string | null;
   rationale: string;
   kcal: number;
+  // Where the winning idea came from, so the UI can add a personal touch
+  // ("From your favourites") and we can tell real data apart from the fallback.
+  source?: MealSource;
+  detail?: string; // optional serving note for a single DB food, e.g. "1 katori"
 };
+
+// A single thing we could suggest eating next. Static ideas, the user's own
+// recent/favourite meals, and real food-DB rows are all normalised to this
+// shape so one scorer ranks them together.
+export type MealSource = "idea" | "recent" | "favorite" | "db";
+export type Candidate = {
+  name: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  slots: MealSlot[];
+  contains: Contains;
+  source: MealSource;
+  boost?: number; // personalization nudge (favourites/recency)
+  detail?: string;
+};
+
+const ALL_SLOTS: MealSlot[] = ["breakfast", "snack", "lunch", "dinner"];
+
+// Static ideas as candidates -- the always-available offline fallback pool.
+export const BASE_CANDIDATES: Candidate[] = IDEAS.map((i) => ({
+  name: i.name,
+  kcal: i.kcal,
+  protein: i.protein,
+  carbs: i.carbs,
+  fat: i.fat,
+  slots: i.slots,
+  contains: i.contains,
+  source: "idea",
+}));
 
 function slotForHour(hour: number): MealSlot {
   if (hour >= 5 && hour < 10) return "breakfast";
@@ -104,16 +139,27 @@ function macroFocus(kind: "protein" | "carbs" | "fat", remaining: number, goal: 
   return `Low ${kind}`;
 }
 
+// Is this candidate allowed for the user's diet? The user's own recent/favourite
+// meals are always allowed (they logged them); everything else is gated on its
+// `contains` tag.
+function allowedForDiet(diet: Diet, c: Candidate): boolean {
+  if (c.source === "recent" || c.source === "favorite") return true;
+  return dietAllows(diet, c.contains);
+}
+
 /**
- * Suggest the next meal from what's left in the daily budget.
- * `now` is injectable for testing; defaults to the current time.
+ * Core scorer: rank a candidate pool against what's left in the day's budget,
+ * the time of day, diet, goal and today's training context, and return the best
+ * suggestion. `suggestNextMeal` and the DB/recents-enriched path both funnel
+ * through here so ranking is always identical.
  */
-export function suggestNextMeal(
+export function computeSuggestion(
   consumed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number },
   goal: GoalTargets,
   profile: Pick<Profile, "diet" | "goal">,
-  now: Date = new Date(),
-  training: TrainingContext | null = null,
+  now: Date,
+  training: TrainingContext | null,
+  candidates: Candidate[],
 ): MealSuggestion {
   const bias: TrainingBias = biasFor(training);
   const remKcal = goal.kcal - consumed.kcal;
@@ -155,44 +201,143 @@ export function suggestNextMeal(
   // gap, gently penalise blowing past the remaining calorie or fat budget, and
   // nudge by goal (losing -> leaner picks, gaining -> heartier picks). Today's
   // training context layers on top: endurance rewards carbs, strength doubles
-  // down on protein, performance/rest keep it lighter (see training.ts).
+  // down on protein, performance/rest keep it lighter (see training.ts). A
+  // per-candidate `boost` lets the user's own favourites/recents float up.
   const proteinPriority = goal.protein_g > 0 && remP / goal.protein_g >= 0.3;
   const goalKcalBias = (g: Goal): number => (g === "lose" ? -0.15 : g === "gain" ? 0.1 : 0);
 
-  const scored = IDEAS.filter(
-    (i) => dietAllows(profile.diet, i.contains) && i.slots.includes(slot) && i.kcal <= remKcal * 1.2,
-  ).map((i) => {
-    const proteinFill = Math.min(i.protein, remP); // useful protein toward the gap
-    const carbFill = Math.min(i.carbs, remC); // useful carbs toward the gap
-    const kcalOver = Math.max(0, i.kcal - remKcal); // penalise overshoot
-    const fatOver = Math.max(0, i.fat - remF);
-    let score =
-      (proteinPriority ? 2.2 : 1.0) * bias.proteinBoost * proteinFill +
-      bias.carbBoost * 0.12 * carbFill -
-      0.06 * kcalOver -
-      (0.4 + bias.fatPenalty * 0.3) * fatOver +
-      (goalKcalBias(profile.goal) + bias.kcalBias) * (i.kcal / 100);
-    // Prefer ideas that roughly fit the calorie budget over tiny snacks when a
-    // real meal is due (breakfast/lunch/dinner).
-    if (slot !== "snack") score += Math.min(i.kcal, remKcal) * 0.02;
-    return { idea: i, score };
-  });
+  const scored = candidates
+    .filter((c) => allowedForDiet(profile.diet, c) && c.slots.includes(slot) && c.kcal <= remKcal * 1.2)
+    .map((c) => {
+      const proteinFill = Math.min(c.protein, remP); // useful protein toward the gap
+      const carbFill = Math.min(c.carbs, remC); // useful carbs toward the gap
+      const kcalOver = Math.max(0, c.kcal - remKcal); // penalise overshoot
+      const fatOver = Math.max(0, c.fat - remF);
+      let score =
+        (proteinPriority ? 2.2 : 1.0) * bias.proteinBoost * proteinFill +
+        bias.carbBoost * 0.12 * carbFill -
+        0.06 * kcalOver -
+        (0.4 + bias.fatPenalty * 0.3) * fatOver +
+        (goalKcalBias(profile.goal) + bias.kcalBias) * (c.kcal / 100) +
+        (c.boost ?? 0);
+      // Prefer ideas that roughly fit the calorie budget over tiny snacks when a
+      // real meal is due (breakfast/lunch/dinner).
+      if (slot !== "snack") score += Math.min(c.kcal, remKcal) * 0.02;
+      return { c, score };
+    });
 
   scored.sort((a, b) => b.score - a.score);
-  const best = scored[0]?.idea ?? null;
+  const best = scored[0]?.c ?? null;
 
   const gapBits: string[] = [];
   if (remP >= 15) gapBits.push(`~${Math.round(remP)}g protein`);
   if (remKcal >= 150) gapBits.push(`${Math.round(remKcal)} kcal`);
-  const rationale = gapBits.length
+  const gapLine = gapBits.length
     ? `You have ${gapBits.join(" and ")} left${proteinPriority ? " — protein first" : ""}.`
     : `You have ${Math.round(remKcal)} kcal left today.`;
+  // Add a personal note when the winner is the user's own meal or a real DB food.
+  const sourceNote =
+    best?.source === "favorite"
+      ? " From your favourites."
+      : best?.source === "recent"
+        ? " One of your recent meals."
+        : best?.source === "db"
+          ? " Real nutrition from our food database."
+          : "";
 
   return {
     headline: "Your next meal",
     focus: focus.length ? focus : ["Balanced"],
     idea: best ? best.name : "A balanced plate — dal, a roti and some sabzi",
-    rationale,
+    rationale: gapLine + sourceNote,
     kcal: best ? best.kcal : 0,
+    source: best?.source,
+    detail: best?.detail,
+  };
+}
+
+/**
+ * Suggest the next meal from what's left in the daily budget, using only the
+ * built-in idea list. Synchronous + offline -- the default first-render path and
+ * the fallback when the food DB is unreachable. `now` is injectable for tests.
+ */
+export function suggestNextMeal(
+  consumed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number },
+  goal: GoalTargets,
+  profile: Pick<Profile, "diet" | "goal">,
+  now: Date = new Date(),
+  training: TrainingContext | null = null,
+): MealSuggestion {
+  return computeSuggestion(consumed, goal, profile, now, training, BASE_CANDIDATES);
+}
+
+// --- Building a richer candidate pool ------------------------------------- //
+
+// The user's own saved meals become candidates so suggestions feel personal.
+// Favourites get a strong boost and recents a recency-scaled one; both are
+// diet-safe by construction (the user logged them). `now` scales recency.
+export function recentsToCandidates(
+  recents: { dish: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number; fav: boolean; at: number }[],
+  now = Date.now(),
+): Candidate[] {
+  const DAY = 86400000;
+  return recents.map((r) => {
+    const ageDays = Math.max(0, (now - r.at) / DAY);
+    // recency: full boost today, decaying to ~0 after ~21 days.
+    const recency = Math.max(0, 1 - ageDays / 21);
+    const boost = r.fav ? 22 + 6 * recency : 8 * recency;
+    return {
+      name: r.dish,
+      kcal: Math.round(r.kcal),
+      protein: Math.round(r.protein_g),
+      carbs: Math.round(r.carbs_g),
+      fat: Math.round(r.fat_g),
+      slots: ALL_SLOTS,
+      contains: "veg" as Contains, // ignored -- recents bypass the diet gate
+      source: r.fav ? "favorite" : "recent",
+      boost,
+    };
+  });
+}
+
+// Diet-appropriate seed searches for pulling real foods out of the food DB.
+// We choose the seeds per diet so a vegetarian user is only ever seeded with
+// vegetarian foods (the DB rows don't expose a veg flag to the client), giving
+// real nutrition + variety without ever suggesting off-diet food.
+const DB_SEEDS: { q: string; contains: Contains }[] = [
+  { q: "dal", contains: "veg" },
+  { q: "paneer", contains: "veg" },
+  { q: "curd", contains: "veg" },
+  { q: "rajma", contains: "veg" },
+  { q: "chana", contains: "veg" },
+  { q: "roti", contains: "veg" },
+  { q: "idli", contains: "veg" },
+  { q: "poha", contains: "veg" },
+  { q: "sprouts", contains: "veg" },
+  { q: "tofu", contains: "veg" },
+  { q: "egg", contains: "egg" },
+  { q: "chicken", contains: "nonveg" },
+  { q: "fish", contains: "nonveg" },
+];
+
+export function dbSeedsForDiet(diet: Diet): { q: string; contains: Contains }[] {
+  return DB_SEEDS.filter((s) => dietAllows(diet, s.contains));
+}
+
+// Map a food-DB search hit (per-unit macros) into a single-serving candidate.
+export function dbFoodToCandidate(
+  f: { name: string; unit: string; kcal_per_unit: number; protein_g_per_unit: number; carbs_g_per_unit: number; fat_g_per_unit: number },
+  contains: Contains,
+): Candidate {
+  return {
+    name: f.name,
+    kcal: Math.round(f.kcal_per_unit),
+    protein: Math.round(f.protein_g_per_unit),
+    carbs: Math.round(f.carbs_g_per_unit),
+    fat: Math.round(f.fat_g_per_unit),
+    slots: ALL_SLOTS,
+    contains,
+    source: "db",
+    detail: `1 ${f.unit}`,
   };
 }

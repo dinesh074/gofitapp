@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, fetchMealCandidatePool } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -42,7 +42,7 @@ import { colors, radius, shadow, type as T, gradients, elevation } from "./theme
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "./Icon";
 import CalorieRing from "./CalorieRing";
-import { suggestNextMeal } from "./mealSuggest";
+import { computeSuggestion, recentsToCandidates, BASE_CANDIDATES, Candidate } from "./mealSuggest";
 import {
   loadPortionMemory,
   rememberPortions,
@@ -180,6 +180,11 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Today's training context (long run / lifting / rest / performance). Drives a
   // fuelling tip + biases the "what to eat next" ideas. Per account + per date.
   const [training, setTraining] = useState<TrainingContext | null>(null);
+  // Real foods pulled from the DB (diet-appropriate) to enrich next-meal ideas
+  // beyond the built-in list. Fetched once per diet per session; empty until it
+  // resolves (the suggester falls back to built-in ideas meanwhile).
+  const [dbPool, setDbPool] = useState<Candidate[]>([]);
+  const dbPoolDiet = useRef<string | null>(null);
   const [recents, setRecents] = useState<SavedMeal[]>([]);
   // Tracks the last scanTrigger value we've already handled, so a fresh
   // mount (which sees whatever value App.tsx is currently holding) doesn't
@@ -225,6 +230,27 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       alive = false;
     };
   }, [account?.id]);
+
+  // Fetch a diet-appropriate pool of real foods for next-meal ideas. Only when
+  // signed in (the endpoint needs auth) and only once per diet per session --
+  // cached in a ref so changing macros doesn't refetch. Never throws.
+  useEffect(() => {
+    if (!account) return;
+    if (dbPoolDiet.current === profile.diet) return;
+    let alive = true;
+    dbPoolDiet.current = profile.diet;
+    fetchMealCandidatePool(profile.diet)
+      .then((pool) => {
+        if (alive) setDbPool(pool);
+      })
+      .catch(() => {
+        // best-effort enrichment -- fall back to built-in ideas + recents
+        if (alive) setDbPool([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [account?.id, profile.diet]);
 
   const isPro = !!account?.isPro;
   const scansLeft = account?.scansLeft ?? account?.scansLimit ?? null;
@@ -624,19 +650,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   }
 
   // "What to eat next" -- deterministic, recomputed as the day's totals change.
-  // Recomputes on each render's day totals; the Date() inside keys off wall time
-  // which is fine (it only reads the hour to pick a meal slot). Today's training
-  // context biases which idea wins (carbs before endurance, protein for lifting).
-  const nextMeal = useMemo(
-    () => suggestNextMeal(
+  // The candidate pool blends the built-in ideas, the user's own recent/favourite
+  // meals (boosted so it feels personal), and real diet-appropriate foods from
+  // the DB (accurate nutrition + variety). Today's training context biases which
+  // one wins (carbs before endurance, protein for lifting).
+  const nextMeal = useMemo(() => {
+    const candidates: Candidate[] = [
+      ...BASE_CANDIDATES,
+      ...recentsToCandidates(recents),
+      ...dbPool,
+    ];
+    return computeSuggestion(
       { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
       goal,
       profile,
       new Date(),
       training,
-    ),
-    [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal, training],
-  );
+      candidates,
+    );
+  }, [dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, goal, profile.diet, profile.goal, training, recents, dbPool]);
 
   // Fuelling tip for today's training context (null when none selected).
   const trainTip = useMemo(
@@ -747,6 +779,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             <Text style={styles.nextIdea}>
               <Text style={styles.nextIdeaLabel}>Try: </Text>
               {nextMeal.idea}
+              {nextMeal.detail ? <Text style={styles.nextIdeaKcal}>{`  (${nextMeal.detail})`}</Text> : null}
               {nextMeal.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${nextMeal.kcal} kcal`}</Text> : null}
             </Text>
           )}
