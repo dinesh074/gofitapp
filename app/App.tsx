@@ -1,15 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NavigationContainer } from "@react-navigation/native";
 import Onboarding from "./Onboarding";
 import Settings from "./Settings";
-import HomeScreen from "./HomeScreen";
-import ProgressScreen from "./ProgressScreen";
-import CommunityScreen from "./CommunityScreen";
-import ProfileScreen from "./ProfileScreen";
+import { RootNavigator } from "./RootTabs";
+import { AppProvider } from "./AppContext";
 import AuthGate from "./AuthGate";
 import CookieBanner from "./CookieBanner";
-import TabBar, { TabKey } from "./TabBar";
 import { computeGoal, isCompleteProfile, Profile } from "./nutrition";
 import { colors } from "./theme";
 import {
@@ -25,6 +24,7 @@ import {
   putProfile,
   getServerLogs,
   addServerLog,
+  getServerStreak,
   AuthRequiredError,
 } from "./api";
 import { initNotifications } from "./push";
@@ -35,21 +35,30 @@ import {
   clearLogs,
   clearProfile,
   computeStreak,
+  inferMealType,
   loadCacheOwner,
   loadLogs,
   loadProfile,
   LogMap,
+  Meal,
+  recordRecentMeal,
   saveCacheOwner,
   saveLogs,
   saveProfile,
+  todayKey,
 } from "./storage";
 
-export default function App() {
+function AppInner() {
   const [logs, setLogs] = useState<LogMap>({});
   const [profile, setProfile] = useState<Profile | null>(null);
   const [booted, setBooted] = useState(false);
-  const [tab, setTab] = useState<TabKey>("home");
   const [showSettings, setShowSettings] = useState(false);
+  // Server-computed streak (current + best), from a durable log_days table
+  // that survives reinstalls and the 30-day log-retention purge -- see
+  // backend/progress.py's compute_streaks(). Null until the fetch resolves;
+  // the local computeStreak(logs)/bestStreak(logs) fallback covers that gap
+  // and any offline/error case, matching the water/habits pattern elsewhere.
+  const [serverStreak, setServerStreak] = useState<{ current: number; best: number } | null>(null);
   // Bumped every time the TabBar's center camera button is tapped -- lets
   // HomeScreen (which owns the actual scan flow) open the camera immediately
   // even when you're on a different tab, instead of just switching tabs and
@@ -155,6 +164,13 @@ export default function App() {
       if (e instanceof AuthRequiredError) void requireAuth();
     }
 
+    try {
+      const streak = await getServerStreak();
+      setServerStreak(streak);
+    } catch {
+      // Offline/error: local computeStreak/bestStreak fallback covers this.
+    }
+
     // The local cache now reflects THIS account (hydrated from its server rows,
     // or confirmed as its own local data). Stamp ownership so the next sync /
     // account switch can tell whose data this is.
@@ -162,7 +178,12 @@ export default function App() {
   }
 
   const goal = useMemo(() => (profile ? computeGoal(profile) : null), [profile]);
-  const streak = useMemo(() => computeStreak(logs), [logs]);
+  // Prefer the server-computed streak (durable, cross-device, not capped by
+  // the 30-day log-retention window) once it's arrived; fall back to the
+  // local computeStreak(logs) so the UI isn't blank before that fetch resolves.
+  const localStreak = useMemo(() => computeStreak(logs), [logs]);
+  const streak = serverStreak ? serverStreak.current : localStreak;
+  const bestStreakValue = serverStreak ? serverStreak.best : null;
 
   function completeOnboarding(p: Profile) {
     setProfile(p);
@@ -186,10 +207,10 @@ export default function App() {
   async function resetAll() {
     await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearAuth(), clearCacheOwner()]);
     setLogs({});
+    setServerStreak(null);
     setProfile(null);
     setAuth(null);
     setShowSettings(false);
-    setTab("home");
   }
 
   async function onAuthed(state: AuthState) {
@@ -204,6 +225,7 @@ export default function App() {
     await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearCacheOwner()]);
     setProfile(null);
     setLogs({});
+    setServerStreak(null);
     setAuth(state);
     saveAuth(state);
     // Register for push + schedule local reminders right after sign-in.
@@ -241,8 +263,8 @@ export default function App() {
     setAuth(null);
     setProfile(null);
     setLogs({});
+    setServerStreak(null);
     setShowSettings(false);
-    setTab("home");
   }
 
   // Called when the backend rejects an authenticated request with 401 -- the
@@ -254,6 +276,48 @@ export default function App() {
   async function requireAuth() {
     await clearAuth();
     setAuth(null);
+  }
+
+  function triggerScan() {
+    setScanTrigger((n) => n + 1);
+  }
+
+  // Shared meal logger so screens beyond Home (e.g. the Food Selector) can add
+  // to today's log. Mirrors HomeScreen.logMeal: optimistic local update + cache,
+  // record as a recent, then persist to the server meal_logs table and stamp the
+  // returned id back onto the local copy.
+  function logMeal(meal: Meal) {
+    const today = todayKey();
+    // Auto-tag which eating occasion this is (breakfast/lunch/snack/dinner)
+    // from local clock time if the caller didn't already set one -- every
+    // screen that logs a meal (Home, FoodSelector, Scan) goes through here or
+    // HomeScreen's own mirrored copy, so this is the one place that has to
+    // guarantee mealType is always populated for the calendar/day view.
+    const tagged: Meal = { ...meal, mealType: meal.mealType ?? inferMealType(meal.at) };
+    setLogs((prev) => {
+      const day = prev[today] ?? { date: today, meals: [] };
+      const next: LogMap = { ...prev, [today]: { ...day, meals: [...day.meals, tagged] } };
+      saveLogs(next);
+      return next;
+    });
+    void recordRecentMeal(tagged);
+    addServerLog(today, tagged)
+      .then(({ id }) => {
+        setLogs((prev) => {
+          const day = prev[today];
+          if (!day) return prev;
+          const meals = day.meals.map((m) => (m.at === tagged.at ? { ...m, id } : m));
+          const next: LogMap = { ...prev, [today]: { ...day, meals } };
+          saveLogs(next);
+          return next;
+        });
+        // The streak may have just changed (e.g. today's first meal extends
+        // it) -- refresh from the server rather than waiting for next boot.
+        getServerStreak().then(setServerStreak).catch(() => {});
+      })
+      .catch((e) => {
+        if (e instanceof AuthRequiredError) void requireAuth();
+      });
   }
 
   function onWeightLogged(kg: number) {
@@ -329,70 +393,43 @@ export default function App() {
   }
 
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
-      <View style={styles.content}>
-        {tab === "home" && (
-          <HomeScreen
-            profile={profile}
-            goal={goal}
-            logs={logs}
-            setLogs={setLogs}
-            streak={streak}
-            account={auth.account}
-            onRequireAuth={requireAuth}
-            onAccountUpdate={updateAccount}
-            scanTrigger={scanTrigger}
-            onWeightLogged={onWeightLogged}
-          />
-        )}
-        {tab === "progress" && (
-          <ProgressScreen
-            profile={profile}
-            goal={goal}
-            logs={logs}
-            setLogs={setLogs}
-            onWeightLogged={onWeightLogged}
-            onRequireAuth={requireAuth}
-            accountId={auth.account.id}
-          />
-        )}
-        {tab === "community" && (
-          <CommunityScreen
-            profile={profile}
-            logs={logs}
-            account={auth.account}
-            onRequireAuth={requireAuth}
-          />
-        )}
-        {tab === "profile" && (
-          <ProfileScreen
-            profile={profile}
-            goal={goal}
-            logs={logs}
-            account={auth.account}
-            onEditProfile={() => setShowSettings(true)}
-            onSignIn={requireAuth}
-            onSignOut={signOut}
-            onRequireAuth={requireAuth}
-          />
-        )}
-      </View>
-      <TabBar
-        active={tab}
-        onChange={setTab}
-        onScanPress={() => {
-          setTab("home");
-          setScanTrigger((n) => n + 1);
-        }}
-      />
-      <CookieBanner />
-    </View>
+    <AppProvider
+      value={{
+        profile,
+        goal,
+        logs,
+        setLogs,
+        streak,
+        bestStreak: bestStreakValue,
+        account: auth.account,
+        scanTrigger,
+        triggerScan,
+        requireAuth,
+        updateAccount,
+        onWeightLogged,
+        signOut,
+        openSettings: () => setShowSettings(true),
+        logMeal,
+      }}
+    >
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <RootNavigator />
+        <CookieBanner />
+      </NavigationContainer>
+    </AppProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppInner />
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   center: { alignItems: "center", justifyContent: "center" },
-  content: { flex: 1 },
 });

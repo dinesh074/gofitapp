@@ -1,0 +1,932 @@
+{
+  "_note": "Curated Indian meal COMBINATIONS (accompaniment pairings). Indian dishes are rarely eaten alone -- idli comes with sambar + chutney, chole with bhature/puri, dal with rice/roti. This file powers GET /foods/combos, which the app uses to offer 'Goes well with' one-tap add-ons so a user completes the plate (and its calories) instead of logging a lone naan. Each side's 'key' MUST be a real key in indian_food_db.json / the foods table -- the backend silently skips any side it can't resolve, so unknown keys are safe but do nothing. 'count' is the default serving in that food's own unit; the user still adjusts with the +/- stepper. This is editorial pairing knowledge, NOT nutrition data -- calories/macros always come from the food DB row.",
+  "_schema_version": 1,
+  "combos": {
+    "idli": {
+      "display": "Idli",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "The classic South Indian pairing"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "Served alongside idli/dosa"
+        }
+      ]
+    },
+    "plain_dosa": {
+      "display": "Dosa",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Standard dosa accompaniment"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "Served with every dosa"
+        }
+      ]
+    },
+    "masala_dosa": {
+      "display": "Masala Dosa",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Standard dosa accompaniment"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "Served with every dosa"
+        }
+      ]
+    },
+    "vada": {
+      "display": "Vada",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Makes it sambar vada"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The usual dip"
+        }
+      ]
+    },
+    "uttapam": {
+      "display": "Uttapam",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Served alongside"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "Served alongside"
+        }
+      ]
+    },
+    "upma": {
+      "display": "Upma",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "poha": {
+      "display": "Poha",
+      "sides": [
+        {
+          "key": "sev",
+          "count": 1,
+          "reason": "Sprinkled on top"
+        },
+        {
+          "key": "peanut_chutney",
+          "count": 1,
+          "reason": "Common side"
+        }
+      ]
+    },
+    "chole": {
+      "display": "Chole",
+      "sides": [
+        {
+          "key": "puri",
+          "count": 2,
+          "reason": "Chole with puri/bhature"
+        },
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Cooling side"
+        }
+      ]
+    },
+    "rajma": {
+      "display": "Rajma",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Rajma-chawal is the classic combo"
+        },
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Common accompaniment"
+        }
+      ]
+    },
+    "dal": {
+      "display": "Dal",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Dal-chawal staple"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Eaten with roti too"
+        }
+      ]
+    },
+    "dal_makhani": {
+      "display": "Dal Makhani",
+      "sides": [
+        {
+          "key": "naan",
+          "count": 2,
+          "reason": "Dal makhani with naan"
+        },
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Also eaten with rice"
+        }
+      ]
+    },
+    "naan": {
+      "display": "Naan",
+      "sides": [
+        {
+          "key": "dal_makhani",
+          "count": 1,
+          "reason": "Bread needs a gravy"
+        },
+        {
+          "key": "kadhai_paneer",
+          "count": 1,
+          "reason": "Popular pairing"
+        }
+      ]
+    },
+    "roti": {
+      "display": "Roti",
+      "sides": [
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Roti needs a dal/sabzi"
+        },
+        {
+          "key": "mixed_sabzi",
+          "count": 1,
+          "reason": "The everyday combo"
+        },
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Common accompaniment"
+        }
+      ]
+    },
+    "chapati_roti": {
+      "display": "Chapati",
+      "sides": [
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Chapati needs a dal/sabzi"
+        },
+        {
+          "key": "mixed_sabzi",
+          "count": 1,
+          "reason": "The everyday combo"
+        }
+      ]
+    },
+    "paratha": {
+      "display": "Paratha",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Paratha with curd"
+        },
+        {
+          "key": "small_onion_pickle",
+          "count": 1,
+          "reason": "Achar on the side"
+        }
+      ]
+    },
+    "paneer_curry": {
+      "display": "Paneer",
+      "sides": [
+        {
+          "key": "naan",
+          "count": 2,
+          "reason": "Paneer gravy with naan"
+        },
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Also eaten with rice"
+        }
+      ]
+    },
+    "kadhai_paneer": {
+      "display": "Kadhai Paneer",
+      "sides": [
+        {
+          "key": "naan",
+          "count": 2,
+          "reason": "Paneer gravy with naan"
+        },
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Also eaten with rice"
+        }
+      ]
+    },
+    "biryani": {
+      "display": "Biryani",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Biryani is served with raita"
+        },
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Cooling side"
+        }
+      ]
+    },
+    "mixed_vegetable_pulao": {
+      "display": "Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao with raita"
+        },
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Rounds out the meal"
+        }
+      ]
+    },
+    "samosa": {
+      "display": "Samosa",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Mint chutney to dip"
+        },
+        {
+          "key": "dates_chutney",
+          "count": 1,
+          "reason": "Sweet tamarind chutney"
+        }
+      ]
+    },
+    "dhokla": {
+      "display": "Dhokla",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Served with green chutney"
+        }
+      ]
+    },
+    "puri": {
+      "display": "Puri",
+      "sides": [
+        {
+          "key": "chole",
+          "count": 1,
+          "reason": "Puri with chole/aloo"
+        },
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Common side"
+        }
+      ]
+    },
+    "curd_rice": {
+      "display": "Curd Rice",
+      "sides": [
+        {
+          "key": "small_onion_pickle",
+          "count": 1,
+          "reason": "Pickle completes it"
+        }
+      ]
+    },
+    "rasam_with_tamarind": {
+      "display": "Rasam",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Rasam-rice pairing"
+        }
+      ]
+    },
+    "khichdi": {
+      "display": "Khichdi",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Khichdi with curd"
+        },
+        {
+          "key": "small_onion_pickle",
+          "count": 1,
+          "reason": "Papad/achar on the side"
+        }
+      ]
+    },
+    "cooked_rice": {
+      "display": "Rice",
+      "sides": [
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Dal-chawal is the everyday combo"
+        },
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "South Indian rice is usually eaten with sambar"
+        }
+      ]
+    },
+    "boiled_rice": {
+      "display": "Rice",
+      "sides": [
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Dal-chawal is the everyday combo"
+        }
+      ]
+    },
+    "lemon_rice": {
+      "display": "Lemon Rice",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Cooling side for a tangy rice dish"
+        }
+      ]
+    },
+    "tamarind_rice": {
+      "display": "Tamarind Rice (Puliyodarai)",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Common temple-style pairing"
+        }
+      ]
+    },
+    "cumin_pulao": {
+      "display": "Jeera Rice",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Cuts the richness of a ghee-tempered rice"
+        },
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Rounds out the meal"
+        }
+      ]
+    },
+    "chicken_curry": {
+      "display": "Chicken Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Curry needs rice or roti"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Also common with roti"
+        }
+      ]
+    },
+    "egg_curry": {
+      "display": "Egg Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Curry needs rice or roti"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Also common with roti"
+        }
+      ]
+    },
+    "fish_curry": {
+      "display": "Fish Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "The classic pairing for a fish curry"
+        }
+      ]
+    },
+    "bengal_fish_curry": {
+      "display": "Bengali Fish Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Machher jhol is always eaten with rice"
+        }
+      ]
+    },
+    "prawn_curry": {
+      "display": "Prawn Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Served over rice"
+        }
+      ]
+    },
+    "indian_lamb_and_egg_curry": {
+      "display": "Lamb & Egg Curry",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Curry needs rice or roti"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Also common with roti"
+        }
+      ]
+    },
+    "chicken_pulao": {
+      "display": "Chicken Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        }
+      ]
+    },
+    "mutton_pulao": {
+      "display": "Mutton Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        }
+      ]
+    },
+    "plain_pulao": {
+      "display": "Vegetable Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        },
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Rounds out the meal"
+        }
+      ]
+    },
+    "peas_pulao": {
+      "display": "Peas Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        }
+      ]
+    },
+    "mushroom_pulao": {
+      "display": "Mushroom Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        }
+      ]
+    },
+    "navratan_pulao": {
+      "display": "Navratan Pulao",
+      "sides": [
+        {
+          "key": "onion_raita",
+          "count": 1,
+          "reason": "Pulao is served with raita"
+        }
+      ]
+    },
+    "khasta_kachori": {
+      "display": "Kachori",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Mint chutney to dip"
+        },
+        {
+          "key": "dates_chutney",
+          "count": 1,
+          "reason": "Sweet tamarind-dates chutney"
+        }
+      ]
+    },
+    "peas_kachori": {
+      "display": "Peas Kachori",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Mint chutney to dip"
+        }
+      ]
+    },
+    "masala_urad_dal_vada": {
+      "display": "Medu Vada",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Makes it sambar vada"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 1,
+          "reason": "The usual dip"
+        }
+      ]
+    },
+    "plain_urad_dal_vada": {
+      "display": "Urad Dal Vada",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Makes it sambar vada"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 1,
+          "reason": "The usual dip"
+        }
+      ]
+    },
+    "dahi_vadas_dahi_bhalla": {
+      "display": "Dahi Vada",
+      "sides": [
+        {
+          "key": "dates_chutney",
+          "count": 1,
+          "reason": "Sweet chutney drizzle"
+        },
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Mint chutney drizzle"
+        }
+      ]
+    },
+    "onion_tomato_uttapam": {
+      "display": "Onion Tomato Uttapam",
+      "sides": [
+        {
+          "key": "sambar",
+          "count": 1,
+          "reason": "Served alongside"
+        },
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "Served alongside"
+        }
+      ]
+    },
+    "rice_upma": {
+      "display": "Rice Upma",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "semolina_upma": {
+      "display": "Rava Upma",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "vegetable_upma": {
+      "display": "Vegetable Upma",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "sprouts_upma": {
+      "display": "Sprouts Upma",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "vermicelli_upma": {
+      "display": "Vermicelli Upma (Semiya)",
+      "sides": [
+        {
+          "key": "coconut_chutney",
+          "count": 2,
+          "reason": "The common pairing"
+        }
+      ]
+    },
+    "vegetable_poha": {
+      "display": "Vegetable Poha",
+      "sides": [
+        {
+          "key": "sev",
+          "count": 1,
+          "reason": "Sprinkled on top"
+        },
+        {
+          "key": "peanut_chutney",
+          "count": 1,
+          "reason": "Common side"
+        }
+      ]
+    },
+    "sprouted_moong_poha": {
+      "display": "Sprouted Moong Poha",
+      "sides": [
+        {
+          "key": "peanut_chutney",
+          "count": 1,
+          "reason": "Common side"
+        }
+      ]
+    },
+    "appam": {
+      "display": "Appam",
+      "sides": [
+        {
+          "key": "egg_curry",
+          "count": 1,
+          "reason": "Classic Kerala pairing"
+        }
+      ]
+    },
+    "rice_puttu": {
+      "display": "Puttu",
+      "sides": [
+        {
+          "key": "egg_curry",
+          "count": 1,
+          "reason": "Puttu with egg or kadala curry"
+        }
+      ]
+    },
+    "paneer_parantha_paratha": {
+      "display": "Paneer Paratha",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Paratha with curd"
+        }
+      ]
+    },
+    "methi_parantha_paratha": {
+      "display": "Methi Paratha",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Paratha with curd"
+        }
+      ]
+    },
+    "dal_parantha_paratha": {
+      "display": "Dal Paratha",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Paratha with curd"
+        }
+      ]
+    },
+    "cauliflower_parantha_paratha": {
+      "display": "Gobi Paratha",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Paratha with curd"
+        },
+        {
+          "key": "small_onion_pickle",
+          "count": 1,
+          "reason": "Achar on the side"
+        }
+      ]
+    },
+    "methi_thepla": {
+      "display": "Methi Thepla",
+      "sides": [
+        {
+          "key": "curd",
+          "count": 1,
+          "reason": "Thepla with curd"
+        },
+        {
+          "key": "small_onion_pickle",
+          "count": 1,
+          "reason": "Gujarati-style achar side"
+        }
+      ]
+    },
+    "gram_flour_and_semolina_dhokla": {
+      "display": "Khaman Dhokla",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Served with green chutney"
+        }
+      ]
+    },
+    "semolina_dhokla": {
+      "display": "Rava Dhokla",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Served with green chutney"
+        }
+      ]
+    },
+    "instant_dhokla": {
+      "display": "Dhokla",
+      "sides": [
+        {
+          "key": "green_chutney",
+          "count": 1,
+          "reason": "Served with green chutney"
+        }
+      ]
+    },
+    "mixed_sabzi": {
+      "display": "Mixed Sabzi",
+      "sides": [
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Sabzi needs a roti or rice"
+        },
+        {
+          "key": "dal",
+          "count": 1,
+          "reason": "Rounds out the meal"
+        }
+      ]
+    },
+    "washed_moong_dal": {
+      "display": "Moong Dal",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Dal-chawal staple"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Eaten with roti too"
+        }
+      ]
+    },
+    "washed_urad_dal": {
+      "display": "Urad Dal",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Dal-chawal staple"
+        },
+        {
+          "key": "roti",
+          "count": 2,
+          "reason": "Eaten with roti too"
+        }
+      ]
+    },
+    "rasam_with_lemon": {
+      "display": "Lemon Rasam",
+      "sides": [
+        {
+          "key": "cooked_rice",
+          "count": 1,
+          "reason": "Rasam-rice pairing"
+        }
+      ]
+    }
+  },
+  "aliases": {
+    "idly": "idli",
+    "dosa": "plain_dosa",
+    "medu vada": "masala_urad_dal_vada",
+    "chapati": "chapati_roti",
+    "phulka": "roti",
+    "parantha": "paratha",
+    "paneer": "paneer_curry",
+    "kachori": "samosa",
+    "pulao": "mixed_vegetable_pulao",
+    "pulav": "mixed_vegetable_pulao",
+    "rasam": "rasam_with_tamarind",
+    "khichri": "khichdi",
+    "khichadi": "khichdi",
+    "jeera rice": "cumin_pulao",
+    "cumin rice": "cumin_pulao",
+    "plain rice": "cooked_rice",
+    "steamed rice": "cooked_rice",
+    "white rice": "cooked_rice",
+    "rice": "cooked_rice",
+    "puliyodarai": "tamarind_rice",
+    "tamarind rice": "tamarind_rice",
+    "veg pulao": "plain_pulao",
+    "vegetable pulao": "plain_pulao",
+    "urad dal vada": "plain_urad_dal_vada",
+    "dahi bhalla": "dahi_vadas_dahi_bhalla",
+    "dahi bhalle": "dahi_vadas_dahi_bhalla",
+    "khaman": "gram_flour_and_semolina_dhokla",
+    "khaman dhokla": "gram_flour_and_semolina_dhokla",
+    "rava dhokla": "semolina_dhokla",
+    "gobi paratha": "cauliflower_parantha_paratha",
+    "aloo paratha": "paratha",
+    "paneer paratha": "paneer_parantha_paratha",
+    "methi paratha": "methi_parantha_paratha",
+    "puttu": "rice_puttu",
+    "semiya upma": "vermicelli_upma",
+    "vermicelli upma": "vermicelli_upma",
+    "rava upma": "semolina_upma",
+    "onion uttapam": "onion_tomato_uttapam",
+    "tomato uttapam": "onion_tomato_uttapam"
+  }
+}

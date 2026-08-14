@@ -28,20 +28,36 @@ Endpoints (all Bearer-authenticated):
                              _refresh_daily_summary() on every log add/delete
   GET  /scans/history    -> every /analyze attempt (scan_history), including
                              ones that failed or were never logged
+  GET  /streak           -> {current, best} durable streak (see log_days)
+  GET  /log-days?days=N  -> {days: ["YYYY-MM-DD", ...]} durable logged-date
+                             list (N<=0 = all-time), never truncated by the
+                             30-day meal-detail retention -- powers the
+                             Progress tab's consistency score + heatmap
+                             beyond the 30-day meal_logs window
 """
+import json
 import time
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 import db
 import auth
+import blob_storage
 
 log = logging.getLogger("gofit.progress")
 
 router = APIRouter(tags=["progress"])
+
+# Retention policy (user-facing ask: "up to one month old logs" / "7 day old
+# images after that"): meal macros/times/types stay queryable for 30 days,
+# then the row itself is dropped. The photo is deleted from Storage (and its
+# path cleared) after only 7 days -- the diary entry survives longer than the
+# picture of it does.
+RETENTION_LOG_DAYS = 30
+RETENTION_PHOTO_DAYS = 7
 
 
 def _ensure_column(c, table: str, column: str, decl: str) -> None:
@@ -97,6 +113,27 @@ def init_db() -> None:
             )
             """
         )
+        # meal_type: breakfast / morning_snack / lunch / afternoon_snack /
+        # evening_snack / dinner -- inferred client-side from the local time
+        # the meal was logged (see storage.ts's inferMealType), stored as-is.
+        # photo_path: object path in the private meal-photos Storage bucket
+        # (see blob_storage.py); NULL once the 7-day photo-retention window
+        # has passed or if the photo upload failed/was never taken.
+        _ensure_column(c, "meal_logs", "meal_type", "TEXT")
+        _ensure_column(c, "meal_logs", "photo_path", "TEXT")
+        # micros: JSON-encoded {nutrient_key: value} panel (fibre, iron, sodium,
+        # etc. -- see app/micros.ts's MICRO_REFS), summed at log time from any
+        # DB-matched items. Previously this only lived in the client's local
+        # state and was silently dropped on every server round-trip (a reload
+        # or a different device would just lose it) -- persisting it here is
+        # what makes the day/meal detail views' nutrient panels actually real.
+        _ensure_column(c, "meal_logs", "micros", "TEXT")
+        # micros_estimated: true when ANY contributing item's micros came from
+        # the vision model's own best-guess estimate rather than a verified
+        # food-DB match (see main.py's anchor_items/micros_source). Lets the
+        # client show an honest "Estimated" note instead of presenting a
+        # guess as verified lab data.
+        _ensure_column(c, "meal_logs", "micros_estimated", "INTEGER")
         c.execute("CREATE INDEX IF NOT EXISTS idx_meal_logs_account_date ON meal_logs(account_id, date)")
         c.execute(
             """
@@ -138,6 +175,109 @@ def init_db() -> None:
             )
             """
         )
+        # Durable, permanent record of "this account logged >=1 meal on this
+        # calendar date" -- deliberately NEVER touched by RETENTION_LOG_DAYS
+        # cleanup (unlike meal_logs/daily_summary, which age out at 30 days).
+        # This is the whole point: a user's real streak (current AND best)
+        # must survive both a reinstall (it's server-side, not recomputed
+        # from a local cache) and the 30-day log-retention purge (a 90-day
+        # streak shouldn't silently cap at 30 just because we stop keeping
+        # the old macro/photo detail). No PII/macros here, just a date --
+        # cheap to keep forever.
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS log_days (
+                account_id INTEGER NOT NULL,
+                date       TEXT NOT NULL,
+                PRIMARY KEY (account_id, date)
+            )
+            """
+        )
+        # One-time backfill: accounts with logging history from before this
+        # table existed shouldn't show a broken/zero streak on their first
+        # request after this deploy. Safe to run every boot -- INSERT is
+        # idempotent (ON CONFLICT DO NOTHING) and only adds rows that are
+        # still within the 30-day meal_logs window at backfill time; any
+        # streak established before this deploy that's already older than
+        # that has no surviving source data to backfill from regardless.
+        c.execute(
+            """
+            INSERT INTO log_days (account_id, date)
+            SELECT DISTINCT account_id, date FROM meal_logs
+            WHERE NOT EXISTS (
+                SELECT 1 FROM log_days ld
+                WHERE ld.account_id = meal_logs.account_id AND ld.date = meal_logs.date
+            )
+            """
+        )
+
+
+def _touch_log_day(c, account_id: int, date_key: str) -> None:
+    """Record that this account logged >=1 meal on date_key. Idempotent."""
+    c.execute(
+        "INSERT INTO log_days (account_id, date) VALUES (?,?) ON CONFLICT(account_id, date) DO NOTHING",
+        (account_id, date_key),
+    )
+
+
+def _untouch_log_day_if_empty(c, account_id: int, date_key: str) -> None:
+    """After deleting a meal, drop the log_days row for that date too -- but
+    ONLY if no meals remain on that date (deleting one meal from a day that
+    still has others shouldn't break the streak for that day)."""
+    remaining = c.execute(
+        "SELECT COUNT(*) AS n FROM meal_logs WHERE account_id=? AND date=?",
+        (account_id, date_key),
+    ).fetchone()
+    if remaining["n"] == 0:
+        c.execute("DELETE FROM log_days WHERE account_id=? AND date=?", (account_id, date_key))
+
+
+def compute_streaks(c, account_id: int) -> dict:
+    """Current + best streak computed from the durable log_days table (never
+    purged by the 30-day meal-retention policy, unlike meal_logs/daily_summary
+    -- see log_days' table comment). Mirrors the client's storage.ts
+    computeStreak/bestStreak semantics: "current" counts consecutive days
+    ending today (or yesterday, if today has nothing logged yet); "best" is
+    the longest consecutive run across all history."""
+    rows = c.execute(
+        "SELECT date FROM log_days WHERE account_id=? ORDER BY date ASC",
+        (account_id,),
+    ).fetchall()
+    days = [r["date"] for r in rows]
+    if not days:
+        return {"current": 0, "best": 0}
+
+    day_set = set(days)
+    from datetime import date as _date, timedelta as _timedelta
+
+    today = _date.today()
+
+    def _key(d: _date) -> str:
+        return d.isoformat()
+
+    # Current streak: walk back from today (or yesterday if today's empty).
+    cursor = today
+    if _key(cursor) not in day_set:
+        cursor = cursor - _timedelta(days=1)
+    current = 0
+    while _key(cursor) in day_set:
+        current += 1
+        cursor = cursor - _timedelta(days=1)
+
+    # Best streak: longest run of consecutive calendar dates in log_days.
+    best = 0
+    run = 0
+    prev: Optional[_date] = None
+    for d_str in days:
+        cur = _date.fromisoformat(d_str)
+        if prev is not None and (cur - prev).days == 1:
+            run += 1
+        else:
+            run = 1
+        best = max(best, run)
+        prev = cur
+
+    return {"current": current, "best": best}
 
 
 def record_scan(
@@ -300,21 +440,110 @@ class MealBody(BaseModel):
     protein_g: float = Field(0, ge=0, le=2000)
     carbs_g: float = Field(0, ge=0, le=2000)
     fat_g: float = Field(0, ge=0, le=2000)
+    # One of breakfast/morning_snack/lunch/afternoon_snack/evening_snack/dinner
+    # (see storage.ts MEAL_TYPES) -- optional so older clients keep working;
+    # server infers a best-effort bucket from `at` when absent (see below).
+    meal_type: Optional[str] = Field(None, max_length=32)
+    # Storage object path returned by /analyze's photo_path -- only meaningful
+    # if this meal came from a scan that successfully uploaded its photo.
+    photo_path: Optional[str] = Field(None, max_length=300)
+    # Per-nutrient totals for this meal (see app/micros.ts's MICRO_REFS) --
+    # optional since a pure-AI photo estimate has no reliable micro panel.
+    micros: Optional[Dict[str, float]] = None
+    # True when ANY item contributing to `micros` came from the vision
+    # model's own best-guess estimate rather than a verified food-DB match
+    # (see main.py's anchor_items/micros_source, totals.micros_estimated).
+    micros_estimated: Optional[bool] = None
+
+
+_MEAL_TYPES = {"breakfast", "morning_snack", "lunch", "afternoon_snack", "evening_snack", "dinner"}
+
+
+def _infer_meal_type(at_epoch: float) -> str:
+    """Best-effort fallback bucket when the client didn't send meal_type.
+    Uses server local time -- imperfect across timezones, which is exactly
+    why the client (which knows the user's real local time) should always
+    send its own inferMealType() result; this only covers old/broken clients."""
+    hour = time.localtime(at_epoch).tm_hour
+    if 5 <= hour < 10:
+        return "breakfast"
+    if 10 <= hour < 12:
+        return "morning_snack"
+    if 12 <= hour < 15:
+        return "lunch"
+    if 15 <= hour < 18:
+        return "afternoon_snack"
+    if 18 <= hour < 20:
+        return "evening_snack"
+    return "dinner"
+
+
+def _cleanup_account(c, account_id: int) -> None:
+    """Enforces the retention policy for one account, scoped to just their
+    rows (cheap at personal-diary scale): logs older than
+    RETENTION_LOG_DAYS are dropped entirely (photo deleted from Storage
+    first); logs between the photo- and log-retention windows keep their
+    macros/dish/time but lose the photo (deleted from Storage, path cleared).
+    Called opportunistically from GET /logs so this stays correct without
+    needing a separate cron job. Best-effort -- never raises, so a Storage
+    hiccup can't break someone's ability to read their own log."""
+    try:
+        now = time.time()
+        log_cutoff = now - RETENTION_LOG_DAYS * 86400
+        photo_cutoff = now - RETENTION_PHOTO_DAYS * 86400
+
+        expired = c.execute(
+            "SELECT id, date, photo_path FROM meal_logs WHERE account_id=? AND at < ?",
+            (account_id, log_cutoff),
+        ).fetchall()
+        if expired:
+            for r in expired:
+                if r["photo_path"]:
+                    blob_storage.delete_meal_photo(r["photo_path"])
+            c.execute("DELETE FROM meal_logs WHERE account_id=? AND at < ?", (account_id, log_cutoff))
+            for d in {r["date"] for r in expired}:
+                _refresh_daily_summary(c, account_id, d)
+
+        stale_photos = c.execute(
+            "SELECT id, photo_path FROM meal_logs WHERE account_id=? AND at < ? AND at >= ? AND photo_path IS NOT NULL",
+            (account_id, photo_cutoff, log_cutoff),
+        ).fetchall()
+        for r in stale_photos:
+            blob_storage.delete_meal_photo(r["photo_path"])
+        if stale_photos:
+            c.execute(
+                "UPDATE meal_logs SET photo_path=NULL WHERE account_id=? AND at < ? AND at >= ? AND photo_path IS NOT NULL",
+                (account_id, photo_cutoff, log_cutoff),
+            )
+    except Exception:
+        log.exception("retention cleanup failed for account %s", account_id)
 
 
 @router.get("/logs")
 def get_logs(request: Request):
     acct = auth.require_account(request)
-    with db.connect() as c:
+    with db.write_lock(), db.connect() as c:
+        _cleanup_account(c, acct["id"])
         rows = c.execute(
-            "SELECT * FROM meal_logs WHERE account_id=? ORDER BY at ASC",
-            (acct["id"],),
+            "SELECT * FROM meal_logs WHERE account_id=? AND at >= ? ORDER BY at ASC",
+            (acct["id"], time.time() - RETENTION_LOG_DAYS * 86400),
         ).fetchall()
     logs: dict = {}
     for r in rows:
         d = r["date"]
         if d not in logs:
             logs[d] = {"date": d, "meals": []}
+        photo_url = None
+        photo_path = r["photo_path"] if "photo_path" in r.keys() else None
+        if photo_path:
+            photo_url = blob_storage.signed_url(photo_path)
+        micros_raw = r["micros"] if "micros" in r.keys() else None
+        micros = None
+        if micros_raw:
+            try:
+                micros = json.loads(micros_raw)
+            except (TypeError, ValueError):
+                micros = None
         logs[d]["meals"].append(
             {
                 "id": r["id"],
@@ -324,6 +553,10 @@ def get_logs(request: Request):
                 "carbs_g": r["carbs_g"],
                 "fat_g": r["fat_g"],
                 "at": r["at"],
+                "mealType": (r["meal_type"] if "meal_type" in r.keys() else None) or _infer_meal_type(r["at"]),
+                "photoUrl": photo_url,
+                "micros": micros,
+                "microsEstimated": bool(r["micros_estimated"]) if "micros_estimated" in r.keys() and r["micros_estimated"] is not None else False,
             }
         )
     return {"logs": logs}
@@ -333,15 +566,22 @@ def get_logs(request: Request):
 def add_log(body: MealBody, request: Request):
     acct = auth.require_account(request)
     at = time.time()
+    meal_type = body.meal_type if body.meal_type in _MEAL_TYPES else _infer_meal_type(at)
+    micros_json = json.dumps(body.micros) if body.micros else None
     with db.write_lock(), db.connect() as c:
         cur = c.execute(
-            "INSERT INTO meal_logs (account_id, date, dish, kcal, protein_g, carbs_g, fat_g, at) "
-            "VALUES (?,?,?,?,?,?,?,?)",
-            (acct["id"], body.date, body.dish, body.kcal, body.protein_g, body.carbs_g, body.fat_g, at),
+            "INSERT INTO meal_logs (account_id, date, dish, kcal, protein_g, carbs_g, fat_g, at, meal_type, photo_path, micros, micros_estimated) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                acct["id"], body.date, body.dish, body.kcal, body.protein_g, body.carbs_g, body.fat_g, at,
+                meal_type, body.photo_path, micros_json, int(bool(body.micros_estimated)),
+            ),
         )
         new_id = cur.lastrowid
         _refresh_daily_summary(c, acct["id"], body.date)
-    return {"ok": True, "id": new_id, "at": at}
+        _touch_log_day(c, acct["id"], body.date)
+    return {"ok": True, "id": new_id, "at": at, "mealType": meal_type}
+
 
 
 @router.delete("/logs/{log_id}")
@@ -358,7 +598,47 @@ def delete_log(log_id: int, request: Request):
             raise HTTPException(status_code=404, detail="Not found")
         c.execute("DELETE FROM meal_logs WHERE id=?", (log_id,))
         _refresh_daily_summary(c, acct["id"], row["date"])
+        _untouch_log_day_if_empty(c, acct["id"], row["date"])
     return {"ok": True}
+
+
+@router.get("/streak")
+def get_streak(request: Request):
+    """Current + best streak, computed server-side from the durable
+    log_days table (see its table comment for why this is authoritative
+    and survives both reinstalls and the 30-day log-retention purge, unlike
+    the client's old local-only computeStreak/bestStreak over the last-30-
+    days GET /logs response)."""
+    acct = auth.require_account(request)
+    with db.write_lock(), db.connect() as c:
+        result = compute_streaks(c, acct["id"])
+    return result
+
+
+@router.get("/log-days")
+def get_log_days(request: Request, days: int = 90):
+    """Every calendar date (YYYY-MM-DD) this account logged >=1 meal, read
+    straight from the durable log_days table -- NOT from meal_logs, which is
+    purged after RETENTION_LOG_DAYS. This is what lets the Progress tab's
+    logging-consistency heatmap and 90-day/all-time consistency score stay
+    honest beyond the 30-day macro-detail window: we may not remember WHAT
+    was eaten 60 days ago, but we do durably remember THAT something was
+    logged that day. `days<=0` means "all of history"."""
+    acct = auth.require_account(request)
+    with db.connect() as c:
+        if days <= 0:
+            rows = c.execute(
+                "SELECT date FROM log_days WHERE account_id=? ORDER BY date ASC",
+                (acct["id"],),
+            ).fetchall()
+        else:
+            from datetime import date as _date, timedelta as _timedelta
+            cutoff = (_date.today() - _timedelta(days=days)).isoformat()
+            rows = c.execute(
+                "SELECT date FROM log_days WHERE account_id=? AND date >= ? ORDER BY date ASC",
+                (acct["id"], cutoff),
+            ).fetchall()
+    return {"days": [r["date"] for r in rows]}
 
 
 # --- daily summary (cache) & scan history ----------------------------------- #

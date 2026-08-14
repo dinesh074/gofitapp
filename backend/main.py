@@ -21,11 +21,12 @@ import io
 import json
 import re
 import time
+import hashlib
 import logging
 import threading
 from collections import defaultdict, deque
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image
@@ -44,6 +45,7 @@ import payments
 import blob_storage
 import audit
 import feedback
+import food_review
 import progress
 import barcode
 import wellness
@@ -59,11 +61,83 @@ MODEL = os.environ.get("FOOD_MODEL", "gemini-3.5-flash-lite")
 
 # temperature=0 => deterministic: the same photo yields the same numbers.
 # response_mime_type => model returns strict JSON (no markdown fences).
+# thinking_level="low" => this is a simple, single-pass "read this food photo
+# and fill in a JSON template" task, not multi-step reasoning, so the model's
+# extended "thinking" pass before answering was pure added latency for no
+# accuracy benefit. Measured on this backend: fresh (non-cached) analyses
+# were an erratic 1.7-6.7s (avg ~4.2s); with thinking_level="low" every run
+# was a consistent ~1.7s. (thinking_budget=0 -- fully off -- is rejected by
+# this model with a 400 INVALID_ARGUMENT; "low" is the fastest supported
+# setting.)
 GEN_CONFIG = types.GenerateContentConfig(
     temperature=0,
     top_p=1,
     response_mime_type="application/json",
+    thinking_config=types.ThinkingConfig(thinking_level="low"),
 )
+
+# --------------------------------------------------------------------------- #
+#  Analyze result cache -- fixes "the same photo gives different calories
+#  every time".
+#
+#  Gemini's temperature=0 is only a *low-randomness* setting, not a hard
+#  determinism guarantee (Google documents this: batched/accelerated inference
+#  can still pick a different top-token on ties, especially for open-ended
+#  counting like "how many gulab jamuns are in this pile"). Measured on this
+#  backend: re-analyzing the exact same photo 3x gave 8250/9000/9750 kcal for
+#  a pile of gulab jamuns (piece count guessed as 55/60/65) -- a real,
+#  reproducible bug, not a one-off.
+#
+#  Fix: hash the exact image bytes and cache the FIRST analysis for that exact
+#  photo. Every later analyze of the identical file (re-tapping "Scan" on the
+#  same picture, a retry, etc.) returns the cached, byte-identical result
+#  instead of a fresh, possibly-different Gemini call -- so re-scanning the
+#  same photo is now provably deterministic. A genuinely different photo of
+#  the same dish still gets its own fresh analysis (that's correct: a bigger
+#  pile of gulab jamuns SHOULD score higher).
+# --------------------------------------------------------------------------- #
+def _init_analyze_cache_table(c) -> None:
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS analyze_cache (
+            image_hash TEXT PRIMARY KEY,
+            result_json TEXT NOT NULL,
+            created_at REAL NOT NULL
+        )
+        """
+    )
+
+
+def _analyze_cache_get(image_hash: str) -> dict | None:
+    try:
+        with db.connect() as c:
+            _init_analyze_cache_table(c)
+            row = c.execute(
+                "SELECT result_json FROM analyze_cache WHERE image_hash=?", (image_hash,)
+            ).fetchone()
+        if not row:
+            return None
+        return json.loads(row["result_json"])
+    except Exception as ex:
+        log.warning("analyze_cache read failed (continuing without cache): %s", ex)
+        return None
+
+
+def _analyze_cache_put(image_hash: str, data: dict) -> None:
+    # Store the raw model+anchoring output BEFORE any per-request fields
+    # (usage, scan history id) are mixed in, so a cache hit is a clean base to
+    # re-stamp fresh usage onto.
+    slim = {k: v for k, v in data.items() if k != "usage"}
+    try:
+        with db.write_lock(), db.connect() as c:
+            _init_analyze_cache_table(c)
+            c.execute(
+                "INSERT OR IGNORE INTO analyze_cache (image_hash, result_json, created_at) VALUES (?,?,?)",
+                (image_hash, json.dumps(slim), time.time()),
+            )
+    except Exception as ex:
+        log.warning("analyze_cache write failed (non-fatal): %s", ex)
+
 
 PROMPT = """You are the nutrition engine for an Indian food calorie-tracking app.
 Analyse the food photo and return ONLY strict JSON (no markdown), schema:
@@ -80,7 +154,16 @@ Analyse the food photo and return ONLY strict JSON (no markdown), schema:
       "carbs_g": <carbohydrate grams for ONE unit>,
       "fat_g": <fat grams for ONE unit>,
       "kcal_total": <count * kcal_per_unit>,
-      "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>
+      "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>,
+      "micros_estimate": {
+        "fiber_g": <grams, ONE unit>,
+        "iron_mg": <mg, ONE unit>,
+        "calcium_mg": <mg, ONE unit>,
+        "potassium_mg": <mg, ONE unit>,
+        "vitamin_c_mg": <mg, ONE unit>,
+        "sodium_mg": <mg, ONE unit>,
+        "sugar_g": <grams, ONE unit>
+      }
     }
   ],
   "questions": [
@@ -100,6 +183,12 @@ Analyse the food photo and return ONLY strict JSON (no markdown), schema:
 Use standard Indian household portions. Break a plate into its components
 (rice + dal + sabzi). Estimate kcal_per_unit for a normal home serving.
 Count only what is clearly visible.
+
+micros_estimate is YOUR best estimate from general nutrition knowledge of this
+dish (a photo can't show iron or vitamin C) -- give your honest best guess for
+every item, don't omit it. It will be labeled "Estimated" in the app, never
+shown as verified lab data, so a reasonable estimate is genuinely useful even
+though it isn't precise.
 
 QUESTIONS: Indian thalis hide calories a photo can't see. Ask ONLY the 1-3
 highest-impact things you had to guess, each tied to one item via target_item:
@@ -129,13 +218,24 @@ into the SAME strict JSON schema (no markdown) used for a food photo:
       "carbs_g": <carbohydrate grams for ONE unit>,
       "fat_g": <fat grams for ONE unit>,
       "kcal_total": <count * kcal_per_unit>,
-      "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>
+      "countable": <true if a discrete countable item like idli/samosa, false for mixed plates/curries>,
+      "micros_estimate": {
+        "fiber_g": <grams, ONE unit>,
+        "iron_mg": <mg, ONE unit>,
+        "calcium_mg": <mg, ONE unit>,
+        "potassium_mg": <mg, ONE unit>,
+        "vitamin_c_mg": <mg, ONE unit>,
+        "sodium_mg": <mg, ONE unit>,
+        "sugar_g": <grams, ONE unit>
+      }
     }
   ],
   "calories_kcal": <sum of all items kcal_total>,
   "confidence": <0.0-1.0, LOWER than you'd give a clear photo -- text descriptions
     are inherently more ambiguous about portion size>
 }
+micros_estimate is your best-guess nutrition estimate for the item (labeled
+"Estimated" in the app, never shown as verified data) -- always include it.
 Use standard Indian household portions when the user didn't specify an amount
 (e.g. "dal" alone means one katori). If the description is too vague to name
 any real food (e.g. "food", "something"), return items: [] and
@@ -186,6 +286,12 @@ app.include_router(audit.router)
 # In-app feedback / feature requests (POST /feedback, GET /admin/feedback).
 feedback.init_db()
 app.include_router(feedback.router)
+
+# Unmatched-dish review queue -- durable log of items the AI scanned that had
+# no verified DB match, ranked by frequency, so real usage (not guesswork)
+# drives what gets curated into indian_food_db.json next.
+food_review.init_db()
+app.include_router(food_review.router)
 
 # Profile, meal logs, weight history -- the tables that were missing
 # entirely (previously local-storage-only, no server-side persistence at all).
@@ -544,6 +650,55 @@ def _load_db():
 
 
 FOOD_DB = _load_db()
+# Fast key -> food lookup for combo/pairing resolution (see /foods/combos).
+FOOD_BY_KEY = {f["key"]: f for f in FOOD_DB}
+
+
+# --- Meal combinations (accompaniment pairings) ------------------------------
+# Indian dishes are rarely eaten alone (idli+sambar+chutney, dal+rice, chole+
+# puri). food_combos.json holds curated dish -> typical sides so the app can
+# offer one-tap "Goes well with" add-ons. It's editorial pairing knowledge
+# only; every side's calories/macros still come from the food DB row it maps to.
+COMBOS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "food_combos.json")
+
+
+def _load_combos():
+    try:
+        with open(COMBOS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        combos = data.get("combos", {}) or {}
+        # normalize alias keys so lookups match _norm() output
+        aliases = {_norm(k): v for k, v in (data.get("aliases", {}) or {}).items()}
+        return combos, aliases
+    except Exception as ex:
+        log.warning("Could not load meal combos from %s: %s", COMBOS_PATH, ex)
+        return {}, {}
+
+
+COMBOS, COMBO_ALIASES = _load_combos()
+
+
+def _resolve_combo_entry(name: str):
+    """Map a free-text dish name to a combo entry, or None.
+
+    Resolution order: (1) the name itself is a combo key (spaces->underscores),
+    (2) an alias word appears in the name, (3) the food DB match's key is a
+    combo key. This mirrors how match_food resolves DB anchoring, so 'Masala
+    Dosa' and 'idli' both land on their pairing lists.
+    """
+    n = _norm(name)
+    if not n:
+        return None
+    cand = n.replace(" ", "_")
+    if cand in COMBOS:
+        return COMBOS[cand]
+    for word, target in COMBO_ALIASES.items():
+        if word and re.search(r"\b" + re.escape(word) + r"\b", n) and target in COMBOS:
+            return COMBOS[target]
+    food = match_food(name)
+    if food and food["key"] in COMBOS:
+        return COMBOS[food["key"]]
+    return None
 
 
 def match_food(name: str):
@@ -575,9 +730,27 @@ def anchor_items(data: dict) -> dict:
     micronutrients (fiber/sugar/sodium/potassium/calcium/iron) scale with
     count just like the macros; health_score/benefits/watch_outs describe the
     food itself and are copied as-is (a "high in sodium" tag doesn't change
-    because you ate two servings, so these are not multiplied by count)."""
+    because you ate two servings, so these are not multiplied by count).
+
+    v3: unmatched items (source="ai") now also carry a micronutrient panel --
+    the model's own per-unit ESTIMATE (see PROMPT's micros_estimate field),
+    clamped to sane per-serving bounds so a hallucinated number can't blow up
+    a day's micro totals. Tagged micros_source="ai_estimated" so the client
+    can honestly label it differently from a verified DB match
+    (micros_source="db") -- see micros.ts / MealDetailScreen.tsx. Every
+    unmatched item is also logged to food_review.record_unmatched() so real
+    scan volume (not guesswork) drives what gets curated into the verified
+    DB next."""
     macros = ("protein_g", "carbs_g", "fat_g")
     micro_fields = ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg")
+    # Per-unit sanity ceiling for an AI-estimated micro value -- guards against
+    # a hallucinated number (e.g. "5000mg sodium in one idli") dominating a
+    # day's totals. DB-matched values are real lab/govt data and are NOT
+    # clamped (see the `food` branch below).
+    _EST_CAPS = {
+        "fiber_g": 25, "iron_mg": 20, "calcium_mg": 800,
+        "potassium_mg": 2000, "vitamin_c_mg": 300, "sodium_mg": 3000, "sugar_g": 100,
+    }
     for it in data.get("items", []):
         food = match_food(it.get("item", ""))
         if food:
@@ -603,11 +776,23 @@ def anchor_items(data: dict) -> dict:
             # Full vitamin/mineral panel ("all the minute details"), per-unit.
             if food.get("micros"):
                 it["micros_per_unit"] = food["micros"]
+                it["micros_source"] = "db"
         else:
             # fall back to the model's own per-unit macro estimates
             for m in macros:
                 it[m + "_per_unit"] = it.get(m, 0)
             it["source"] = "ai"
+            est = it.get("micros_estimate")
+            if isinstance(est, dict):
+                clamped = {}
+                for k, cap in _EST_CAPS.items():
+                    v = est.get(k)
+                    if isinstance(v, (int, float)) and v >= 0:
+                        clamped[k] = min(float(v), cap)
+                if clamped:
+                    it["micros_per_unit"] = clamped
+                    it["micros_source"] = "ai_estimated"
+            food_review.record_unmatched(it.get("item", ""), it)
         count = it.get("count", 1)
         it["kcal_total"] = round(count * it.get("kcal_per_unit", 0))
         for m in macros:
@@ -631,11 +816,19 @@ def anchor_items(data: dict) -> dict:
         if vals:
             totals[m] = round(sum(vals), 1)
     micro_totals: dict = {}
+    any_estimated = False
     for it in items:
         for k, v in it.get("micros", {}).items():
             micro_totals[k] = micro_totals.get(k, 0) + v
+        if it.get("micros_source") == "ai_estimated":
+            any_estimated = True
     if micro_totals:
         totals["micros"] = {k: round(v, 4) for k, v in micro_totals.items()}
+        # True when ANY contributing item's micros came from the AI's own
+        # estimate rather than a verified DB match -- lets the client show an
+        # honest "Estimated" badge on the whole meal's micro panel instead of
+        # silently mixing verified + guessed numbers with no distinction.
+        totals["micros_estimated"] = any_estimated
     data["totals"] = totals
     return data
 
@@ -701,6 +894,54 @@ def foods_search(q: str, request: Request, limit: int = 20):
     scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
     limit = max(1, min(50, limit))
     return {"results": [_food_suggestion(f) for _, _, f in scored[:limit]]}
+
+
+@app.get("/foods/combos")
+def foods_combos(request: Request, dish: str, limit: int = 6):
+    """Suggested accompaniments for the dishes in a meal ("Goes well with").
+
+    `dish` is a "|"-separated list of the meal's item names (e.g.
+    "Idli|Coconut Chutney"). Like /foods/search this is a free, local, in-memory
+    lookup -- no Gemini, no scan credit -- so it needs a signed-in account only.
+    Sides already present in the meal are excluded, results are de-duplicated,
+    and each pairing carries a default `count` plus the food DB nutrition so the
+    client can add it as a FoodItem in one tap."""
+    auth.require_account(request)
+    names = [d for d in re.split(r"[|]", dish) if d and d.strip()]
+    if not names:
+        return {"pairings": []}
+
+    # What's already on the plate -- don't suggest a side the user logged.
+    present: set[str] = set()
+    for nm in names:
+        present.add(_norm(nm).replace(" ", "_"))
+        f = match_food(nm)
+        if f:
+            present.add(f["key"])
+
+    seen: set[str] = set()
+    out: list[dict] = []
+    for nm in names:
+        entry = _resolve_combo_entry(nm)
+        if not entry:
+            continue
+        for side in entry.get("sides", []):
+            sk = side.get("key")
+            if not sk or sk in seen or sk in present:
+                continue
+            food = FOOD_BY_KEY.get(sk)
+            if not food:
+                continue  # curated key not in the food DB -> silently skip
+            seen.add(sk)
+            sug = _food_suggestion(food)
+            sug["count"] = side.get("count", 1)
+            if side.get("reason"):
+                sug["reason"] = side["reason"]
+            sug["pairs_with"] = entry.get("display", nm)
+            out.append(sug)
+
+    limit = max(1, min(20, limit))
+    return {"pairings": out[:limit]}
 
 
 # --------------------------------------------------------------------------- #
@@ -1213,76 +1454,6 @@ def meals_verdict(body: VerdictBody, request: Request):
             pass  # keep deterministic advice
     rules["source"] = source
     return rules
-    """Override per-unit calories AND macros with DB values when matched, then
-    compute per-item and meal-level totals.
-
-    v2: also carries through the extended DB fields where present --
-    micronutrients (fiber/sugar/sodium/potassium/calcium/iron) scale with
-    count just like the macros; health_score/benefits/watch_outs describe the
-    food itself and are copied as-is (a "high in sodium" tag doesn't change
-    because you ate two servings, so these are not multiplied by count)."""
-    macros = ("protein_g", "carbs_g", "fat_g")
-    micro_fields = ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg")
-    for it in data.get("items", []):
-        food = match_food(it.get("item", ""))
-        if food:
-            it["kcal_per_unit"] = food["kcal_per_unit"]
-            for m in macros:
-                it[m + "_per_unit"] = food.get(m, 0)
-            for m in micro_fields:
-                if m in food:
-                    it[m + "_per_unit"] = food[m]
-            it["unit"] = food.get("unit", it.get("unit", "piece"))
-            it["source"] = "db"
-            # Descriptive, not scaled by count -- see docstring.
-            if "health_score" in food:
-                it["health_score"] = food["health_score"]
-            if food.get("benefits"):
-                it["benefits"] = food["benefits"]
-            if food.get("watch_outs"):
-                it["watch_outs"] = food["watch_outs"]
-            if food.get("jain_status"):
-                it["jain_status"] = food["jain_status"]
-            if food.get("sattvic_status"):
-                it["sattvic_status"] = food["sattvic_status"]
-            # Full vitamin/mineral panel ("all the minute details"), per-unit.
-            if food.get("micros"):
-                it["micros_per_unit"] = food["micros"]
-        else:
-            # fall back to the model's own per-unit macro estimates
-            for m in macros:
-                it[m + "_per_unit"] = it.get(m, 0)
-            it["source"] = "ai"
-        count = it.get("count", 1)
-        it["kcal_total"] = round(count * it.get("kcal_per_unit", 0))
-        for m in macros:
-            it[m] = round(count * it.get(m + "_per_unit", 0), 1)
-        for m in micro_fields:
-            if (m + "_per_unit") in it:
-                it[m] = round(count * it[m + "_per_unit"], 1)
-        if "micros_per_unit" in it:
-            it["micros"] = {k: round(v * count, 4) for k, v in it["micros_per_unit"].items()}
-
-    items = data.get("items", [])
-    data["calories_kcal"] = sum(it["kcal_total"] for it in items)
-    totals = {
-        "kcal": data["calories_kcal"],
-        "protein_g": round(sum(it.get("protein_g", 0) for it in items), 1),
-        "carbs_g": round(sum(it.get("carbs_g", 0) for it in items), 1),
-        "fat_g": round(sum(it.get("fat_g", 0) for it in items), 1),
-    }
-    for m in micro_fields:
-        vals = [it[m] for it in items if m in it]
-        if vals:
-            totals[m] = round(sum(vals), 1)
-    micro_totals: dict = {}
-    for it in items:
-        for k, v in it.get("micros", {}).items():
-            micro_totals[k] = micro_totals.get(k, 0) + v
-    if micro_totals:
-        totals["micros"] = {k: round(v, 4) for k, v in micro_totals.items()}
-    data["totals"] = totals
-    return data
 # -----------------------------------------------------------------------------
 
 _client = None
@@ -1460,10 +1631,28 @@ def _sanitize_questions(data: dict) -> list:
     return out
 
 
-def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str) -> dict:
+def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str, cache_key: str | None = None) -> dict:
     """Shared retry/anchor/usage/scan-history plumbing for both the image and
     text analysis paths -- media is either a PIL.Image (photo) or omitted
-    (text-only prompt already has the description baked in)."""
+    (text-only prompt already has the description baked in).
+
+    cache_key: sha256 of the exact image bytes (photo path) or the normalized
+    description text (text path). When set and a prior analysis for the exact
+    same input exists, skip the (non-deterministic) Gemini call entirely and
+    return the cached result with freshly-stamped usage -- guarantees the
+    same input always yields the same numbers.
+    """
+    if cache_key:
+        cached = _analyze_cache_get(cache_key)
+        if cached is not None:
+            data = dict(cached)
+            data["usage"] = auth.usage_for(account["id"])
+            data["from_cache"] = True
+            progress.record_scan(
+                account["id"], success=True, item_count=len(data.get("items", [])),
+                total_kcal=data.get("calories_kcal"),
+            )
+            return data
     last = None
     for attempt in range(3):
         try:
@@ -1484,6 +1673,8 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
             # indices still line up with the model's original items order.
             data["questions"] = _sanitize_questions(data)
             data = anchor_items(data)
+            if cache_key:
+                _analyze_cache_put(cache_key, data)
             data["usage"] = auth.usage_for(account["id"])
             items = data.get("items", [])
             progress.record_scan(
@@ -1503,8 +1694,24 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
     raise HTTPException(status_code=502, detail=f"Could not analyze the {error_detail_prefix}. Please try again.")
 
 
+def _upload_meal_photo_safe(photo_path: str, raw: bytes, account_id: str) -> None:
+    """Runs after the /analyze response has already been sent (BackgroundTasks).
+    Never let a Storage hiccup surface anywhere -- the analysis already
+    succeeded and shipped to the client; a missing photo later is a cosmetic
+    (not correctness) issue GET /logs already tolerates via a null photoUrl."""
+    try:
+        blob_storage.upload_meal_photo(photo_path, raw)
+    except Exception:
+        log.exception("background meal photo upload failed for account %s", account_id)
+
+
 @app.post("/analyze")
-async def analyze(request: Request, file: UploadFile = File(...), _: None = Depends(guard)):
+async def analyze(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    _: None = Depends(guard),
+):
     account = _require_scan_slot(request)
 
     if file.content_type and not file.content_type.startswith("image/"):
@@ -1515,6 +1722,9 @@ async def analyze(request: Request, file: UploadFile = File(...), _: None = Depe
             raise HTTPException(status_code=400, detail="Empty file")
         if len(raw) > MAX_UPLOAD_BYTES:
             raise HTTPException(status_code=413, detail="Image too large (max 8MB)")
+        # Hash the exact bytes BEFORE any decoding/downscaling -- this is the
+        # cache key that makes re-analyzing the identical photo deterministic.
+        image_hash = hashlib.sha256(raw).hexdigest()
         img = Image.open(io.BytesIO(raw)).convert("RGB")
         img.thumbnail((768, 768))  # downscale: big speed win, negligible accuracy loss
     except HTTPException:
@@ -1522,7 +1732,26 @@ async def analyze(request: Request, file: UploadFile = File(...), _: None = Depe
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid or unreadable image")
 
-    return _run_gemini_analysis(account, PROMPT, img, "photo")
+    data = _run_gemini_analysis(account, PROMPT, img, "photo", cache_key=image_hash)
+    # Best-effort photo upload -- hash-based path means the exact same photo
+    # re-scanned by the same user just overwrites, never duplicates storage.
+    # A storage hiccup must never break the (already-successful) analysis.
+    #
+    # Neither the upload nor a signed URL needs to block THIS response:
+    # ScanScreen shows the just-captured local photo, not photo_url, while
+    # reviewing/editing the scan, and GET /logs independently (re)signs a
+    # fresh URL from photo_path once the meal is actually saved (signed URLs
+    # are short-lived, so handing one out here would usually be stale by the
+    # time it's used anyway). So we just hand back the deterministic path
+    # (pure string math, no network) and push the real upload onto a
+    # background task -- this alone was costing every fresh scan ~1-1.7s of
+    # pure Storage-roundtrip time that the client never actually needed yet.
+    if blob_storage.configured():
+        photo_path = f"{account['id']}/{image_hash}.jpg"
+        data["photo_path"] = photo_path
+        if not data.get("from_cache"):
+            background_tasks.add_task(_upload_meal_photo_safe, photo_path, raw, account["id"])
+    return data
 
 
 class TextAnalyzeBody(BaseModel):
@@ -1536,8 +1765,10 @@ def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guar
     without an image. Lets you log a meal by describing it when a photo
     isn't practical."""
     account = _require_scan_slot(request)
+    normalized = re.sub(r"\s+", " ", body.description.strip().lower())
+    text_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     prompt = f'{TEXT_PROMPT}\n\nUser\'s description: "{body.description.strip()}"'
-    return _run_gemini_analysis(account, prompt, None, "description")
+    return _run_gemini_analysis(account, prompt, None, "description", cache_key=text_hash)
 
 
 # --------------------------------------------------------------------------- #

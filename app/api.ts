@@ -23,9 +23,11 @@ export type FoodItem = {
   kcal_total: number;
   countable: boolean;
   source?: string;
-  // v2: present only when matched against the food DB (source === "db") and
-  // the underlying record has the data -- never guessed for an "ai"-sourced
-  // item, so always check for presence before displaying.
+  // v2: present when matched against the food DB (source === "db", verified
+  // lab/curated data) OR when the vision model supplied its own best-guess
+  // estimate for an unmatched item (source === "ai") -- always check
+  // micros_source before displaying, since these two cases must be labeled
+  // differently in the UI (verified vs "Estimated").
   fiber_g?: number;
   sugar_g?: number;
   sodium_mg?: number;
@@ -33,6 +35,14 @@ export type FoodItem = {
   calcium_mg?: number;
   iron_mg?: number;
   micros?: MicroPanel;
+  // "db" = verified food-DB record; "ai_estimated" = the vision model's own
+  // best-guess nutrition estimate for an item that didn't match the DB (a
+  // photo can't show iron/vitamin C -- this is knowledge, not observation).
+  micros_source?: "db" | "ai_estimated";
+  // Per-unit micro panel (see backend/main.py's anchor_items) -- lets the
+  // client recompute `micros` correctly when the user edits portion count
+  // after the initial analyze response, instead of trusting a stale total.
+  micros_per_unit?: MicroPanel;
   // App-computed (see backend/build_db_v2.py's health_score()) -- NOT an
   // official rating, NOT medical advice. Descriptive of the food itself, so
   // this does not change when you adjust the count/portion.
@@ -42,6 +52,11 @@ export type FoodItem = {
 };
 
 export type Macros = { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+// Meal-level totals, as returned by /analyze*: full Macros plus an optional
+// summed micronutrient panel and a flag for whether ANY contributing item's
+// micros came from an AI estimate rather than a verified DB match (see
+// FoodItem.micros_source) -- the UI must surface this honestly.
+export type Totals = Macros & { micros?: MicroPanel; micros_estimated?: boolean };
 
 // A single clarifying question the photo couldn't resolve (thali flow). Each
 // option's `factor` multiplies its target item's per-unit kcal AND macros; the
@@ -69,9 +84,17 @@ export type AnalysisResult = {
   items: FoodItem[];
   calories_kcal: number;
   confidence: number;
-  totals: Macros;
+  totals: Totals;
   questions?: PortionQuestion[];
   usage?: Usage;
+  from_cache?: boolean;
+  // Present only when the scan successfully uploaded to the private
+  // meal-photos Storage bucket (backend/blob_storage.py) -- pass photo_path
+  // straight through into addServerLog() so the logged meal keeps its photo.
+  // photo_url is a short-lived signed URL, good for showing the photo right
+  // now; it is NOT meant to be cached/persisted verbatim (it expires).
+  photo_path?: string;
+  photo_url?: string;
 };
 
 // Thrown by analyzeImage when the free-scan trial is exhausted (HTTP 402).
@@ -253,6 +276,33 @@ export async function searchFoods(q: string, limit = 20): Promise<FoodSuggestion
   }
   const data = (await res.json()) as { results: FoodSuggestion[] };
   return data.results;
+}
+
+// Meal combinations: given the dishes on the plate, the typical accompaniments
+// ("Goes well with"). Same free local lookup as searchFoods -- no AI, no scan
+// credit. Pairings are a nice-to-have, so any failure resolves to an empty list
+// rather than surfacing an error and blocking the result screen.
+export type Pairing = FoodSuggestion & {
+  count?: number;
+  reason?: string;
+  pairs_with?: string;
+};
+
+export async function getCombos(dishes: string[], limit = 6): Promise<Pairing[]> {
+  const q = dishes.map((d) => d.trim()).filter(Boolean).join("|");
+  if (!q) return [];
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE}/foods/combos?dish=${encodeURIComponent(q)}&limit=${limit}`,
+      { headers: authHeaders() }
+    );
+  } catch {
+    return [];
+  }
+  if (!res.ok) return [];
+  const data = (await res.json()) as { pairings?: Pairing[] };
+  return data.pairings ?? [];
 }
 
 // Real "what to eat next" over the WHOLE food DB, ranked server-side against the
@@ -755,7 +805,7 @@ export async function getServerLogs(): Promise<{ logs: LogMap }> {
 export async function addServerLog(
   date: string,
   meal: Meal
-): Promise<{ ok: boolean; id: number; at: number }> {
+): Promise<{ ok: boolean; id: number; at: number; mealType?: string }> {
   return postAuth("/logs", {
     date,
     dish: meal.dish,
@@ -763,6 +813,10 @@ export async function addServerLog(
     protein_g: meal.protein_g,
     carbs_g: meal.carbs_g,
     fat_g: meal.fat_g,
+    meal_type: meal.mealType,
+    photo_path: meal.photoPath,
+    micros: meal.micros,
+    micros_estimated: meal.microsEstimated,
   });
 }
 
@@ -776,12 +830,50 @@ export async function deleteServerLog(id: number): Promise<{ ok: boolean }> {
   return (await res.json()) as { ok: boolean };
 }
 
+export async function getServerStreak(): Promise<{ current: number; best: number }> {
+  // Server-computed from a durable log_days table that survives both a
+  // reinstall and the 30-day log-retention purge -- see backend/progress.py's
+  // compute_streaks(). Preferred over the local computeStreak/bestStreak in
+  // storage.ts, which only ever sees whatever's in the last-30-days GET /logs
+  // response and would silently cap a longer real streak.
+  return getJson<{ current: number; best: number }>("/streak");
+}
+
+export async function getLogDays(days = 90): Promise<{ days: string[] }> {
+  // Durable logged-date list from log_days -- unlike GET /logs (capped at 30
+  // days), this stays honest for the Progress tab's 90-day/all-time
+  // consistency score and logging heatmap. Pass days<=0 for all-time.
+  return getJson<{ days: string[] }>(`/log-days?days=${days}`);
+}
+
+export type DaySummary = {
+  date: string;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  mealsCount: number;
+};
+
+export async function getSummary(days = 30): Promise<{ days: DaySummary[] }> {
+  return getJson<{ days: DaySummary[] }>(`/summary?days=${days}`);
+}
+
+function normalizeWeightEntry(entry: WeightEntry): WeightEntry {
+  // The backend stores Unix seconds; the app's local cache/history uses
+  // JavaScript milliseconds. Normalize here so every chart/date formatter sees
+  // one consistent unit regardless of where the row came from.
+  return entry.at < 1_000_000_000_000 ? { ...entry, at: entry.at * 1000 } : entry;
+}
+
 export async function getServerWeights(): Promise<{ weights: WeightEntry[] }> {
-  return getJson<{ weights: WeightEntry[] }>("/weights");
+  const data = await getJson<{ weights: WeightEntry[] }>("/weights");
+  return { weights: data.weights.map(normalizeWeightEntry) };
 }
 
 export async function addServerWeight(kg: number): Promise<{ weights: WeightEntry[] }> {
-  return postAuth("/weights", { kg });
+  const data = await postAuth<{ weights: WeightEntry[] }>("/weights", { kg });
+  return { weights: data.weights.map(normalizeWeightEntry) };
 }
 
 /* --------------------------- Water / habit tracking ----------------------- */

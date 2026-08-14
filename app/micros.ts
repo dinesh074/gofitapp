@@ -98,13 +98,15 @@ function displayValue(v: number): number {
 export function dayMicros(
   logs: LogMap,
   date: string,
-): { rows: MicroRow[]; trackedMeals: number; totalMeals: number } {
+): { rows: MicroRow[]; trackedMeals: number; totalMeals: number; estimatedMeals: number } {
   const meals = logs[date]?.meals ?? [];
   const totals: Record<string, number> = {};
   let trackedMeals = 0;
+  let estimatedMeals = 0;
   for (const m of meals) {
     if (m.micros && Object.keys(m.micros).length) {
       trackedMeals += 1;
+      if (m.microsEstimated) estimatedMeals += 1;
       for (const [k, v] of Object.entries(m.micros)) {
         if (typeof v === "number" && Number.isFinite(v)) totals[k] = (totals[k] ?? 0) + v;
       }
@@ -135,5 +137,5 @@ export function dayMicros(
     };
   });
 
-  return { rows, trackedMeals, totalMeals: meals.length };
+  return { rows, trackedMeals, totalMeals: meals.length, estimatedMeals };
 }

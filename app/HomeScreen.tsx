@@ -10,7 +10,8 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout } from "./api";
+import { useNavigation } from "@react-navigation/native";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -175,6 +176,7 @@ function MacroProgress({ label, have, goalV, color }: { label: string; have: num
 }
 
 export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger, onWeightLogged }: Props) {
+  const navigation = useNavigation<any>();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -198,6 +200,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [showCustomize, setShowCustomize] = useState(false);
   const [detailsIndex, setDetailsIndex] = useState<number | null>(null);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  // Suggested accompaniments for the current result ("Goes well with"). Indian
+  // dishes are rarely eaten alone, so we offer the usual sides as one-tap adds.
+  const [pairings, setPairings] = useState<Pairing[]>([]);
   // Thali clarification: selected option index per question id. Empty = every
   // question sits on its baseline (default) option, so totals match the AI's
   // first estimate until the user answers.
@@ -584,18 +589,22 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Single dispatcher for every option in AddFoodSheet -- one gate (auth +
   // paywall) shared across all four entry points instead of each button
   // repeating its own copy of the same two checks.
-  function handleAddOption(option: "camera" | "gallery" | "barcode" | "describe" | "voice" | "exercise" | "water" | "weight") {
+  function handleAddOption(option: "camera" | "search" | "gallery" | "barcode" | "describe" | "voice" | "exercise" | "water" | "weight") {
     setShowAddSheet(false);
     if (!account) {
       onRequireAuth();
       return;
     }
     if (option === "camera") {
-      void pick(true);
+      navigation.navigate("Scan", { mode: "camera" });
+      return;
+    }
+    if (option === "search") {
+      navigation.navigate("FoodSelector");
       return;
     }
     if (option === "gallery") {
-      void pick(false);
+      navigation.navigate("Scan", { mode: "gallery" });
       return;
     }
     if (option === "barcode") {
@@ -634,6 +643,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     const { items, learned } = applyPortionMemory(data.items, portionMemory.current);
     setResult({ ...data, items });
     setLearnedIdx(learned);
+    // Fetch "goes well with" sides for the recognised dishes. Non-blocking and
+    // best-effort: pairings are a bonus, never a reason to fail the result.
+    setPairings([]);
+    const names = items.map((it) => it.item).filter(Boolean);
+    if (names.length) {
+      getCombos(names)
+        .then((ps) => setPairings(ps))
+        .catch(() => setPairings([]));
+    }
     if (data.usage && account) {
       onAccountUpdate({
         ...account,
@@ -738,6 +756,16 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     setSwapIndex(null);
   }
 
+  // "Goes well with": append a suggested accompaniment as a new item (count from
+  // the combo default; the user still tweaks it with the stepper). Remove it
+  // from the suggestion row once added so it can't be added twice.
+  function addPairing(p: Pairing) {
+    setResult((prev) =>
+      prev ? { ...prev, items: [...prev.items, itemFromSuggestion(p, p.count ?? 1)] } : prev
+    );
+    setPairings((cur) => cur.filter((x) => x.key !== p.key));
+  }
+
   // Shared meal-logging path used by both "Add to today" and the quick re-log
   // list. Updates local state instantly, records the meal into recents, and
   // syncs to the server in the background.
@@ -791,6 +819,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     setResult(null);
     setPhoto(null);
     setLearnedIdx({});
+    setPairings([]);
   }
 
   // "Not my usual": revert an auto-applied learned portion back to the AI's
@@ -1018,7 +1047,13 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         ) : null;
       case "streak":
-        return <MonthStreak logs={logs} goalKcal={goal.kcal} />;
+        return (
+          <MonthStreak
+            logs={logs}
+            goalKcal={goal.kcal}
+            onDayPress={(dateKey) => navigation.navigate("DayLog", { dateKey })}
+          />
+        );
       case "micros":
         return AI_COACH_ENABLED ? (
           <View style={styles.microCard}>
@@ -1055,8 +1090,11 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                 })}
                 <Text style={styles.microFoot}>
                   From {micro.trackedMeals} of {micro.totalMeals} logged{" "}
-                  {micro.totalMeals === 1 ? "meal" : "meals"} matched to our food database. Reference
-                  intakes for a healthy adult — not medical advice.
+                  {micro.totalMeals === 1 ? "meal" : "meals"}
+                  {micro.estimatedMeals > 0
+                    ? ` (${micro.estimatedMeals} AI-estimated, not verified)`
+                    : " matched to our food database"}
+                  . Reference intakes for a healthy adult — not medical advice.
                 </Text>
               </>
             ) : (
@@ -1286,6 +1324,29 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                 </View>
               </View>
             ))}
+
+            {pairings.length > 0 && (
+              <View style={styles.pairBlock}>
+                <View style={styles.qHeaderRow}>
+                  <Icon name="plus" size={14} color={colors.green} />
+                  <Text style={styles.qHeader}>Goes well with</Text>
+                </View>
+                <Text style={styles.qSubtitle}>
+                  Indian meals are rarely eaten alone — tap to add the usual sides.
+                </Text>
+                <View style={styles.pairWrap}>
+                  {pairings.map((p) => (
+                    <Pressable key={p.key} style={styles.pairChip} onPress={() => addPairing(p)}>
+                      <Icon name="plus" size={13} color={colors.green} />
+                      <Text style={styles.pairChipText}>{p.name}</Text>
+                      <Text style={styles.pairChipKcal}>
+                        {Math.round((p.count ?? 1) * p.kcal_per_unit)} kcal
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
 
             {!!result.questions?.length && (
               <View style={styles.qBlock}>
@@ -1548,7 +1609,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingBottom: 26, paddingHorizontal: 20, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  header: { paddingTop: Platform.OS === "web" ? 20 : 56, paddingBottom: 26, paddingHorizontal: 20, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   streakPill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
   streakText: { color: "#fff", fontWeight: "800", fontSize: 15 },
@@ -1693,6 +1754,21 @@ const styles = StyleSheet.create({
   qHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   qHeader: { fontSize: 14, fontWeight: "900", color: colors.green },
   qSubtitle: { fontSize: 11.5, color: colors.mute, marginTop: -4, lineHeight: 16 },
+  pairBlock: { marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: colors.greenTint, gap: 10 },
+  pairWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  pairChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.green,
+  },
+  pairChipText: { fontSize: 13, fontWeight: "800", color: colors.ink },
+  pairChipKcal: { fontSize: 11, fontWeight: "700", color: colors.mute },
   qItem: { gap: 7 },
   qPrompt: { fontSize: 13, fontWeight: "700", color: colors.ink },
   qTarget: { fontSize: 12, fontWeight: "600", color: colors.mute },

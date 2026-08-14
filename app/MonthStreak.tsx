@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, elevation, radius } from "./theme";
 import { LogMap, monthStreak, DayState } from "./storage";
 import Icon from "./Icon";
@@ -21,7 +21,15 @@ function cellStyle(state: DayState) {
   }
 }
 
-export default function MonthStreak({ logs, goalKcal }: { logs: LogMap; goalKcal: number }) {
+export default function MonthStreak({
+  logs,
+  goalKcal,
+  onDayPress,
+}: {
+  logs: LogMap;
+  goalKcal: number;
+  onDayPress?: (dateKey: string) => void;
+}) {
   const m = monthStreak(logs, goalKcal);
   const todayK = new Date();
   const todayKey = `${todayK.getFullYear()}-${String(todayK.getMonth() + 1).padStart(2, "0")}-${String(todayK.getDate()).padStart(2, "0")}`;
@@ -30,9 +38,9 @@ export default function MonthStreak({ logs, goalKcal }: { logs: LogMap; goalKcal
     <View style={styles.card}>
       <View style={styles.head}>
         <View>
-          <Text style={styles.title}>{m.label}</Text>
+          <Text style={styles.title}>Last 30 days</Text>
           <Text style={styles.sub}>
-            {m.hits} {m.hits === 1 ? "day" : "days"} on target · {m.logged} logged
+            {m.hits} {m.hits === 1 ? "day" : "days"} on target · {m.logged} logged · {m.label}
           </Text>
         </View>
         <View style={styles.hitPill}>
@@ -56,11 +64,17 @@ export default function MonthStreak({ logs, goalKcal }: { logs: LogMap; goalKcal
         {m.cells.map((c) => {
           const s = cellStyle(c.state);
           const isToday = c.date === todayKey;
+          const tappable = !!onDayPress && c.meals > 0;
           return (
             <View key={c.date} style={styles.cell}>
-              <View style={[styles.dot, s.box, isToday && styles.today]}>
+              {c.monthLabel && <Text style={styles.monthLabel}>{c.monthLabel}</Text>}
+              <Pressable
+                disabled={!tappable}
+                onPress={() => onDayPress?.(c.date)}
+                style={[styles.dot, s.box, isToday && styles.today]}
+              >
                 <Text style={[styles.dayTxt, s.txt]}>{c.day}</Text>
-              </View>
+              </Pressable>
             </View>
           );
         })}
@@ -96,7 +110,8 @@ const styles = StyleSheet.create({
   weekRow: { flexDirection: "row", marginBottom: 4 },
   weekLabel: { width: CELL as any, textAlign: "center", color: colors.faint, fontSize: 11, fontWeight: "700" },
   grid: { flexDirection: "row", flexWrap: "wrap" },
-  cell: { width: CELL as any, aspectRatio: 1, alignItems: "center", justifyContent: "center", paddingVertical: 3 },
+  cell: { width: CELL as any, minHeight: 44, alignItems: "center", justifyContent: "flex-end", paddingVertical: 3 },
+  monthLabel: { fontSize: 9, fontWeight: "800", color: colors.faint, marginBottom: 1, textTransform: "uppercase" },
   dot: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   dayTxt: { fontSize: 12, fontWeight: "700" },
   today: { borderWidth: 2, borderColor: colors.green },

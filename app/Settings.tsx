@@ -28,11 +28,14 @@ import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
 import WheelPicker from "./WheelPicker";
 import PaceSlider from "./PaceSlider";
+import { colors } from "./theme";
 
-const GREEN = "#0B7A4B";
-const BG = "#F4F6F5";
-const INK = "#1D2521";
-const MUTE = "#8A8F8C";
+// Aliased to the shared design system (theme.ts) so this screen stays in sync
+// with the rest of the app instead of drifting with its own near-duplicate values.
+const GREEN = colors.green;
+const BG = colors.bg;
+const INK = colors.ink;
+const MUTE = colors.mute;
 
 type Props = {
   profile: Profile;
@@ -416,16 +419,16 @@ const styles = StyleSheet.create({
   reminderTitle: { color: INK, fontWeight: "800", fontSize: 15 },
   reminderSub: { color: MUTE, fontSize: 12, marginTop: 3, lineHeight: 17 },
 
-  dangerHeading: { color: "#C0392B", fontSize: 12, fontWeight: "800", letterSpacing: 0.5, marginTop: 12, marginBottom: 10, textTransform: "uppercase" },
-  dangerBtn: { backgroundColor: "#FDECEA", borderRadius: 14, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "#F5C6C0" },
-  dangerText: { color: "#C0392B", fontWeight: "800", fontSize: 15 },
-  confirmBox: { backgroundColor: "#FDECEA", borderRadius: 14, padding: 16, borderWidth: 1, borderColor: "#F5C6C0" },
+  dangerHeading: { color: colors.red, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, marginTop: 12, marginBottom: 10, textTransform: "uppercase" },
+  dangerBtn: { backgroundColor: colors.redTint, borderRadius: 14, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "#F5C6C0" },
+  dangerText: { color: colors.red, fontWeight: "800", fontSize: 15 },
+  confirmBox: { backgroundColor: colors.redTint, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: "#F5C6C0" },
   confirmText: { color: "#922B21", fontSize: 13, lineHeight: 19, marginBottom: 14 },
   confirmRow: { flexDirection: "row", gap: 10 },
   confirmBtn: { flex: 1, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
   confirmCancel: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#E2E8E4" },
   confirmCancelText: { color: INK, fontWeight: "700" },
-  confirmDelete: { backgroundColor: "#C0392B" },
+  confirmDelete: { backgroundColor: colors.red },
   confirmDeleteText: { color: "#fff", fontWeight: "800" },
 
   footerNote: { color: MUTE, fontSize: 12, textAlign: "center", marginTop: 24 },

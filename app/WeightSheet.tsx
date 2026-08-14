@@ -32,11 +32,11 @@ export default function WeightSheet({ visible, initialKg, onClose, onLogged, onR
     setBusy(true);
     try {
       await addWeight(entry);
+      await addServerWeight(entry);
       onLogged(entry);
-      addServerWeight(entry).catch((e) => {
-        if (e instanceof AuthRequiredError) onRequireAuth?.();
-      });
       onClose();
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth?.();
     } finally {
       setBusy(false);
     }

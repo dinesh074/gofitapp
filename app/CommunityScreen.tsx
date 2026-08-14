@@ -40,6 +40,9 @@ type Props = {
   profile: Profile;
   logs: LogMap;
   account: Account | null;
+  // Server-computed current streak (durable, cross-device) when available;
+  // falls back to the local logs-derived value if not yet loaded.
+  streak?: number;
   onRequireAuth: () => void;
 };
 
@@ -64,7 +67,7 @@ const FALLBACK_CHALLENGES: ApiChallenge[] = [
   { id: "c3", emoji: "🚫", title: "No-Fried Fortnight", desc: "Skip deep-fried for 14 days", progress: 0.25, daysLeft: 10 },
 ];
 
-export default function CommunityScreen({ profile, logs, account, onRequireAuth }: Props) {
+export default function CommunityScreen({ profile, logs, account, streak, onRequireAuth }: Props) {
   const [view, setView] = useState<"feed" | "ranks">("feed");
   const [groups, setGroups] = useState<ApiGroup[]>(FALLBACK_GROUPS);
   const [board, setBoard] = useState<ApiLeader[]>(FALLBACK_PEERS);
@@ -76,7 +79,7 @@ export default function CommunityScreen({ profile, logs, account, onRequireAuth 
   const [showNotifs, setShowNotifs] = useState(false);
   const [openAuthor, setOpenAuthor] = useState<string | null>(null);
 
-  const myStreak = useMemo(() => computeStreak(logs), [logs]);
+  const myStreak = useMemo(() => streak ?? computeStreak(logs), [streak, logs]);
   const myKcal = dayTotal(logs);
   const myName = account?.name?.trim() || profile.name?.trim() || "You";
   const myAvatar = account?.avatar || "🫵";

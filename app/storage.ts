@@ -1,6 +1,42 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Profile } from "./nutrition";
 
+// The six real-world eating occasions (not just "meal"/"snack") the user
+// actually wants to see distinguished on the calendar/day view -- inferred
+// automatically from local clock time at log time (see inferMealType), but
+// always overridable per-meal later if the guess is wrong.
+export const MEAL_TYPES = [
+  "breakfast",
+  "morning_snack",
+  "lunch",
+  "afternoon_snack",
+  "evening_snack",
+  "dinner",
+] as const;
+export type MealType = (typeof MEAL_TYPES)[number];
+
+export const MEAL_TYPE_LABEL: Record<MealType, string> = {
+  breakfast: "Breakfast",
+  morning_snack: "Morning snack",
+  lunch: "Lunch",
+  afternoon_snack: "Afternoon snack",
+  evening_snack: "Evening snack",
+  dinner: "Dinner",
+};
+
+// Buckets by *local* clock hour -- deliberately client-side (not inferred on
+// the server) because the server has no idea what timezone the user is
+// actually in; this is computed once, at log time, from `new Date()`.
+export function inferMealType(atMs: number): MealType {
+  const h = new Date(atMs).getHours();
+  if (h >= 5 && h < 10) return "breakfast";
+  if (h >= 10 && h < 12) return "morning_snack";
+  if (h >= 12 && h < 15) return "lunch";
+  if (h >= 15 && h < 18) return "afternoon_snack";
+  if (h >= 18 && h < 20) return "evening_snack";
+  return "dinner";
+}
+
 export type Meal = {
   dish: string;
   kcal: number;
@@ -13,10 +49,31 @@ export type Meal = {
   // sync call hasn't resolved yet).
   id?: number;
   // Summed micronutrients for this meal (fibre, iron, sodium, etc.), captured
-  // at log time from any DB-matched items. Only present when at least one item
-  // carried micro data; a pure-AI photo estimate logs without it. Local-only --
-  // powers the daily micronutrient view (see micros.ts), not synced.
+  // at log time. Comes from verified DB-matched items when available; when an
+  // item couldn't be matched to the food DB, the vision model's own best-guess
+  // estimate is used instead (see microsEstimated below) -- either way this is
+  // now synced to the server (meal_logs.micros, JSON) so it survives reloads/
+  // other devices -- powers the daily + per-meal micronutrient views (see
+  // micros.ts).
   micros?: Record<string, number>;
+  // True when ANY item contributing to `micros` came from the AI's own
+  // estimate rather than a verified food-DB record (backend/main.py's
+  // `micros_source`/`totals.micros_estimated`). The UI MUST show this
+  // distinctly ("Estimated" badge/note) rather than presenting AI guesses as
+  // if they were verified lab data -- honesty matters here (see micros.ts).
+  microsEstimated?: boolean;
+  // Which eating occasion this was -- see inferMealType(). Always set for
+  // meals logged after this feature shipped; older synced rows fall back to
+  // the server's own best-effort guess (backend/progress.py's _infer_meal_type).
+  mealType?: MealType;
+  // Storage object path for the scanned photo (backend/blob_storage.py's
+  // private meal-photos bucket) -- only present for photo-scanned meals, and
+  // only until the server's 7-day photo-retention window clears it.
+  photoPath?: string;
+  // Short-lived signed URL to actually load the photo, refreshed every time
+  // the server returns this meal (see /logs) -- never persisted verbatim
+  // since Supabase signed URLs expire.
+  photoUrl?: string;
 };
 export type DayLog = { date: string; meals: Meal[] };
 export type LogMap = Record<string, DayLog>;
@@ -475,35 +532,38 @@ export type MonthCell = {
   kcal: number;
   meals: number;
   state: DayState;
+  monthLabel?: string; // "Aug" -- set on the 1st of each month a window spans,
+  // so a rolling window crossing a month boundary can still label itself.
 };
 
 export type MonthStreak = {
-  year: number;
-  month: number; // 0..11
-  label: string; // e.g. "August 2026"
-  leading: number; // blank cells before day 1 (weekday of the 1st)
+  label: string; // e.g. "Last 30 days" (or "Jul 16 - Aug 14" style range)
+  leading: number; // blank cells before the first cell (weekday of day 1 of window)
   cells: MonthCell[];
-  hits: number; // days on target this month
-  logged: number; // days with any meal this month
+  hits: number; // days on target within the window
+  logged: number; // days with any meal within the window
 };
 
-// Builds the current month's calendar with a per-day state relative to `goalKcal`.
-// A day is "hit" when meals were logged and total kcal stayed within a healthy
-// band of the goal (>= 55% and <= 105%). Logged-but-over is "over", logged-but
-// well-under is "under", nothing logged (in the past/today) is "empty".
-export function monthStreak(logs: LogMap, goalKcal: number, ref = new Date()): MonthStreak {
-  const year = ref.getFullYear();
-  const month = ref.getMonth();
-  const MO = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const first = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const todayK = todayKey();
+// Builds a ROLLING window ending today (NOT the calendar month) with a
+// per-day state relative to `goalKcal`. Deliberately not "this calendar
+// month" -- on day 1-27 of any month that would show mostly blank "future"
+// cells for the rest of the month and completely omit real history from the
+// previous month, which is exactly backwards for a habit-streak view. A day
+// is "hit" when meals were logged and total kcal stayed within a healthy band
+// of the goal (>= 55% and <= 105%). Logged-but-over is "over", logged-but
+// well-under is "under", nothing logged (today or in the past) is "empty".
+export function monthStreak(logs: LogMap, goalKcal: number, ref = new Date(), days = 30): MonthStreak {
+  const todayK = todayKey(ref);
+  const start = new Date(ref);
+  start.setDate(start.getDate() - (days - 1));
 
   const cells: MonthCell[] = [];
   let hits = 0;
   let logged = 0;
-  for (let day = 1; day <= daysInMonth; day++) {
-    const d = new Date(year, month, day);
+  const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
     const key = todayKey(d);
     const kcal = dayTotal(logs, key);
     const meals = mealCount(logs, key);
@@ -522,14 +582,25 @@ export function monthStreak(logs: LogMap, goalKcal: number, ref = new Date()): M
         hits += 1;
       }
     }
-    cells.push({ date: key, day, weekday: d.getDay(), kcal, meals, state });
+    cells.push({
+      date: key,
+      day: d.getDate(),
+      weekday: d.getDay(),
+      kcal,
+      meals,
+      state,
+      // Label the 1st of the month (and the very first cell, so a window
+      // starting mid-month still shows what month it's in) with "Mon" so the
+      // grid reads correctly across a month boundary at a glance.
+      monthLabel: d.getDate() === 1 || i === 0 ? MO[d.getMonth()] : undefined,
+    });
   }
 
+  const startLabel = `${MO[start.getMonth()]} ${start.getDate()}`;
+  const endLabel = `${MO[ref.getMonth()]} ${ref.getDate()}`;
   return {
-    year,
-    month,
-    label: `${MO[month]} ${year}`,
-    leading: first.getDay(),
+    label: `${startLabel} – ${endLabel}`,
+    leading: cells[0].weekday,
     cells,
     hits,
     logged,
@@ -547,3 +618,93 @@ export function prettyDate(dateKey: string): string {
   const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${WD[d.getDay()]}, ${d.getDate()} ${MO[d.getMonth()]}`;
 }
+
+// --- Progress tab helpers ---------------------------------------------------
+// Real weigh-ins (weight_logs, server-durable, never retention-purged) are
+// noisy day to day -- water, food in the stomach, time of day. A trailing
+// moving average is what actually shows the TREND rather than treating every
+// bounce as real progress/regress. Returns one smoothed point per input entry
+// (same length/order), so it can be overlaid on the same time axis as the
+// actual points.
+export function movingAverageWeights(sorted: WeightEntry[], window = 5): number[] {
+  return sorted.map((_, i) => {
+    const from = Math.max(0, i - window + 1);
+    const slice = sorted.slice(from, i + 1);
+    return slice.reduce((s, w) => s + w.kg, 0) / slice.length;
+  });
+}
+
+export type GoalProjection = {
+  slopeKgPerDay: number; // negative = losing, positive = gaining
+  etaDate: string | null; // ISO date the trend reaches target, or null if flat/diverging
+  daysToGo: number | null;
+  onTrack: boolean; // slope direction actually points toward the target
+};
+
+// Linear fit (least squares) over the last `windowDays` of REAL weigh-ins to
+// project an ETA to the profile's target weight -- "on track for 68kg by Oct
+// 14" style. Returns null when there isn't enough real data (need >=2 entries
+// spanning >=2 distinct days) to fit a trend from, rather than guessing.
+export function projectGoalWeight(
+  weights: WeightEntry[],
+  targetKg: number,
+  windowDays = 14,
+): GoalProjection | null {
+  const sorted = [...weights].sort((a, b) => a.at - b.at);
+  const cutoff = Date.now() - windowDays * 86400000;
+  const recent = sorted.filter((w) => w.at >= cutoff);
+  const pts = recent.length >= 2 ? recent : sorted.slice(-Math.max(2, recent.length));
+  if (pts.length < 2) return null;
+  const t0 = pts[0].at;
+  const days = pts.map((w) => (w.at - t0) / 86400000);
+  const kgs = pts.map((w) => w.kg);
+  const n = days.length;
+  const sumX = days.reduce((s, x) => s + x, 0);
+  const sumY = kgs.reduce((s, y) => s + y, 0);
+  const sumXY = days.reduce((s, x, i) => s + x * kgs[i], 0);
+  const sumXX = days.reduce((s, x) => s + x * x, 0);
+  const denom = n * sumXX - sumX * sumX;
+  if (denom === 0) return { slopeKgPerDay: 0, etaDate: null, daysToGo: null, onTrack: false };
+  const slope = (n * sumXY - sumX * sumY) / denom; // kg per day
+  const intercept = (sumY - slope * sumX) / n;
+  const lastDay = days[days.length - 1];
+  const currentTrendKg = intercept + slope * lastDay;
+  const delta = targetKg - currentTrendKg;
+  const onTrack = Math.abs(slope) > 1e-6 && Math.sign(slope) === Math.sign(delta);
+  if (!onTrack) {
+    return { slopeKgPerDay: Math.round(slope * 1000) / 1000, etaDate: null, daysToGo: null, onTrack: false };
+  }
+  const daysToGo = Math.round(delta / slope);
+  const eta = new Date(t0 + (lastDay + daysToGo) * 86400000);
+  return {
+    slopeKgPerDay: Math.round(slope * 1000) / 1000,
+    etaDate: eta.toISOString().slice(0, 10),
+    daysToGo,
+    onTrack: true,
+  };
+}
+
+// Consistency score: % of calendar days in the window that have a durable
+// log_days entry (see backend/progress.py) -- honest for 90-day/all-time
+// windows the 30-day meal_logs retention would otherwise silently clip. If
+// `windowDays` is null ("all time"), the denominator is the number of days
+// since the account's first-ever logged day (not since install).
+export function consistencyScore(
+  loggedDates: string[],
+  windowDays: number | null,
+): { pct: number; loggedCount: number; totalDays: number } {
+  if (loggedDates.length === 0) return { pct: 0, loggedCount: 0, totalDays: windowDays ?? 0 };
+  const sorted = [...loggedDates].sort();
+  const today = todayKey();
+  let totalDays: number;
+  if (windowDays !== null) {
+    totalDays = windowDays;
+  } else {
+    const first = new Date(sorted[0] + "T00:00:00");
+    const last = new Date(today + "T00:00:00");
+    totalDays = Math.max(1, Math.round((last.getTime() - first.getTime()) / 86400000) + 1);
+  }
+  const loggedCount = sorted.length;
+  return { pct: totalDays > 0 ? Math.round((loggedCount / totalDays) * 100) : 0, loggedCount, totalDays };
+}
+

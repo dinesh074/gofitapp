@@ -2,7 +2,7 @@
   "expo": {
     "name": "gofit.today",
     "slug": "gofit-today",
-    "owner": "gofit_today",
+    "owner": "gofittodays-team",
     "version": "1.0.0",
     "scheme": "gofit",
     "orientation": "portrait",
@@ -72,7 +72,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "6fda3d0b-4acb-4d4d-bc7d-0b2d528da4d9"
+        "projectId": "d78fcfb6-531a-4a77-b770-169e049a190a"
       }
     }
   }

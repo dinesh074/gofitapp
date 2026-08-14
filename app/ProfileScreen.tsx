@@ -14,7 +14,7 @@ import {
   resolveGoalPace,
 } from "./nutrition";
 import { Account } from "./auth";
-import { bestStreak, computeStreak, LogMap } from "./storage";
+import { bestStreak, LogMap } from "./storage";
 import { colors, radius, shadow, gradients } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
@@ -27,6 +27,11 @@ type Props = {
   goal: GoalTargets;
   logs: LogMap;
   account: Account | null;
+  // Server-computed when available (durable, not capped by the 30-day
+  // log-retention window); bestStreak is null until that fetch resolves, in
+  // which case we fall back to the local logs-derived value.
+  streak: number;
+  bestStreak: number | null;
   onEditProfile: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -62,6 +67,8 @@ export default function ProfileScreen({
   goal,
   logs,
   account,
+  streak,
+  bestStreak: serverBestStreak,
   onEditProfile,
   onSignIn,
   onSignOut,
@@ -69,8 +76,8 @@ export default function ProfileScreen({
 }: Props) {
   const [showFeedback, setShowFeedback] = useState(false);
   const bmi = useMemo(() => computeBmi(profile.heightCm, profile.weightKg), [profile.heightCm, profile.weightKg]);
-  const streak = useMemo(() => computeStreak(logs), [logs]);
-  const best = useMemo(() => bestStreak(logs), [logs]);
+  const localBest = useMemo(() => bestStreak(logs), [logs]);
+  const best = serverBestStreak ?? localBest;
   const totalMeals = Object.values(logs).reduce((s, d) => s + d.meals.length, 0);
   const name = profile.name?.trim() || "You";
   const initials = name
