@@ -12,6 +12,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { analyzeBarcode, AnalysisResult, AuthRequiredError, BarcodeNotFoundError } from "./api";
 import { canPhotoScan, pickBarcodeImage, decodeBarcodeFromUri, BarcodeDecodeError } from "./barcodeDecode";
+import LiveBarcodeVideo from "./LiveBarcodeVideo";
 import { colors, radius, elevation } from "./theme";
 import PressableScale from "./PressableScale";
 import Icon from "./Icon";
@@ -43,11 +44,18 @@ export default function BarcodeScanner({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  // Web only: whether the live webcam scanner is running. Starting the camera
+  // requires a user gesture (and a permission prompt), so it's opt-in via a
+  // button rather than auto-started.
+  const [liveScan, setLiveScan] = useState(false);
   // Guards against the camera firing onBarcodeScanned dozens of times per
   // second for the same code while a lookup is already in flight.
   const lockedRef = useRef(false);
 
   const canUseCamera = Platform.OS !== "web";
+  // Live webcam scanning via getUserMedia + ZXing is a web capability; on web
+  // it's the real "point your camera" scanner (canUseCamera is false on web).
+  const canLiveScan = Platform.OS === "web";
 
   useEffect(() => {
     if (visible && canUseCamera && permission && !permission.granted && permission.canAskAgain) {
@@ -61,6 +69,7 @@ export default function BarcodeScanner({
     setBusy(false);
     setError(null);
     setNotFound(false);
+    setLiveScan(false);
   }
 
   function close() {
@@ -129,6 +138,13 @@ export default function BarcodeScanner({
     }
   }
 
+  // A live read from the web webcam scanner. Same guard as the native camera.
+  function onLiveDetected(code: string) {
+    if (lockedRef.current || busy) return;
+    lockedRef.current = true;
+    void lookup(code);
+  }
+
   function useAsPhoto() {
     close();
     onFallbackToPhoto();
@@ -175,15 +191,42 @@ export default function BarcodeScanner({
             </View>
           )}
 
-          {/* Scan from a still photo — the reliable path on web, and a fallback
-              on native. Decodes the barcode locally in the browser. */}
-          {canPhotoScan && (
+          {/* Web live webcam scanner — the real "point your camera" path. */}
+          {canLiveScan && liveScan && !notFound && (
+            <View style={styles.cameraWrap}>
+              <LiveBarcodeVideo
+                onDetected={onLiveDetected}
+                onError={(m) => {
+                  setError(m);
+                  setLiveScan(false);
+                }}
+              />
+              <View style={styles.reticle} pointerEvents="none" />
+            </View>
+          )}
+
+          {canLiveScan && !liveScan && !notFound && (
             <PressableScale
               style={[styles.photoBtn, busy && styles.lookupBtnDisabled]}
+              onPress={() => {
+                setError(null);
+                setLiveScan(true);
+              }}
+            >
+              <Icon name="barcode" size={16} color="#fff" />
+              <Text style={styles.photoBtnText}>Scan with camera</Text>
+            </PressableScale>
+          )}
+
+          {/* Scan from a still photo — a reliable fallback on web, and a
+              fallback on native. Decodes the barcode locally in the browser. */}
+          {canPhotoScan && (
+            <PressableScale
+              style={[styles.photoBtnAlt, busy && styles.lookupBtnDisabled]}
               onPress={scanFromPhoto}
             >
-              <Icon name="camera" size={16} color="#fff" />
-              <Text style={styles.photoBtnText}>Scan a barcode from a photo</Text>
+              <Icon name="camera" size={16} color={colors.green} />
+              <Text style={styles.photoBtnAltText}>Scan a barcode from a photo</Text>
             </PressableScale>
           )}
 
@@ -300,6 +343,19 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   photoBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  photoBtnAlt: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.green,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    marginBottom: 14,
+  },
+  photoBtnAltText: { color: colors.green, fontWeight: "700", fontSize: 14 },
   manualRow: { flexDirection: "row", gap: 8 },
   input: {
     flex: 1,
