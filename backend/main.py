@@ -1021,7 +1021,17 @@ _NUTRI_NUTRIENT_MAP = {
 def _nutri_food_suggestions_batch(scored_ids: list[tuple[str, str]]) -> list[dict]:
     """Batched version of _nutri_food_suggestion() for the whole result page
     in TWO queries total (nutrients + food flags), not two queries PER
-    result. See nutrition_engine.get_foods_nutrients_bulk/get_foods_bulk."""
+    result. See nutrition_engine.get_foods_nutrients_bulk/get_foods_bulk.
+
+    A food_id with NO real energy_kcal row (e.g. SRC_FOOD_O064 "MUTTON,
+    muscle" -- a raw-ingredient reference row the source data never actually
+    populated) is DROPPED from the page entirely rather than shown with a
+    fabricated 0 kcal. The client treats kcal_per_unit as a trusted number
+    and multiplies it straight into a logged meal's total (kcal_total =
+    count * kcal_per_unit) -- silently returning 0 would let a user log a
+    "free" mutton dish and undercount their day. This mirrors the same
+    "never guess a serving's calories" rule _load_nutri_food_db() already
+    applies to /foods/recommend."""
     food_ids = [fid for fid, _ in scored_ids]
     foods_by_id, nutrients_by_food = nutrition_engine.get_foods_with_nutrients_bulk(food_ids)
     out = []
@@ -1036,10 +1046,15 @@ def _nutri_food_suggestions_batch(scored_ids: list[tuple[str, str]]) -> list[dic
             "fat_g_per_unit": 0,
             "_source": "nutri_foods",
         }
+        has_energy = False
         for n in nutrients_by_food.get(food_id, []):
             field = _NUTRI_NUTRIENT_MAP.get(n["nutrient_code"])
             if field and n["amount"] is not None:
                 entry[field] = n["amount"]
+                if n["nutrient_code"] == "energy_kcal":
+                    has_energy = True
+        if not has_energy:
+            continue  # no real energy value on record -- never guess/show 0
         food = foods_by_id.get(food_id)
         if food:
             for flag in ("vegetarian", "vegan", "eggetarian", "jain"):
@@ -1120,8 +1135,11 @@ def foods_search(q: str, request: Request, limit: int = 20):
         if s > 0:
             scored.append((s, -len(r["canonical_name"]), r["food_id"], r["canonical_name"]))
     scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    top = scored[:limit]
-    results = _nutri_food_suggestions_batch([(fid, name) for _, _, fid, name in top])
+    # Over-fetch a small buffer beyond `limit` -- _nutri_food_suggestions_batch
+    # drops any food with no real energy_kcal on record, so without this the
+    # page could come back short even though enough valid matches existed.
+    top = scored[: limit + 10]
+    results = _nutri_food_suggestions_batch([(fid, name) for _, _, fid, name in top])[:limit]
     if results:
         return {"results": results}
     # Fall back to the old FOOD_DB only if the new graph has zero matches
