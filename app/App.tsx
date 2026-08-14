@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
@@ -9,7 +9,7 @@ import { RootNavigator } from "./RootTabs";
 import { AppProvider } from "./AppContext";
 import AuthGate from "./AuthGate";
 import CookieBanner from "./CookieBanner";
-import { computeGoal, isCompleteProfile, Profile } from "./nutrition";
+import { computeGoal, isCompleteProfile, normalizeProfile, Profile } from "./nutrition";
 import { colors } from "./theme";
 import {
   AuthState,
@@ -70,11 +70,17 @@ function AppInner() {
   // onboarding screen (local data was just wiped) before their server profile
   // arrives.
   const [hydrating, setHydrating] = useState(false);
+  const latestProfileRef = useRef<Profile | null>(null);
+
+  useEffect(() => {
+    latestProfileRef.current = profile;
+  }, [profile]);
 
   useEffect(() => {
     Promise.all([loadLogs(), loadProfile(), loadAuth()]).then(([l, p, a]) => {
+      const localProfile = normalizeProfile(p);
       setLogs(l);
-      setProfile(p);
+      setProfile(localProfile);
       setAuth(a);
       setBooted(true);
       // Already signed in from a previous session → set up notifications now.
@@ -92,7 +98,7 @@ function AppInner() {
           .catch((e) => {
             if (e instanceof AuthRequiredError) void requireAuth();
           });
-        void syncProfileAndLogs(p, l, a.account.id);
+        void syncProfileAndLogs(localProfile, l, a.account.id);
       }
     });
   }, []);
@@ -127,13 +133,16 @@ function AppInner() {
     try {
       const { profile: serverProfile } = await getProfile();
       if (isCompleteProfile(serverProfile)) {
-        setProfile(serverProfile);
-        void saveProfile(serverProfile);
+        if (shouldApplyServerProfile(serverProfile, localProfile)) {
+          cacheProfile(serverProfile);
+        }
       } else if (localProfile && trusted) {
-        await putProfile(localProfile).catch(() => {});
+        const { profile: savedProfile } = await putProfile(localProfile);
+        cacheProfile(savedProfile);
       } else if (foreign) {
         // Someone else's profile is cached and this account has none of its own.
         // Treat this account as un-onboarded rather than showing stale data.
+        latestProfileRef.current = null;
         setProfile(null);
         void clearProfile();
       }
@@ -185,29 +194,64 @@ function AppInner() {
   const streak = serverStreak ? serverStreak.current : localStreak;
   const bestStreakValue = serverStreak ? serverStreak.best : null;
 
+  function cacheProfile(next: Profile, optimistic = false) {
+    const normalized = normalizeProfile(
+      optimistic ? { ...next, updatedAt: Math.max(next.updatedAt ?? 0, Date.now() / 1000) } : next
+    )!;
+    latestProfileRef.current = normalized;
+    setProfile(normalized);
+    void saveProfile(normalized);
+    return normalized;
+  }
+
+  function shouldApplyServerProfile(serverProfile: Profile, localProfile: Profile | null) {
+    const currentLocal = latestProfileRef.current ?? localProfile;
+    if (!currentLocal) return true;
+    if (typeof serverProfile.updatedAt === "number" && typeof currentLocal.updatedAt === "number") {
+      return serverProfile.updatedAt >= currentLocal.updatedAt;
+    }
+    return true;
+  }
+
+  function profileErrorMessage(e: unknown): string {
+    return e instanceof Error ? e.message : "Please try again.";
+  }
+
+  async function persistProfile(
+    next: Profile,
+    title: string,
+    options?: { closeSettings?: boolean; rollbackProfile?: Profile | null }
+  ) {
+    try {
+      const { profile: savedProfile } = await putProfile(next);
+      cacheProfile(savedProfile);
+      if (auth) void saveCacheOwner(auth.account.id);
+      if (options?.closeSettings) setShowSettings(false);
+      return true;
+    } catch (e) {
+      if (options?.rollbackProfile) cacheProfile(options.rollbackProfile);
+      if (e instanceof AuthRequiredError) {
+        void requireAuth();
+        return false;
+      }
+      Alert.alert(title, profileErrorMessage(e));
+      return false;
+    }
+  }
+
   function completeOnboarding(p: Profile) {
-    setProfile(p);
-    saveProfile(p);
-    if (auth) void saveCacheOwner(auth.account.id);
-    putProfile(p).catch((e) => {
-      if (e instanceof AuthRequiredError) void requireAuth();
-    });
+    void persistProfile(p, "Couldn't save your profile");
   }
 
   function saveSettings(p: Profile) {
-    setProfile(p);
-    saveProfile(p);
-    if (auth) void saveCacheOwner(auth.account.id);
-    setShowSettings(false);
-    putProfile(p).catch((e) => {
-      if (e instanceof AuthRequiredError) void requireAuth();
-    });
+    void persistProfile(p, "Couldn't update your profile", { closeSettings: true });
   }
 
   async function resetAll() {
     await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearAuth(), clearCacheOwner()]);
     setLogs({});
     setServerStreak(null);
+    latestProfileRef.current = null;
     setProfile(null);
     setAuth(null);
     setShowSettings(false);
@@ -223,6 +267,7 @@ function AppInner() {
     // pulled from its own server rows below; a brand-new account ends up with
     // no profile → the onboarding gate shows as intended.
     await Promise.all([clearProfile(), clearLogs(), clearExtras(), clearCacheOwner()]);
+    latestProfileRef.current = null;
     setProfile(null);
     setLogs({});
     setServerStreak(null);
@@ -261,6 +306,7 @@ function AppInner() {
     // profile and logs (local storage keys are not per-account).
     await Promise.all([clearAuth(), clearProfile(), clearLogs(), clearExtras(), clearCacheOwner()]);
     setAuth(null);
+    latestProfileRef.current = null;
     setProfile(null);
     setLogs({});
     setServerStreak(null);
@@ -321,20 +367,16 @@ function AppInner() {
   }
 
   function onWeightLogged(kg: number) {
-    setProfile((prev) => {
-      if (!prev) return prev;
-      const next = { ...prev, weightKg: kg };
-      saveProfile(next);
-      // Persist the new current weight to the account's SERVER profile too.
-      // Without this, BMR/TDEE/targets recompute now but silently REVERT on the
-      // next reload: syncProfileAndLogs pulls getProfile(), which would still
-      // return the old onboarding weight, overwriting this change. Logging a
-      // weight must move the profile the metabolism is computed from.
-      putProfile(next).catch((e) => {
-        if (e instanceof AuthRequiredError) void requireAuth();
-      });
-      return next;
-    });
+    const prev = latestProfileRef.current;
+    if (!prev) return;
+    const next = { ...prev, weightKg: kg };
+    cacheProfile(next, true);
+    // Persist the new current weight to the account's SERVER profile too.
+    // Without this, BMR/TDEE/targets recompute now but silently REVERT on the
+    // next reload: syncProfileAndLogs pulls getProfile(), which would still
+    // return the old onboarding weight, overwriting this change. Logging a
+    // weight must move the profile the metabolism is computed from.
+    void persistProfile(next, "Couldn't update your weight", { rollbackProfile: prev });
   }
 
   if (!booted) {

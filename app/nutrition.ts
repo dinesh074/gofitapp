@@ -43,6 +43,7 @@ export type Profile = {
   goalPace?: GoalPace;
   goalKind?: GoalKind;
   createdAt: number;
+  updatedAt?: number;
 };
 
 export type GoalTargets = {
@@ -134,15 +135,51 @@ const KCAL_PER_KG = 7700;
 // benefit from a higher intake (muscle growth / muscle retention in a deficit).
 const PROTEIN_G_PER_KG: Record<Goal, number> = { lose: 1.8, maintain: 1.6, gain: 2.0 };
 
+const GOAL_PACE_ALIASES: Record<string, GoalPace> = {
+  relaxed: "relaxed",
+  recommended: "recommended",
+  ambitious: "ambitious",
+  moderate: "recommended",
+};
+
+const GOAL_KIND_ALIASES: Record<string, GoalKind> = {
+  loss: "loss",
+  lose_weight: "loss",
+  muscle: "muscle",
+  gain_weight: "muscle",
+  maintain: "maintain",
+  maintain_weight: "maintain",
+  fitness: "fitness",
+  general_fitness: "fitness",
+};
+
+export function normalizeGoalPace(value: unknown): GoalPace | undefined {
+  return typeof value === "string" ? GOAL_PACE_ALIASES[value] : undefined;
+}
+
+export function normalizeGoalKind(value: unknown): GoalKind | undefined {
+  return typeof value === "string" ? GOAL_KIND_ALIASES[value] : undefined;
+}
+
 export function resolveGoalPace(p: Pick<Profile, "goalPace">): GoalPace {
-  return p.goalPace ?? "recommended";
+  return normalizeGoalPace(p.goalPace) ?? "recommended";
 }
 
 // Derive the 4-way UI goal framing from the stored profile. If goalKind was
 // saved use it; otherwise infer from the 3-way engine goal.
 export function resolveGoalKind(p: Pick<Profile, "goal" | "goalKind">): GoalKind {
-  if (p.goalKind) return p.goalKind;
+  const goalKind = normalizeGoalKind(p.goalKind);
+  if (goalKind) return goalKind;
   return p.goal === "lose" ? "loss" : p.goal === "gain" ? "muscle" : "maintain";
+}
+
+export function normalizeProfile(p: Profile | null | undefined): Profile | null {
+  if (!p) return null;
+  return {
+    ...p,
+    goalPace: resolveGoalPace(p),
+    goalKind: resolveGoalKind(p),
+  };
 }
 
 // The daily calorie delta (signed) implied by the goal + pace. 0 for maintain.

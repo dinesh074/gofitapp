@@ -15,6 +15,7 @@ import {
   Diet,
   Gender,
   Goal,
+  normalizeProfile,
   resolveGoalKind,
   resolveGoalPace,
   isCompleteProfile,
@@ -72,7 +73,7 @@ const ACTIVITY_SHORT: Record<Activity, string> = {
 };
 
 export default function Settings({ profile, onSave, onClose, onResetAll }: Props) {
-  const [d, setD] = useState<Profile>({ ...profile });
+  const [d, setD] = useState<Profile>({ ...normalizeProfile(profile)! });
   const [confirmReset, setConfirmReset] = useState(false);
   const [reminders, setReminders] = useState(true);
   // Set once the user changes any field, so an in-flight server refresh (below)
@@ -94,7 +95,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
     let cancelled = false;
     getProfile()
       .then(({ profile: sp }) => {
-        if (!cancelled && !edited.current && isCompleteProfile(sp)) setD({ ...sp });
+        if (!cancelled && !edited.current && isCompleteProfile(sp)) setD({ ...normalizeProfile(sp)! });
       })
       .catch(() => {});
     return () => {
@@ -127,7 +128,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
   }
 
   function save() {
-    onSave({ ...d });
+    onSave(normalizeProfile({ ...d })!);
   }
 
   return (

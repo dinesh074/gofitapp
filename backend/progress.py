@@ -379,6 +379,14 @@ def _row_to_profile(row) -> dict:
         "goalPace": (row["goal_pace"] if "goal_pace" in row.keys() else None),
         "goalKind": (row["goal_kind"] if "goal_kind" in row.keys() else None),
         "createdAt": row["created_at"],
+        # Server's last-write timestamp for this profile row. The client uses
+        # this (Profile.updatedAt) to decide whether an incoming server
+        # profile is actually newer than what's currently in memory/local
+        # storage -- without it, a client edit that's still in-flight (or
+        # whose PUT silently failed in a previous build) could get clobbered
+        # by a stale GET /profile response on the next app load. See
+        # App.tsx's shouldApplyServerProfile().
+        "updatedAt": (row["updated_at"] if "updated_at" in row.keys() else None),
         # Computed, not stored -- always current with whatever weight/height
         # is on the profile right now, nothing to keep in sync.
         "bmi": _bmi(row["height_cm"], row["weight_kg"]),

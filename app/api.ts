@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import { API_BASE, API_KEY } from "./config";
 import { Account, getToken } from "./auth";
-import { Profile, Diet } from "./nutrition";
+import { Profile, Diet, normalizeProfile } from "./nutrition";
 import { Meal, LogMap, WeightEntry } from "./storage";
 import { dbFoodToCandidate, Candidate } from "./mealSuggest";
 
@@ -806,11 +806,13 @@ export async function logout(): Promise<void> {
 // instead of being the only copy of the data that exists anywhere.
 
 export async function getProfile(): Promise<{ profile: Profile | null }> {
-  return getJson<{ profile: Profile | null }>("/profile");
+  const data = await getJson<{ profile: Profile | null }>("/profile");
+  return { profile: normalizeProfile(data.profile) };
 }
 
 export async function putProfile(profile: Profile): Promise<{ profile: Profile }> {
-  return postAuth("/profile", profile, "PUT");
+  const data = await postAuth<{ profile: Profile }>("/profile", profile, "PUT");
+  return { profile: normalizeProfile(data.profile)! };
 }
 
 export async function getServerLogs(): Promise<{ logs: LogMap }> {
