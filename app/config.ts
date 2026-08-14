@@ -1,8 +1,9 @@
 // Points at the live Render deployment -- required for the web build (a public
 // web app can't reach a LAN IP) and works for native builds too. If you need to
-// go back to testing against your own machine's local backend on a real phone,
-// temporarily swap this back to "http://<your-LAN-IP>:8000" (127.0.0.1/localhost
-// only works for web/simulator, not a physical device).
+// test against your own machine's local backend on a real phone, temporarily
+// swap this to "http://<your-LAN-IP>:8000" (127.0.0.1/localhost only works for
+// web/simulator, not a physical device) -- but always revert to the Render URL
+// below before committing/building for real users.
 export const API_BASE = "https://gofit-backend-xnik.onrender.com";
 
 // Optional shared secret. Must match the backend's APP_API_KEY when auth is
