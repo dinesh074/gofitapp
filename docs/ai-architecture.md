@@ -1,47 +1,85 @@
-# gofit.today — AI Architecture
+# gofit.today — current AI architecture
 
-## What existed before this cycle
-`backend/main.py` called the `google-genai` SDK directly (`get_client()` /
-`_generate()`), and that was verified (via grep across the whole `backend/`
-directory) to be the **only** place in the codebase touching Gemini. No
-scattering problem existed to fix at the call-site level -- but there was
-also no interface, so a future provider swap would have meant editing
-`main.py` itself rather than adding a class.
+## What exists today
 
-## What changed this cycle
-- New `backend/ai_provider.py`: an `AIProvider` abstract base class with one
-  method, `generate(contents)`. Implementations:
-  - `GeminiProvider` — the exact same client/config/model logic that used to
-    live inline in `main.py`, moved here unchanged (same `temperature=0`,
-    same `thinking_level="low"`, same `FOOD_MODEL` env var).
-  - `FutureQwenProvider`, `FutureOpenAIProvider` — explicit placeholders that
-    raise `NotImplementedError` with a pointer to this doc. Not fake/stub
-    implementations that silently do nothing — they fail loudly if selected
-    before being built.
-- `get_provider()` picks the active provider from `AI_PROVIDER` env var
-  (default `gemini`). Swapping providers in production, once a real
-  alternative exists, becomes a config change.
-- `main.py`'s `_generate()` now calls `ai_provider.get_provider().generate(contents)`
-  instead of the SDK directly. All existing call sites (`/analyze`,
-  `/analyze/text`, `/foods/recommend`, `/meals/verdict`) are unchanged --
-  this was a pure extraction, verified via `python -c "import main"` after
-  the change (no import errors, no behavior change).
+### Provider abstraction
+`backend/ai_provider.py` already defines:
+- `AIProvider`
+- `GeminiProvider`
+- `FutureQwenProvider`
+- `FutureOpenAIProvider`
+- `get_provider()`
 
-## Cost/accuracy research already done (see prior session)
-- Gemini 3.5 Flash-Lite: $0.30 / $2.50 per 1M input/output tokens (current
-  production model, on the free tier today -- actual cost is $0).
-- Qwen3-VL-8B-Instruct via OpenRouter: $0.117 / $0.455 per 1M -- a real
-  *new* cost, not a saving, since the app isn't paying for Gemini today.
-- Qwen3-VL-2B is not available on any pay-per-token hosted API found
-  (self-host only).
-- Conclusion at the time: switching providers is justified by accuracy, not
-  cost, and needs a real side-by-side test before committing -- blocked on
-  an OpenRouter/Together/Fireworks API key the user hadn't provided yet.
-  `FutureQwenProvider` exists now specifically so that test can be wired in
-  later without touching `main.py` again.
+This is a good foundation and already aligns with the master prompt’s
+replaceable-provider requirement.
 
-## Cost control (per spec, not yet built)
-Routing "simple -> Flash-Lite, complex/vision -> Flash, low confidence ->
-fallback" and a monthly AI budget threshold are not implemented yet -- only
-one model is used today (`FOOD_MODEL` env var, single value). Flagged as a
-later-month task, not done in this cycle.
+### Actual AI usages
+Current Gemini-backed surfaces are:
+- `/analyze` photo scan
+- `/analyze/text` described meal parsing
+- optional phrasing in `/foods/recommend`
+- optional phrasing in `/meals/verdict`
+- optional coach note in `/plan/today`
+
+### Deterministic non-AI surfaces
+These do **not** depend on Gemini:
+- `/foods/search`
+- `/foods/combos`
+- `/analyze/barcode`
+- progress, wellness, exercise, auth, payments, community
+
+## Current architectural strengths
+
+- AI calls are already centralized behind `ai_provider.get_provider()`.
+- Most expensive business logic remains deterministic.
+- Packaged-food lookup avoids AI completely.
+
+## Current architectural weaknesses
+
+### Legacy Gemini code still sits in `main.py`
+`main.py` still contains:
+- direct `google.genai` imports
+- `GEN_CONFIG`
+- deprecated `get_client()`
+
+Even though `_generate()` now routes through `ai_provider.py`, these legacy
+artifacts are still duplication and should eventually be removed.
+
+### Scanner trust model is not yet spec-compliant
+The master prompt says:
+- AI understands
+- deterministic code calculates
+- database knows
+
+Current scanner behavior only partially matches that:
+- matched items are grounded to `FOOD_DB`
+- unmatched items still surface AI-estimated kcal/macros/micros
+
+That is the biggest current AI architecture gap.
+
+### Missing AI subsystems from the target architecture
+- structured scan candidate resolver with confidence tiers
+- `ai_scan_results`
+- `ai_corrections`
+- tool-using AI coach
+- provider routing by task complexity/cost
+- budget alerting / AI observability
+
+## Recommended migration path
+
+1. Keep `ai_provider.py` as the only provider boundary.
+2. Move any remaining Gemini config duplication out of `main.py`.
+3. Change scanner AI from “authoritative fallback nutrition” toward
+   “candidate identification + clarification.”
+4. Store scan/correction provenance before increasing graph usage.
+5. Only add richer AI coach/tool use after deterministic food/nutrition services
+   exist.
+
+## Explicit caution
+
+The next iteration of AI architecture should **reduce** nutritional authority of
+the LLM, not increase it. The safe direction is:
+- AI suggests candidates
+- canonical food graph resolves entities
+- deterministic nutrition services calculate values
+- AI explains results

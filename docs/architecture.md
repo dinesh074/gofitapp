@@ -1,140 +1,282 @@
-# gofit.today — Current Architecture Summary
+# gofit.today — architecture gap report
 
-(Gap report required by `GOFIT_MASTER_ARCHITECTURE_PROMPT.txt` "FIRST IMPLEMENTATION TASK".
-Written from direct inspection of this repo and the live production Postgres database —
-not assumed.)
+This document is the **read-only investigation phase** required by
+`GOFIT_MASTER_ARCHITECTURE_PROMPT.txt`. It reflects the repo and live database
+state **after** commit `83cf8c5` reverted the experimental `nutri_*` graph and
+deleted the nutri-only backend modules.
 
-## Stack today
-- **Frontend**: Expo React Native (`app/`), TypeScript, React Navigation, a shared
-  design system (`app/theme.ts`, `Icon.tsx`, `CalorieRing.tsx`).
-- **Backend**: FastAPI, modular monolith (`backend/main.py` + per-feature routers:
-  `auth.py`, `community.py`, `progress.py`, `payments.py`, `barcode.py`, `wellness.py`,
-  `plan.py`, `exercise.py`, `prefs.py`, `entitlements.py`, `feedback.py`, `food_review.py`,
-  `audit.py`). Each feature is an `APIRouter` mounted with `app.include_router(...)` in
-  `main.py` — this pattern should be reused for any new nutrition-graph API surface,
-  not a new framework/pattern.
-- **Database**: Supabase-hosted Postgres, single project, single schema (`gofit`),
-  reached through a thin sqlite3-compatible shim in `backend/db.py`. `db.py` also
-  supports local SQLite for dev with zero code changes (`DATABASE_URL` unset =
-  SQLite; set = Postgres). All access goes through `db.connect()` — no ORM.
-- **AI today**: Google Gemini via the `google-genai` SDK, called *directly* in
-  `main.py` (`get_client()` / `_generate()` around line 1459). `MODEL` env var
-  picks the model name (`FOOD_MODEL`, default `gemini-3.5-flash-lite`). This is
-  the single place Gemini calls are wired — good news for building an
-  `AIProvider` abstraction (see `ai-architecture.md`), since nothing else in the
-  codebase calls Gemini directly.
-- **Auth**: Google Sign-In + a newly-added (this cycle) email-code / OTP flow,
-  both terminating in the same `accounts` table (`backend/auth.py`).
-- **Email**: Resend HTTP API wrapper (`backend/email_service.py`), no-ops safely
-  if unconfigured.
-- **Hosting**: Render (backend), EAS (Android builds), Supabase (DB/Auth/Storage).
-  No Kubernetes/GPU/Redis/Kafka/microservices — matches the doc's MVP-infra rule
-  already, nothing to undo there.
+## 1) Current architecture summary
 
-## Existing database tables (real, verified against production)
-All in the **`gofit`** Postgres schema (`PG_SCHEMA` env var, `backend/db.py:58`):
+### Backend
+- **Framework**: FastAPI modular monolith.
+- **Entry point**: `backend/main.py`.
+- **Persistence layer**: `backend/db.py` exposes a tiny sqlite-like API over
+  either SQLite or Postgres. In this environment it is using **Postgres** with
+  schema-first search path `gofit, public`.
+- **Primary food system in production today**: curated `foods` table loaded into
+  in-memory `FOOD_DB` on startup.
+- **Food analysis flow today**:
+  1. `/analyze` or `/analyze/text` calls Gemini through `ai_provider.py`.
+  2. Gemini returns item guesses with calories/macros/micro estimates.
+  3. `main.py::anchor_items()` tries to match each item to `FOOD_DB`.
+  4. If matched, DB values replace AI values.
+  5. If unmatched, AI estimates remain and the item is logged to
+     `unmatched_dishes`.
+- **Packaged food flow**: `/analyze/barcode` is deterministic OpenFoodFacts,
+  independent from Gemini and scan credits.
+- **Meal planning flow**: `backend/plan.py` builds a persisted daily plan from
+  targets and `FOOD_DB`; food selection is injected from `main.py`.
 
-| Table | Purpose | Rows (approx, live) |
-|---|---|---|
-| `foods` | The **current, live** scanner/food DB. Simple shape: `key` (PK), `unit`, `kcal_per_unit`, `protein_g/carbs_g/fat_g`, optional micros as JSON blobs (`micros_json`), `aliases_json`, `jain_status`/`sattvic_status` (rule-classified from name text), `source_name`/`source`. | ~1,040 |
-| `accounts` | Google/OTP identity, `google_sub` or `otp-{email}` unique key | 18 |
-| `profiles` | Onboarding output: height/weight/diet/goal/activity per account | 14 |
-| `otp_codes` | OTP login codes (hashed, expiring) — added this cycle | — |
-| `tokens` | Session tokens | — |
-| `meal_logs`, `exercise_logs` | User food/exercise logs | — |
-| `unmatched_dishes` | Telemetry: dishes Gemini scanned but couldn't match to `foods` | 8 |
-| community/social tables (`posts`, `post_comments`, `notifications`, `groups`, etc.) | Community feature | — |
-| **`nutri_*` tables (added this cycle, see `data-model.md`)** | The new Food Intelligence Graph foundation, loaded with real INDB data | 1,347 foods / 41k nutrients / 1,014 recipes |
+### Frontend
+- **Framework**: Expo React Native / TypeScript.
+- **Navigation**: `RootTabs.tsx` bottom tabs + stack screens (`Scan`,
+  `FoodSelector`, `DayLog`, `MealDetail`).
+- **Network boundary**: `app/api.ts` is the central contract layer.
+- **Current nutrition UX** is built around the existing `FOOD_DB` contract:
+  per-unit kcal/macros plus optional micros/health metadata.
 
-**Important existing conflict already resolved**: the master-prompt spec's core
-entity is also called `foods`. Rather than collide with the live `foods` table
-(which the shipped app currently reads from every scan), the new graph tables
-were prefixed `nutri_` (`nutri_foods`, `nutri_food_nutrients`, ...) inside the
-same `gofit` schema. Full mapping and rationale in `data-model.md`.
+## 2) Existing backend modules and responsibilities
 
-## Existing APIs (backend/main.py + routers)
-- `GET /foods/search`, `GET /foods/combos`, `POST /foods/recommend` — read against
-  the **old** `foods` table + `food_combos.json` (curated pairing JSON).
-- `POST /analyze`, `POST /analyze/text` — the scanner: Gemini Vision/text → JSON →
-  matched against `FOOD_DB` (loaded from `foods` table at boot).
-- `POST /meals/verdict` — rule-based "should I eat this" advice, optional AI polish.
-- `auth.py`: `/auth/google`, `/auth/otp/request`, `/auth/otp/verify`, `/auth/me`.
-- `progress.py`, `exercise.py`, `wellness.py`, `plan.py`, `prefs.py`,
-  `entitlements.py`, `community.py`, `payments.py`, `barcode.py`, `feedback.py`,
-  `food_review.py`, `audit.py` — feature-specific, not nutrition-graph related.
-- **Nothing yet reads the new `nutri_*` tables** — this is the immediate gap
-  Month 1 foundation work closes (`nutrition_api.py`, see below).
+### `main.py`
+Owns the food catalog bootstrap, photo/text scan prompts, matching logic, food
+search, food combos, food recommendations, verdict logic, health/readiness, and
+wiring of all routers.
 
-## Existing frontend flows relevant to nutrition
-- Scan tab → `POST /analyze` → shows AI-estimated nutrition immediately (no
-  confidence tiering, no candidate-list UX yet — the spec's scanner section
-  describes a richer confidence-tiered flow that doesn't exist yet).
-- Manual food search → `GET /foods/search` against the old `foods` table.
-- Meal combos ("goes well with") → `GET /foods/combos` against curated JSON,
-  not the graph.
-- No recipe browsing, no dietary-profile selector beyond onboarding's basic
-  diet field, no substitution UI, no planner UI yet.
+### Feature routers
+- `auth.py` — accounts, bearer tokens, OTP, devices, notification prefs.
+- `progress.py` — profile, meal logs, weight logs, day summaries, streaks.
+- `plan.py` — persisted daily meal plans.
+- `barcode.py` — packaged-food lookup.
+- `wellness.py` — water, habits, training context.
+- `exercise.py` — activity catalog and exercise logs.
+- `prefs.py` — synced UI preferences.
+- `entitlements.py` — Free/Pro feature gating.
+- `payments.py` — Razorpay order/verify/webhook.
+- `community.py` — groups, feed, posts, comments, notifications.
+- `feedback.py` — user feedback intake.
+- `food_review.py` — unmatched food review queue.
+- `audit.py` — append-only admin audit log.
 
-## Reusable components (keep, don't rebuild)
-- `db.py`'s SQLite/Postgres shim — reuse as-is for all new nutrition-graph code.
-- Router-per-feature pattern (`APIRouter` + `include_router`) — reuse for
-  `nutrition_api.py`.
-- `auth.require_account(request)` — reuse for any account-scoped nutrition
-  endpoint (e.g. logging against the graph later).
-- The existing rule-based Jain/Sattvic classifier in `main.py`
-  (`classify_diet_tags`) — a real, working three-tier (yes/no/depends)
-  classifier from dish-name text. This is a legitimate first-pass
-  `DietaryRuleEngine.isJain()`/`isSattvic()` implementation to build on, not
-  throw away — the spec explicitly wants configurable rulesets, and this
-  already avoids the boolean trap.
+## 3) Existing APIs
 
-## Known technical debt / duplicates
-1. **Two `foods` concepts** in the same schema now (`foods` live / `nutri_foods`
-   graph) — intentional short-term duplication, not yet reconciled. Long-term,
-   the live scanner should be migrated onto the graph (Month 4 per roadmap),
-   not sooner — don't break the shipping app to do this early.
-2. Gemini calls are centralized already (`main.py:_generate`) but not behind an
-   interface — trivial to wrap (Month 1 task, done this cycle, see
-   `ai-architecture.md`).
-3. No `data_sources`-style registry existed for the *old* `foods` table (only
-   free-text `source_name`/`source` columns) — the new `nutri_data_sources`
-   table is the first real provenance registry in this codebase.
-4. No automated data-quality validation jobs exist yet for either `foods` or
-   `nutri_*` tables (spec's "Data Quality" section) — not built this cycle,
-   flagged as a Month 2+ task.
+### Food and nutrition
+- `GET /foods/search`
+- `GET /foods/combos`
+- `POST /foods/recommend`
+- `POST /meals/verdict`
+- `POST /analyze`
+- `POST /analyze/text`
+- `POST /analyze/barcode`
 
-## Migration strategy
-- **No destructive changes.** The new `nutri_*` tables are purely additive
-  inside the existing `gofit` schema — verified via `information_schema` that
-  no existing table was touched.
-- Schema changes going forward use `IF NOT EXISTS`/`ALTER TABLE ADD COLUMN IF
-  NOT EXISTS` guards (matching `db.py`'s own migration style, e.g.
-  `_init_foods_table` in `main.py`), not a separate migrations-runner
-  framework — consistent with "modular monolith, no premature tooling."
-- The live `foods` table is left untouched until Month 4 (scanner rework) is
-  reached — the app keeps working throughout.
+### Logging and profile
+- `GET/PUT /profile`
+- `GET/POST /logs`
+- `DELETE /logs/{id}`
+- `GET/POST /weights`
+- `GET /summary`
+- `GET /streak`
+- `GET /log-days`
+- `GET /scans/history`
 
-## Recommended implementation order (unchanged from roadmap, restated for this report)
-1. **Month 1 (this cycle)**: `NutritionEngine`, `DietaryRuleEngine`,
-   `PortionEngine`, `AIProvider` abstraction, first read-only `/api/nutrition/*`
-   surface over the real `nutri_*` data. All additive, zero risk to the live app.
-2. Month 2+: per `roadmap.md`.
+### Planner / wellness / exercise
+- `POST /plan/today`
+- `GET/POST /water`
+- `GET/POST /habits`
+- `GET/PUT /training`
+- `GET /exercise/catalog`
+- `GET /exercise/logs`
+- `GET /exercise/summary`
+- `POST /exercise/log`
+- `DELETE /exercise/log/{entry_id}`
 
-## Risks
-- **41k nutrient rows / 1,347 foods is a strong Phase-1 seed but far short of
-  the 20k target** — do not present this as "done," it's a real foundation,
-  not the finished catalog.
-- Recipe-derived nutrition (ingredient → yield → sum) is not implemented yet;
-  `nutri_food_nutrients` values for the 1,014 INDB recipes are pre-calculated
-  by the source dataset (`value_status='calculated'`), not derived live by our
-  own `NutritionEngine` yet — Month 1's engine should be able to recompute and
-  cross-check these, not just read them back.
-- Old `foods` table and new `nutri_foods` will drift out of sync if edited
-  independently — needs a conscious decision (Month 4) about which becomes
-  canonical, not an accidental one.
+### Auth / product / social / admin
+- `/auth/*`, `/entitlements`, `/pay/*`, `/community/*`, `/feedback`,
+  `/admin/feedback`, `/admin/unmatched-foods`, `/admin/audit`
 
-## Complexity estimate per phase
-See `roadmap.md` for per-month estimates; Month 1 (delivered this cycle) was
-low-to-medium complexity (additive engines + one read-only router, no schema
-risk). Months 6–7 (combination engine, 1M-scale generation) are the highest
-complexity/risk items in the whole roadmap.
+## 4) Existing frontend flows that consume food data
+
+### Home
+`HomeScreen.tsx` is the densest nutrition surface:
+- photo scan
+- describe meal / voice-to-text
+- barcode scan
+- swap misidentified items via `FoodSearchSheet`
+- add suggested pairings via `/foods/combos`
+- portion adjustment
+- day nutrition and micronutrient rollups
+- persisted daily plan card
+
+### Dedicated scan flow
+`ScanScreen.tsx` is a full-screen capture → analyze → edit → log flow using the
+same `AnalysisResult` shape as Home.
+
+### Manual search flow
+`FoodSelectorScreen.tsx` searches `/foods/search` and logs foods directly using
+`kcal_per_unit`, `protein_g_per_unit`, `carbs_g_per_unit`, `fat_g_per_unit`.
+
+### Portion editing
+`PortionPicker.tsx` adjusts the existing `count` multiplier and approximates
+bulk foods as `count * 100g`; it is **UI-only**, not backed by a canonical
+portion conversion service.
+
+### Plan consumption
+`TodayPlanCard.tsx` renders `POST /plan/today` results as slot/item lists with
+per-item counts and macros.
+
+### Logged meal inspection
+`DayLogScreen.tsx` and `MealDetailScreen.tsx` read server-synced meal logs and
+show kcal/macros plus optional micronutrients.
+
+### Community reuse
+`FeedScreen.tsx` can reuse `analyzeImage()` to attach detected meal macros to a
+social post.
+
+## 5) Current nutrition data contract
+
+The app is currently built around these payload shapes:
+
+### `FoodSuggestion` / search result
+- `key`
+- `name`
+- `unit`
+- `kcal_per_unit`
+- `protein_g_per_unit`
+- `carbs_g_per_unit`
+- `fat_g_per_unit`
+- optional `fiber_g`, `sugar_g`, `sodium_mg`, `potassium_mg`, `calcium_mg`,
+  `iron_mg`, `micros`, `health_score`, `benefits`, `watch_outs`
+
+### `AnalysisResult.items[]`
+- `item`
+- `count`
+- `unit`
+- `countable`
+- `kcal_per_unit`
+- `protein_g_per_unit`
+- `carbs_g_per_unit`
+- `fat_g_per_unit`
+- computed totals per item
+- optional micronutrient panel and `micros_source`
+
+This is the contract any future FoodEntity migration must preserve or adapt via
+an anti-corruption layer.
+
+## 6) Reusable components
+
+Keep and extend these instead of rebuilding:
+- `db.py` connection shim and schema search-path handling
+- router-per-feature FastAPI structure
+- `ai_provider.py` abstraction
+- `auth.require_account()` / `entitlements.require_pro()`
+- `progress.py` logging and summary persistence
+- `main.py::classify_diet_tags()` for current Jain/Sattvic three-state logic
+- `food_review.py` unmatched queue as a real gap-signal source
+- `app/api.ts` as the single client contract layer
+- `TodayPlanCard` + `plan.py` as early deterministic recommendation/planning
+  infrastructure
+
+## 7) Duplicates and conflicts
+
+### Database conflicts
+- `public` still contains legacy `users`, `groups`, `memberships`, `challenges`,
+  `posts`, `post_comments`, `post_likes`.
+- `gofit` contains active versions of those same tables.
+- `db.py` sets search_path to `gofit, public`, so the app resolves to `gofit`
+  first; the `public` copies are technical debt and a migration hazard.
+
+### Domain-model conflicts
+- The app already has `accounts` + `profiles`, while the master spec proposes
+  `users`, `user_preferences`, `user_goals`, `user_nutrition_targets`.
+- Current `meal_logs` store resolved dish text + totals, not FoodEntity
+  references.
+- Current `training_logs` and `exercise_logs` partly overlap with future
+  `training_context` and `training_sessions`.
+- `food_combos.json` and `plan.py` contain recommendation/combination logic
+  outside a canonical food graph.
+
+### AI/logic conflicts
+- `ai_provider.py` exists, but `main.py` still carries legacy Gemini imports,
+  `GEN_CONFIG`, and deprecated `get_client()`.
+- Nutrition arithmetic is spread across `main.py`, `barcode.py`, and `plan.py`;
+  there is no central `NutritionEngine`.
+
+## 8) History note: graph attempt existed and was removed
+
+This repo already attempted the graph path and then backed out:
+- `385499e` wired `/foods/search` and `/foods/recommend` to the Food
+  Intelligence Graph.
+- `bd9d5e0` fixed a real bug where search exposed fabricated `0 kcal` results.
+- `83cf8c5` reverted the graph usage and deleted:
+  - `nutrition_api.py`
+  - `nutrition_engine.py`
+  - `dietary_rules.py`
+  - `portion_engine.py`
+  - `month2_audit.py`
+  - `backfill_diet_flags.py`
+  - `load_real_indb.py`
+  - `populate_portion_conversions.py`
+
+The current plan must acknowledge that history and avoid repeating the same
+trust failure.
+
+## 9) Gap versus the master architecture
+
+### Already present in some form
+- modular monolith backend
+- AI provider abstraction
+- food search
+- photo/text/barcode logging
+- persisted meal logs
+- persisted daily plans
+- partial dietary logic
+- unmatched-food capture
+
+### Missing or only partial
+- canonical FoodEntity graph
+- provenance registry on every nutrient value
+- central NutritionEngine
+- central PortionEngine
+- configurable DietaryRuleEngine rulesets/profiles
+- recipe engine with ingredient/yield provenance
+- meal template and combination engines
+- substitution engine
+- daily/weekly nutrition aggregation on FoodEntity references
+- AI scan results/corrections tables
+- staging/normalization/review data pipeline
+
+## 10) Migration strategy
+
+1. **Do not touch current food endpoints first.**
+2. Additive schema only, via `supabase/migrations/`, after approval.
+3. Introduce a canonical FoodEntity layer behind new internal services, not by
+   rewriting route handlers in place.
+4. Preserve the current `FOOD_DB` response contract while the new graph is
+   immature.
+5. Import only small, provenance-backed, reviewed datasets.
+6. Move one surface at a time: search → manual logging → recipe math → scanner →
+   planner/combination logic.
+
+## 11) Main risks
+
+- **Repeat of dummy-data trust loss**: highest risk.  
+  **Mitigation**: only ingest small validated batches with explicit provenance,
+  keep missing as missing, and gate cutover behind comparison tests against
+  current curated results.
+- Current scanner still accepts unmatched AI nutrition estimates as user-facing
+  values.
+- Public-schema duplicates can confuse future migrations if unqualified SQL is
+  introduced outside `db.py`.
+- A future graph migration can break the mobile app if it changes the
+  `kcal_per_unit` contract too early.
+
+## 12) Recommended implementation order
+
+See `docs/roadmap.md`. Short version:
+- P0: schema/service design only, additive migration plan, provenance-first
+- P1: search/manual logging over canonical FoodEntity
+- P2: scanner candidate resolution and correction loop
+- P3: recipe + combination foundations
+- P4: micronutrient/substitution/planning
+- P5: AI coach and optimization
+
+No large schema change should start until this report is reviewed and approved.

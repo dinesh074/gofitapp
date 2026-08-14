@@ -1,36 +1,86 @@
-# gofit.today — Dietary Rule Engine
+# gofit.today — current dietary rules state
 
-Implemented in `backend/dietary_rules.py` this cycle. Configurable rulesets,
-not `food.jain = true` booleans — matches the spec's explicit requirement.
+There is **no standalone `DietaryRuleEngine` module in the repo today**. Current
+diet logic lives mainly in `backend/main.py`.
 
-## What exists already (kept, not rebuilt)
-`main.py`'s `classify_diet_tags()` already does real work: a three-tier
-(`yes`/`no`/`depends`) Jain/Sattvic classifier driven by word-boundary
-matching against a dish's name/aliases (non-veg words, onion/garlic words,
-root-veg words, stimulant words, a "plain-safe" whitelist, and a "masala"
-override that was found as a real false-positive during development). This
-is a legitimate first-pass rule engine and Month 1's `DietaryRuleEngine`
-reuses its word lists rather than duplicating a second classifier.
+## What exists today
 
-## New this cycle (`dietary_rules.py`)
-- `is_vegetarian/is_vegan/is_eggetarian(food)` — driven by the `nutri_foods`
-  boolean columns (`vegetarian`, `vegan`, `eggetarian`) where set; falls back
-  to the name/alias word-list classifier when the column is `NULL` (most rows
-  today, since INDB didn't supply these flags — see `data-model.md`).
-- `is_jain(food)` / `is_sattvic(food)` — wraps `classify_diet_tags`, returns
-  `yes`/`no`/`depends`, never a boolean.
-- `contains_allergen(food, allergen_code)` — checks `nutri_food_allergens`
-  (currently empty — always returns `unknown` honestly rather than guessing;
-  the spec explicitly forbids inferring allergen safety from an LLM or from
-  absence of data).
-- `matches_diet(food, diet_profile)` — dispatches to the above for the ~10
-  diet profiles that have real signal today (vegetarian/vegan/eggetarian/
-  jain/sattvic); profiles without implemented rules yet (halal/kosher/
-  pescatarian/etc.) return `"not_yet_supported"` rather than a false answer.
+### Jain / Sattvic classification
+`main.py::classify_diet_tags(name, aliases)` returns:
+- `yes`
+- `no`
+- `depends`
 
-## Not yet implemented
-Configurable per-user rulesets (`dietary_profiles`/`dietary_rule_exclusions`/
-`dietary_rule_requirements` tables), `validateRecipe()` against a selected
-profile, and allergen data itself (needs a real sourced allergen dataset —
-none exists in the repo yet, so `nutri_food_allergens` stays empty rather
-than guessed).
+This is better than a boolean and is based on rule sets of:
+- non-veg words
+- onion/garlic words
+- root-vegetable words
+- stimulant words
+- plain-safe words
+- masala override
+
+The results are stored in `foods.jain_status` and `foods.sattvic_status`.
+
+### Veg / vegan / eggetarian filtering
+`main.py::_food_diet_ok(food, diet)` filters recommendation/search candidates.
+
+Important current behavior:
+- if a food dict had explicit `vegetarian` / `vegan` / `eggetarian` fields, it
+  would use them
+- the live `foods` table does **not** currently store those columns
+- so in practice the function falls back to text heuristics
+
+### Where current diet logic is used
+- `/foods/recommend`
+- `plan.py` daily plan generation via injected pickers
+- onboarding/profile diet field
+
+## What already aligns with the spec
+
+- Jain/Sattvic are **not** modeled as booleans in storage today.
+- Rules are deterministic, not delegated to the LLM.
+- Dietary filtering is server-side, not purely cosmetic client UI.
+
+## What is missing versus the master spec
+
+- configurable `dietary_profiles`
+- `dietary_rules`
+- `dietary_rule_exclusions`
+- `dietary_rule_requirements`
+- per-profile recipe validation
+- allergen master data with `contains` / `may_contain` / `free_from` /
+  `unknown`
+- support for broader rule families:
+  - halal
+  - kosher
+  - pescatarian
+  - no beef / no pork / no seafood
+  - dairy-free / gluten-free / etc.
+- user-specific selectable strict/custom rulesets
+
+## Current risks
+
+1. Name-based heuristics are acceptable for the current curated catalog but are
+   not sufficient for a trustworthy graph-scale dietary engine.
+2. There is no ingredient-level validation for recipes yet.
+3. There is no sourced allergen dataset, so allergen safety cannot be claimed.
+
+## Migration recommendation
+
+### Keep now
+- `classify_diet_tags()` word lists
+- three-state Jain/Sattvic semantics
+- server-side filtering pattern
+
+### Add later, after approval
+1. `dietary_profiles` and profile selection
+2. rule tables with exclusions/requirements
+3. ingredient-level recipe validation
+4. sourced allergen registry
+5. compatibility layer mapping current `diet` values to richer rulesets
+
+## Do not do
+
+- Do not reintroduce a `food.jain=true` style model.
+- Do not infer allergen safety from AI output.
+- Do not bulk-tag thousands of foods without provenance or review.

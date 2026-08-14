@@ -1,75 +1,221 @@
-# gofit.today — Data Model
+# gofit.today — current data model
 
-Real, as-inspected schema for both the existing production tables and the new
-`nutri_*` Food Intelligence Graph tables (all in the single `gofit` Postgres
-schema — see `architecture.md` for why nothing lives in a separate schema).
+This is the **actual live schema** inspected from Postgres, not the deleted
+`nutri_*` design.
 
-## Existing tables (unchanged by this work)
-- `foods` — live scanner/food DB. `key` TEXT PK, `unit`, `kcal_per_unit`,
-  `protein_g`, `carbs_g`, `fat_g`, `fiber_g`, `sugar_g`, `sodium_mg`,
-  `potassium_mg`, `calcium_mg`, `iron_mg`, `health_score`, `benefits_json`,
-  `watch_outs_json`, `micros_json`, `aliases_json`, `jain_status`,
-  `sattvic_status`, `source_name`, `source`.
-- `accounts`, `profiles`, `otp_codes`, `tokens`, `meal_logs`, `exercise_logs`,
-  `unmatched_dishes`, community tables — see `backend/auth.py`,
-  `backend/community.py`, `backend/progress.py` for exact columns; unchanged.
+## Active schema selection
 
-## New tables — `nutri_*` (this cycle, `gofit_today_nutrition_db_v1/schema_postgres.sql`)
+- App schema: `gofit`
+- Search path at runtime: `gofit, public`
+- Backend mode in this environment: `postgres`
 
-All PKs are `TEXT` (not UUID) so the real INDB source IDs
-(`INDB_RECIPE_ASC001`, `SRC_FOOD_L002`, `RECIPE_ASC001`, ...) load unmodified.
+## `gofit` tables
 
-| Table | Role | Live rows |
-|---|---|---|
-| `nutri_data_sources` | Provenance registry (`source_id` PK) | 13 |
-| `nutri_nutrient_dictionary` | Fixed nutrient vocabulary (`nutrient_code` PK, group, unit, basis) | 85 |
-| `nutri_foods` | Canonical FoodEntity: `food_id`, `canonical_name`, `entity_type` (ingredient/dish/...), `region`, `cuisine`, diet booleans, `source_id`, `status` | 1,347 |
-| `nutri_food_nutrients` | Per-food nutrient values, **never fabricated**: `amount` nullable, `value_status` (measured/calculated/estimated/trace/missing), `source_id` | 41,064 |
-| `nutri_food_nutrient_sources` | Extended per-value citation trail | 0 (not yet populated beyond primary `source_id`) |
-| `nutri_food_aliases` | Alias/transliteration/misspelling → `food_id` | 1,892 |
-| `nutri_food_translations` | Structured per-language translated names | 0 |
-| `nutri_portions` | Household portion → gram/ml weight | 1,014 |
-| `nutri_portion_conversions` | Free-form unit → gram conversions | 5 (generic tsp/tbsp/cup/ml water-basis, confidence='low' — Month 2) |
-| `nutri_recipes` | Recipe metadata → optional `food_id` | 1,014 |
-| `nutri_recipe_ingredients` | Recipe → ingredient `food_id` + quantity/unit | 10,271 |
-| `nutri_recipe_steps` | Recipe instructions | 0 (INDB package didn't include step text) |
-| `nutri_cooking_yields` | Raw→cooked yield factors | 0 (empty template — do not fabricate) |
-| `nutri_meal_combinations` / `nutri_meal_combination_items` | Combination-engine output (Month 6+) | 0 |
-| `nutri_food_tags` | Free tag/value pairs (e.g. dietary tags) | 0 |
-| `nutri_food_allergens` | Allergen presence states | 0 (empty template — do not fabricate) |
-| `nutri_food_images` | Image metadata | 0 |
-| `nutri_validation_rules` | Documentation table of data-quality gates | 10 |
-| `nutri_food_catalog_plan` | 20k-slot ingestion blueprint (planned names only) | 0 (cleared — superseded by real data; keep for later gap-filling reference in the CSV, not re-imported blind) |
-| `nutri_seed_foods` | First 57 canonical names for the original mapping pass | 57 |
+### Food and scan support
+- `foods`
+- `analyze_cache`
+- `unmatched_dishes`
 
-## Data source
+### Identity / auth / product
+- `accounts`
+- `tokens`
+- `otp_codes`
+- `push_tokens`
+- `devices`
+- `notification_prefs`
+- `pro_orders`
 
-`GOFIT_REAL_INDB_DATABASE/` (Indian Nutrient Databank, CC BY 4.0): 1,347 real
-foods (1,014 recipes + 333 ingredient components), 41,064 sourced nutrient
-observations across 39 nutrient codes, 1,014 recipes with 10,271 real
-ingredient-quantity mappings, 1,014 portions, 1,892 aliases. Verified zero
-orphaned foreign keys after load (`backend/load_real_indb.py`).
+### User health data
+- `profiles`
+- `meal_logs`
+- `weight_logs`
+- `scan_history`
+- `daily_summary`
+- `log_days`
+- `meal_plans`
+- `water_logs`
+- `habit_logs`
+- `training_logs`
+- `exercise_logs`
+- `user_prefs`
 
-## Month 2 fixes (see backend/populate_portion_conversions.py, backend/backfill_diet_flags.py)
+### Community / social
+- `users`
+- `groups`
+- `memberships`
+- `challenges`
+- `posts`
+- `post_likes`
+- `post_comments`
+- `notifications`
 
-- `nutri_foods.vegetarian/vegan/eggetarian` backfilled for all 1,347 rows
-  (previously 100% NULL) using the existing word-list classifier PLUS real
-  recipe-ingredient names — catching composite dishes whose own name doesn't
-  reveal what's inside. 319 non-vegetarian / 765 non-vegan foods found this
-  way, vs. 129/353 with name-only classification (main.py's original
-  method). Re-run `backfill_diet_flags.py` after any bulk food import.
-- Generic (food-agnostic) tsp/tbsp/cup/ml → gram conversions added so
-  `calculate_recipe_nutrition` can sum the 51% of recipe_ingredient rows
-  that use those units instead of skipping them.
+### Ops / review
+- `feedback`
+- `audit_log`
 
-## Known gaps vs the full spec's table list (still open)
-Not yet created (Month 2+ per roadmap, only when there's real data to put in
-them — never as empty scaffolding pretending to be populated):
-`food_variants`, `food_preparations`, `recipe_variants`, `dietary_profiles`,
-`dietary_rule_exclusions`, `dietary_rule_requirements`, `regional_foods`,
-`regional_aliases`, `meal_templates`, `food_substitutions`, `user_preferences`,
-`user_goals`, `user_nutrition_targets`, `food_logs` (graph-referencing —
-distinct from the existing free-text `meal_logs`), `training_sessions`,
-`training_context`, `daily_nutrition`, `weekly_nutrition`, `ai_scan_results`,
-`ai_corrections`, `combination_candidates`, `combination_validated`,
-`combination_scores`.
+## `public` tables
+
+Legacy duplicates exist in `public`:
+- `challenges`
+- `groups`
+- `memberships`
+- `post_comments`
+- `post_likes`
+- `posts`
+- `users`
+
+These are not the intended active tables because `db.py` sets the search path to
+prefer `gofit`.
+
+## Current canonical food table: `foods`
+
+The shipped app is currently built on `gofit.foods` with **1040** rows.
+
+### Columns
+- `key`
+- `unit`
+- `kcal_per_unit`
+- `protein_g`
+- `carbs_g`
+- `fat_g`
+- `fiber_g`
+- `sugar_g`
+- `sodium_mg`
+- `potassium_mg`
+- `calcium_mg`
+- `iron_mg`
+- `health_score`
+- `benefits_json`
+- `watch_outs_json`
+- `micros_json`
+- `aliases_json`
+- `source_name`
+- `source`
+- `jain_status`
+- `sattvic_status`
+
+### What this means
+- Nutrients are stored **per serving unit**, not per 100g.
+- Units are consumer-facing (`plate`, `bowl`, `slice`, `biscuit`, etc.).
+- Aliases and descriptive panels live as JSON blobs inside the row.
+- Provenance is coarse (`source_name`, `source`) rather than per-nutrient.
+- Jain/Sattvic are stored as three-state text values, derived from name/alias
+  heuristics.
+
+### Important limitation
+There are **no physical columns** for `vegetarian`, `vegan`, or `eggetarian` in
+the live `foods` table. Current diet filtering therefore relies on text
+heuristics in `main.py`.
+
+## Existing user-data tables
+
+### `profiles`
+Current merged profile table: onboarding and target inputs in one row.
+- body stats
+- activity
+- diet
+- goal
+- goal pace / kind
+
+This is the closest current equivalent to future `users`, `user_goals`, and
+part of `user_preferences`.
+
+### `meal_logs`
+Current meal storage is **resolved totals**, not FoodEntity references.
+- date, dish, kcal, macros
+- timestamp
+- meal_type
+- photo_path
+- `micros` JSON
+- `micros_estimated`
+
+This is useful app data, but it is not yet the master prompt’s `food_logs`
+model.
+
+### `daily_summary`
+Materialized day totals for fast charts and summaries.
+
+### `meal_plans`
+Stores serialized daily plans keyed by `(account_id, date)` plus a coarse
+signature of targets/diet/goal.
+
+## Current social / product tables
+
+### Product/account
+- `accounts` contains identity, Pro flag, scan counters.
+- `tokens`, `otp_codes`, `push_tokens`, `devices`, `notification_prefs` support
+  auth and notifications.
+- `pro_orders` supports Razorpay reconciliation.
+
+### Social
+`users`, `groups`, `memberships`, `posts`, `post_likes`, `post_comments`,
+`notifications`, `challenges`.
+
+These are unrelated to the future food graph, but they already consume nutrition
+payloads when users share meals.
+
+## Mapping current schema to master-spec concepts
+
+### Closest existing equivalents
+- `foods` → temporary stand-in for canonical food master
+- `profiles` → partial user/profile/goal store
+- `user_prefs` → partial user-preferences store
+- `meal_logs` → partial meal log store
+- `training_logs` → partial training context store
+- `exercise_logs` → partial training sessions store
+- `unmatched_dishes` → primitive correction/review queue
+
+### Missing master-spec tables
+- `food_aliases`
+- `food_translations`
+- `food_variants`
+- `food_preparations`
+- `nutrients`
+- `food_nutrients`
+- `food_nutrient_sources`
+- `portions`
+- `portion_conversions`
+- `recipes`
+- `recipe_ingredients`
+- `recipe_steps`
+- `recipe_variants`
+- `cooking_yields`
+- `dietary_profiles`
+- `dietary_rules`
+- `dietary_rule_exclusions`
+- `dietary_rule_requirements`
+- `food_allergens`
+- `regional_foods`
+- `regional_aliases`
+- `meal_templates`
+- `meal_combinations`
+- `meal_combination_items`
+- `food_substitutions`
+- `user_goals`
+- `user_nutrition_targets`
+- graph-style `food_logs`
+- `training_context`
+- `daily_nutrition`
+- `weekly_nutrition`
+- `ai_scan_results`
+- `ai_corrections`
+- `data_sources`
+- optional combo-materialization tables (`combination_candidates`,
+  `combination_validated`, `combination_scores`)
+
+## Schema-level conflicts to resolve carefully
+
+1. The spec’s future `users` name conflicts with existing community `users`.
+2. Future `food_logs` cannot simply replace current `meal_logs`; migration needs
+   coexistence and backfill strategy.
+3. Future `user_preferences` / `user_goals` / `user_nutrition_targets` overlap
+   with data already split across `profiles` and `user_prefs`.
+4. Legacy duplicates in `public` mean new migrations must always be schema-aware.
+
+## Recommended additive migration approach
+
+- Keep current tables intact.
+- Add canonical graph tables with unambiguous names and provenance fields.
+- Introduce reference-based logging alongside current `meal_logs`.
+- Backfill only after validation and approval.
+- Defer destructive consolidation until canonical graph usage is proven.
