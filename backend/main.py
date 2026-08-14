@@ -721,6 +721,8 @@ def _load_nutri_food_db() -> list:
 
 
 NUTRI_FOOD_DB = _load_nutri_food_db()
+# food_id -> record, and a flat (alias, food) list for match_nutri_food() below.
+NUTRI_FOOD_BY_KEY = {f["key"]: f for f in NUTRI_FOOD_DB}
 
 
 # --- Meal combinations (accompaniment pairings) ------------------------------
@@ -767,6 +769,9 @@ def _resolve_combo_entry(name: str):
     food = match_food(name)
     if food and food["key"] in COMBOS:
         return COMBOS[food["key"]]
+    nfood = match_nutri_food(name)
+    if nfood and nfood["key"] in COMBOS:
+        return COMBOS[nfood["key"]]
     return None
 
 
@@ -790,7 +795,27 @@ def match_food(name: str):
     return best
 
 
-
+def match_nutri_food(name: str):
+    """Same resolution as match_food() but over the real NUTRI_FOOD_DB, so
+    editorial combo keys (food_combos.json, e.g. "sambar") can be answered
+    with real, provenance-tracked nutrition/diet-flag data when a matching
+    nutri_foods entry exists, instead of always falling back to the older,
+    thinner FOOD_DB. Tries an exact key match first (fast path for the many
+    combo keys that ARE already nutri_foods food_ids or slugs), then the
+    same alias/word-boundary search match_food() uses."""
+    n = _norm(name)
+    if not n:
+        return None
+    exact = NUTRI_FOOD_BY_KEY.get(name) or NUTRI_FOOD_BY_KEY.get(n.replace(" ", "_"))
+    if exact:
+        return exact
+    best = None
+    best_len = 0
+    for food in NUTRI_FOOD_DB:
+        for alias in food["_aliases"]:
+            if re.search(r"\b" + re.escape(alias) + r"\b", n) and len(alias) > best_len:
+                best, best_len = food, len(alias)
+    return best
 def anchor_items(data: dict) -> dict:
     """Override per-unit calories AND macros with DB values when matched, then
     compute per-item and meal-level totals.
@@ -1081,6 +1106,9 @@ def foods_combos(request: Request, dish: str, limit: int = 6):
         f = match_food(nm)
         if f:
             present.add(f["key"])
+        nf = match_nutri_food(nm)
+        if nf:
+            present.add(nf["key"])
 
     seen: set[str] = set()
     out: list[dict] = []
@@ -1092,9 +1120,14 @@ def foods_combos(request: Request, dish: str, limit: int = 6):
             sk = side.get("key")
             if not sk or sk in seen or sk in present:
                 continue
-            food = FOOD_BY_KEY.get(sk)
+            # Prefer the real Food Intelligence Graph for this side's
+            # nutrition/diet flags (ingredient-derived, provenance-tracked)
+            # over the older, thinner FOOD_DB -- food_combos.json's keys
+            # (e.g. "sambar") still work either way; this just upgrades the
+            # numbers behind them when a nutri_foods match exists.
+            food = NUTRI_FOOD_BY_KEY.get(sk) or match_nutri_food(sk) or FOOD_BY_KEY.get(sk)
             if not food:
-                continue  # curated key not in the food DB -> silently skip
+                continue  # curated key not in either food DB -> silently skip
             seen.add(sk)
             sug = _food_suggestion(food)
             sug["count"] = side.get("count", 1)
