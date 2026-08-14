@@ -25,6 +25,7 @@ import FoodSelectorScreen from "./FoodSelectorScreen";
 import ScanScreen from "./ScanScreen";
 import DayLogScreen from "./DayLogScreen";
 import MealDetailScreen from "./MealDetailScreen";
+import NextMoveScreen from "./NextMoveScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -194,6 +195,11 @@ export function RootNavigator() {
       <Stack.Screen
         name="MealDetail"
         component={MealDetailScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="NextMove"
+        component={NextMoveScreen}
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
     </Stack.Navigator>

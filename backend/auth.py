@@ -703,6 +703,11 @@ def otp_request(body: OtpRequestBody, request: Request):
     audit.record("otp_request", status="success" if sent else "email_not_configured", detail=email, request=request)
     # In dev (no email provider configured yet) surface the code directly so
     # the flow is still testable end-to-end without Resend set up.
+    if not sent and not ALLOW_DEV_LOGIN:
+        raise HTTPException(
+            status_code=503,
+            detail="OTP email is not configured on the server yet. Please contact support.",
+        )
     resp = {"ok": True, "sent": sent}
     if not sent and ALLOW_DEV_LOGIN:
         resp["devCode"] = code

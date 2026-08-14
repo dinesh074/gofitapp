@@ -14,7 +14,9 @@ import {
   computeGoal,
   Diet,
   Gender,
-  Goal,
+  GoalKind,
+  goalOfKind,
+  hasWeightTargetGoalKind,
   normalizeProfile,
   resolveGoalKind,
   resolveGoalPace,
@@ -27,8 +29,8 @@ import { getProfile } from "./api";
 import { loadRemindersEnabled } from "./storage";
 import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
-import WheelPicker from "./WheelPicker";
 import PaceSlider from "./PaceSlider";
+import NumberStepper from "./NumberStepper";
 import { colors } from "./theme";
 
 // Aliased to the shared design system (theme.ts) so this screen stays in sync
@@ -50,10 +52,11 @@ const GENDERS: { key: Gender; label: string }[] = [
   { key: "female", label: "Female" },
   { key: "other", label: "Other" },
 ];
-const GOALS: { key: Goal; label: string }[] = [
-  { key: "lose", label: "Lose" },
-  { key: "maintain", label: "Maintain" },
-  { key: "gain", label: "Gain" },
+const GOAL_KINDS: { key: GoalKind; label: string; sub: string }[] = [
+  { key: "loss", label: "Weight loss", sub: "Reduce body weight" },
+  { key: "muscle", label: "Muscle gain", sub: "Increase lean mass" },
+  { key: "maintain", label: "Maintain weight", sub: "Keep current body weight" },
+  { key: "fitness", label: "General fitness", sub: "Improve overall health" },
 ];
 const DIETS: { key: Diet; label: string }[] = [
   { key: "veg", label: "Veg" },
@@ -86,6 +89,13 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
     loadRemindersEnabled().then(setReminders);
   }, []);
 
+  useEffect(() => {
+    const kind = resolveGoalKind(d);
+    if (!hasWeightTargetGoalKind(kind) && d.targetWeightKg !== d.weightKg) {
+      setD((s) => ({ ...s, targetWeightKg: s.weightKg }));
+    }
+  }, [d.goalKind, d.weightKg, d.targetWeightKg]); // keep maintain/fitness goals consistent
+
   // Always edit against the account's TRUE saved profile. The `profile` prop is
   // normally the server-synced truth, but on a fast boot it can briefly be the
   // local cache -- so pull the authoritative server copy on open and seed the
@@ -116,14 +126,14 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
       .catch(() => {});
   }
 
-  // Keep target sensible: maintain => equals current weight. Keep the 4-way
-  // goalKind in sync with the 3-way engine goal so downstream copy stays correct.
-  function setGoal(g: Goal) {
+  // Keep the 4-way goal framing from onboarding intact on edits, while mapping
+  // to the 3-way engine goal used for calorie math.
+  function setGoalKind(kind: GoalKind) {
     update((s) => ({
       ...s,
-      goal: g,
-      goalKind: resolveGoalKind({ goal: g }),
-      targetWeightKg: g === "maintain" ? s.weightKg : s.targetWeightKg,
+      goalKind: kind,
+      goal: goalOfKind(kind),
+      targetWeightKg: hasWeightTargetGoalKind(kind) ? s.targetWeightKg : s.weightKg,
     }));
   }
 
@@ -176,52 +186,70 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
         </Field>
 
         <Field label="Age">
-          <WheelPicker
+          <NumberStepper
             value={d.age}
             unit="yrs"
             min={LIMITS.age.min}
             max={LIMITS.age.max}
+            compact
             onChange={(v) => update({ age: v })}
           />
         </Field>
 
         <Field label="Height">
-          <WheelPicker
+          <NumberStepper
             value={d.heightCm}
             unit="cm"
             min={LIMITS.heightCm.min}
             max={LIMITS.heightCm.max}
+            compact
             onChange={(v) => update({ heightCm: v })}
           />
         </Field>
 
         <Field label="Current weight">
-          <WheelPicker
+          <NumberStepper
             value={d.weightKg}
             unit="kg"
             min={LIMITS.weightKg.min}
             max={LIMITS.weightKg.max}
+            step={0.5}
+            decimals={1}
+            compact
             onChange={(v) => update({ weightKg: v })}
           />
         </Field>
 
         <Field label="Goal">
-          <Segmented options={GOALS} value={d.goal} onChange={setGoal} />
+          <View style={styles.wrap}>
+            {GOAL_KINDS.map((o) => {
+              const selected = resolveGoalKind(d) === o.key;
+              return (
+                <Pressable key={o.key} style={[styles.goalChip, selected && styles.goalChipActive]} onPress={() => setGoalKind(o.key)}>
+                  <Text style={[styles.goalChipTitle, selected && styles.goalChipTitleActive]}>{o.label}</Text>
+                  <Text style={[styles.goalChipSub, selected && styles.goalChipSubActive]}>{o.sub}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </Field>
 
-        {d.goal !== "maintain" && (
+        {hasWeightTargetGoalKind(resolveGoalKind(d)) && (
           <Field label="Target weight">
-            <WheelPicker
+            <NumberStepper
               value={d.targetWeightKg}
               unit="kg"
               min={LIMITS.weightKg.min}
               max={LIMITS.weightKg.max}
+              step={0.5}
+              decimals={1}
+              compact
               onChange={(v) => update({ targetWeightKg: v })}
             />
           </Field>
         )}
 
-        {d.goal !== "maintain" && (
+        {hasWeightTargetGoalKind(resolveGoalKind(d)) && (
           <Field label="Goal pace">
             <PaceSlider
               value={resolveGoalPace(d)}
@@ -399,7 +427,7 @@ const styles = StyleSheet.create({
   pillVal: { color: "#fff", fontSize: 16, fontWeight: "800" },
   pillKey: { color: "#CDEBD9", fontSize: 11, marginTop: 2 },
 
-  field: { backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 12 },
+  field: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10 },
   fieldLabel: { color: MUTE, fontSize: 12, fontWeight: "700", letterSpacing: 0.5, marginBottom: 12, textTransform: "uppercase" },
   nameInput: { borderWidth: 2, borderColor: "#EAEFEB", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, fontWeight: "700", color: INK },
   hintText: { color: MUTE, fontSize: 12, marginTop: 10 },
@@ -411,6 +439,20 @@ const styles = StyleSheet.create({
   segTextActive: { color: "#fff" },
 
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  goalChip: {
+    flexBasis: "48%",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#EAEFEB",
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  goalChipActive: { borderColor: GREEN, backgroundColor: "#F0F8F3" },
+  goalChipTitle: { color: INK, fontWeight: "800", fontSize: 13 },
+  goalChipTitleActive: { color: GREEN },
+  goalChipSub: { color: MUTE, fontSize: 11, marginTop: 3 },
+  goalChipSubActive: { color: GREEN },
   chip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 2, borderColor: "#EAEFEB", backgroundColor: "#fff" },
   chipActive: { borderColor: GREEN, backgroundColor: "#F0F8F3" },
   chipText: { color: INK, fontWeight: "700", fontSize: 13 },

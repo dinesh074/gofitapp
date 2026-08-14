@@ -6,7 +6,6 @@ import { SavedMeal } from "./storage";
 
 type OptionKey =
   | "camera"
-  | "search"
   | "gallery"
   | "barcode"
   | "describe"
@@ -31,11 +30,10 @@ type Option = { key: OptionKey; icon: IconName; title: string; sub: string };
 // the highlighted primary action; the rest of the meal-logging paths follow.
 const MEAL_OPTIONS: Option[] = [
   { key: "camera", icon: "camera", title: "Scan a meal", sub: "Point your camera at the plate" },
-  { key: "search", icon: "search", title: "Search food database", sub: "Pick from 1,000+ foods, exact calories" },
+  { key: "voice", icon: "mic", title: "Voice log", sub: "Say: '2 rotis, one bowl dal, half bowl paneer'" },
   { key: "gallery", icon: "gallery", title: "Choose from gallery", sub: "Use a photo you already took" },
   { key: "barcode", icon: "barcode", title: "Scan a barcode", sub: "For packaged / branded food" },
   { key: "describe", icon: "edit", title: "Log food manually", sub: "No photo? Just type what you ate" },
-  { key: "voice", icon: "mic", title: "Voice log", sub: "Speak your meal out loud" },
 ];
 
 // Every non-meal tracker reachable from the same hub -- each routes to a real,
@@ -241,4 +239,3 @@ const styles = StyleSheet.create({
   later: { alignItems: "center", paddingVertical: 14, marginTop: 4 },
   laterText: { color: colors.mute, fontWeight: "700", fontSize: 14 },
 });
-

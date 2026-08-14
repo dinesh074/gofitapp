@@ -113,20 +113,12 @@ export function computeBmi(heightCm: number, weightKg: number): Bmi | null {
 
 // Full calorie + macro targets for the user's goal and chosen pace.
 //
-// One source of truth: the daily calorie delta is DERIVED from how fast the user
-// wants to change weight (goal pace), not a fixed number -- so Relaxed ->
-// Recommended -> Ambitious genuinely change the calorie target and the projected
-// timeline (see projectPlan). ~7700 kcal ≈ 1 kg of body mass, so a target rate
-// of R kg/week is a daily delta of R * 7700 / 7 kcal.
-//
-// A deficit is floored at BMR (never recommend eating below resting needs); a
-// surplus is capped for sanity. Protein is set per kg of body weight (higher for
-// muscle gain), fat at 25% of calories, carbs fill the remainder.
-export const RATE_KG_PER_WEEK: Record<"lose" | "gain", Record<GoalPace, number>> = {
-  // Weight loss: 0.25 / 0.5 / 0.75 kg per week.
-  lose: { relaxed: 0.25, recommended: 0.5, ambitious: 0.75 },
-  // Muscle/weight gain is necessarily slower to limit fat gain.
-  gain: { relaxed: 0.125, recommended: 0.25, ambitious: 0.4 },
+// Pace now maps to a tight maintenance-relative delta band so targets don't
+// swing too far: 4% / 5% / 6% (relaxed/recommended/ambitious).
+export const GOAL_DELTA_PERCENT: Record<GoalPace, number> = {
+  relaxed: 0.04,
+  recommended: 0.05,
+  ambitious: 0.06,
 };
 
 const KCAL_PER_KG = 7700;
@@ -139,15 +131,23 @@ const GOAL_PACE_ALIASES: Record<string, GoalPace> = {
   relaxed: "relaxed",
   recommended: "recommended",
   ambitious: "ambitious",
+  slow: "relaxed",
+  steady: "recommended",
+  aggressive: "ambitious",
   moderate: "recommended",
 };
 
 const GOAL_KIND_ALIASES: Record<string, GoalKind> = {
   loss: "loss",
+  lose: "loss",
   lose_weight: "loss",
+  weight_loss: "loss",
   muscle: "muscle",
+  gain_muscle: "muscle",
+  muscle_gain: "muscle",
   gain_weight: "muscle",
   maintain: "maintain",
+  maintenance: "maintain",
   maintain_weight: "maintain",
   fitness: "fitness",
   general_fitness: "fitness",
@@ -173,20 +173,45 @@ export function resolveGoalKind(p: Pick<Profile, "goal" | "goalKind">): GoalKind
   return p.goal === "lose" ? "loss" : p.goal === "gain" ? "muscle" : "maintain";
 }
 
+// 4-way UI goal framing <-> 3-way nutrition engine goal mapping.
+export function goalOfKind(kind: GoalKind): Goal {
+  return kind === "loss" ? "lose" : kind === "muscle" ? "gain" : "maintain";
+}
+
+export function hasWeightTargetGoalKind(kind?: GoalKind): boolean {
+  return kind === "loss" || kind === "muscle";
+}
+
 export function normalizeProfile(p: Profile | null | undefined): Profile | null {
   if (!p) return null;
+  const n = (v: unknown, fallback: number) => {
+    const x = typeof v === "number" ? v : Number(v);
+    return Number.isFinite(x) ? x : fallback;
+  };
+  const age = clamp(Math.round(n((p as any).age, 25)), LIMITS.age.min, LIMITS.age.max);
+  const heightCm = clamp(Math.round(n((p as any).heightCm, 170)), LIMITS.heightCm.min, LIMITS.heightCm.max);
+  const weightKg = clamp(Math.round(n((p as any).weightKg, 70) * 10) / 10, LIMITS.weightKg.min, LIMITS.weightKg.max);
+  const goal = (p.goal === "lose" || p.goal === "gain" || p.goal === "maintain") ? p.goal : "maintain";
+  const goalKind = resolveGoalKind({ goal, goalKind: p.goalKind });
+  const rawTarget = clamp(Math.round(n((p as any).targetWeightKg, weightKg) * 10) / 10, LIMITS.weightKg.min, LIMITS.weightKg.max);
+  const targetWeightKg = hasWeightTargetGoalKind(goalKind) ? rawTarget : weightKg;
   return {
     ...p,
+    age,
+    heightCm,
+    weightKg,
+    targetWeightKg,
+    goal,
     goalPace: resolveGoalPace(p),
-    goalKind: resolveGoalKind(p),
+    goalKind,
   };
 }
 
 // The daily calorie delta (signed) implied by the goal + pace. 0 for maintain.
-export function dailyCalorieDelta(goal: Goal, pace: GoalPace): number {
+// `maintenanceKcal` is the baseline (TDEE) the % delta applies to.
+export function dailyCalorieDelta(goal: Goal, pace: GoalPace, maintenanceKcal: number): number {
   if (goal === "maintain") return 0;
-  const rate = RATE_KG_PER_WEEK[goal][pace];
-  const perDay = Math.round((rate * KCAL_PER_KG) / 7);
+  const perDay = Math.round(Math.max(0, maintenanceKcal) * GOAL_DELTA_PERCENT[pace]);
   return goal === "lose" ? -perDay : perDay;
 }
 
@@ -194,7 +219,7 @@ export function computeGoal(p: Profile): GoalTargets {
   const base = bmr(p);
   const maintenance = tdee(p);
   const pace = resolveGoalPace(p);
-  const delta = dailyCalorieDelta(p.goal, pace);
+  const delta = dailyCalorieDelta(p.goal, pace, maintenance);
   // Never recommend eating below resting metabolism, even on an ambitious cut.
   let kcal = Math.round(Math.max(base, maintenance + delta));
 
@@ -231,7 +256,8 @@ export function projectPlan(p: Profile, now: Date = new Date()): GoalProjection 
     return { direction: "maintain", deltaKg: 0, ratePerWeekKg: 0, weeks: 0, targetDate: null, kcal: g.kcal };
   }
   const deltaKg = Math.abs(p.weightKg - p.targetWeightKg);
-  const rate = RATE_KG_PER_WEEK[p.goal][resolveGoalPace(p)];
+  const maintenance = tdee(p);
+  const rate = (Math.abs(dailyCalorieDelta(p.goal, resolveGoalPace(p), maintenance)) * 7) / KCAL_PER_KG;
   // If the target doesn't actually move in the goal's direction (e.g. "lose" but
   // target ≥ current), there's no meaningful timeline to show.
   const meaningful =

@@ -10,6 +10,8 @@ import { dbFoodToCandidate, Candidate } from "./mealSuggest";
 export type MicroPanel = Record<string, number>;
 
 export type FoodItem = {
+  key?: string;
+  id?: number;
   item: string;
   count: number;
   unit: string;
@@ -95,6 +97,7 @@ export type AnalysisResult = {
   // now; it is NOT meant to be cached/persisted verbatim (it expires).
   photo_path?: string;
   photo_url?: string;
+  scan_result_id?: number;
 };
 
 // Thrown by analyzeImage when the free-scan trial is exhausted (HTTP 402).
@@ -198,6 +201,38 @@ export async function analyzeText(description: string): Promise<AnalysisResult> 
     throw new Error(msg);
   }
   return (await res.json()) as AnalysisResult;
+}
+
+export async function listScanResults(limit = 50): Promise<Array<{ id: number; confidence: number; status: string; created_at: number }>> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/scan/results?limit=${limit}`, { headers: authHeaders() });
+  } catch {
+    return [];
+  }
+  if (!res.ok) return [];
+  const data = (await res.json()) as { results?: Array<{ id: number; confidence: number; status: string; created_at: number }> };
+  return data.results ?? [];
+}
+
+export async function submitScanCorrection(input: {
+  scan_result_id: number;
+  item_name: string;
+  from_food_name?: string;
+  to_food_name?: string;
+  note?: string;
+}): Promise<boolean> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/scan/corrections`, {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify(input),
+    });
+  } catch {
+    return false;
+  }
+  return res.ok;
 }
 
 // Barcode (packaged-food) logging. Unlike analyzeImage/analyzeText this is a
@@ -317,22 +352,89 @@ export async function recommendMeals(
   diet: Diet,
   goal: string,
   slot = "",
+  options: {
+    targets?: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+    consumed?: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+    date?: string;
+    training?: string;
+  } = {},
   limit = 12,
-): Promise<{ candidates: Candidate[]; suggestion: string | null }> {
+): Promise<{
+  candidates: Candidate[];
+  suggestion: string | null;
+  slot?: string;
+  nextMove?: {
+    category: string;
+    slot: string;
+    reason: string;
+    meal: {
+      name: string;
+      kcal: number;
+      protein_g: number;
+      carbs_g: number;
+      fat_g: number;
+      items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+    };
+    alternatives: {
+      name: string;
+      kcal: number;
+      protein_g: number;
+      carbs_g: number;
+      fat_g: number;
+      items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+    }[];
+  };
+}> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}/foods/recommend`, {
       method: "POST",
       headers: authHeaders(true),
-      body: JSON.stringify({ remaining, diet, goal, slot, limit, phrase: true }),
+      body: JSON.stringify({
+        remaining,
+        diet,
+        goal,
+        slot,
+        limit,
+        phrase: true,
+        ...(options.targets ? { targets: options.targets } : {}),
+        ...(options.consumed ? { consumed: options.consumed } : {}),
+        ...(options.date ? { date: options.date } : {}),
+        ...(options.training ? { training: options.training } : {}),
+      }),
     });
   } catch {
     return { candidates: [], suggestion: null };
   }
   if (!res.ok) return { candidates: [], suggestion: null };
-  let data: { results?: FoodSuggestion[]; suggestion?: string };
+  let data: {
+    results?: FoodSuggestion[];
+    suggestion?: string;
+    slot?: string;
+    next_move?: {
+      category: string;
+      slot: string;
+      reason: string;
+      meal: {
+        name: string;
+        kcal: number;
+        protein_g: number;
+        carbs_g: number;
+        fat_g: number;
+        items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+      };
+      alternatives: {
+        name: string;
+        kcal: number;
+        protein_g: number;
+        carbs_g: number;
+        fat_g: number;
+        items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+      }[];
+    };
+  };
   try {
-    data = (await res.json()) as { results?: FoodSuggestion[]; suggestion?: string };
+    data = (await res.json()) as typeof data;
   } catch {
     return { candidates: [], suggestion: null };
   }
@@ -340,7 +442,20 @@ export async function recommendMeals(
   // universally allowed ("veg") -- the client must not re-filter and drop a
   // valid pick (e.g. a chicken dish that a non-veg user should see).
   const candidates = (data.results ?? []).map((h) => dbFoodToCandidate(h, "veg"));
-  return { candidates, suggestion: data.suggestion ?? null };
+  return {
+    candidates,
+    suggestion: data.suggestion ?? null,
+    slot: data.slot,
+    nextMove: data.next_move
+      ? {
+          category: data.next_move.category,
+          slot: data.next_move.slot,
+          reason: data.next_move.reason,
+          meal: data.next_move.meal,
+          alternatives: data.next_move.alternatives ?? [],
+        }
+      : undefined,
+  };
 }
 
 // "Should I eat this?" — server-side verdict for a scanned meal vs. the day's
@@ -401,7 +516,7 @@ export async function fetchMealVerdict(input: {
 //  scan credit, never hits the vision model. Never throws -- returns null on any
 //  failure so the caller can fall back gracefully.
 // --------------------------------------------------------------------------- //
-export type PlanMacros = { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+export type PlanMacros = { kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g?: number };
 
 export type PlanItem = {
   key: string;
@@ -412,6 +527,7 @@ export type PlanItem = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  fiber_g?: number;
 };
 
 export type PlanSlot = {
@@ -423,11 +539,14 @@ export type PlanSlot = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  fiber_g?: number;
   // Present only when the plan is adapted to what's been logged today: whether
   // this meal is still ahead of the user (re-portioned to the remaining budget)
   // or already behind them (left as-is), and whether the day's budget is spent.
   upcoming?: boolean;
   over_budget?: boolean;
+  actionable?: boolean;
+  completed?: boolean;
 };
 
 export type DayPlan = {
@@ -442,6 +561,14 @@ export type DayPlan = {
   adapted?: boolean;
   consumed?: PlanMacros;
   remaining?: PlanMacros;
+  over_target?: PlanMacros;
+  completed_slots?: string[];
+  planned_slots?: string[];
+  next_slot?: string | null;
+  next_meal?: string | null;
+  planned?: PlanMacros;
+  projected?: PlanMacros;
+  status?: Record<string, "on_target" | "slightly_below" | "slightly_above" | "significantly_below" | "significantly_above">;
 };
 
 export async function fetchTodayPlan(input: {
@@ -454,6 +581,7 @@ export async function fetchTodayPlan(input: {
   // budget they have left; `hour` is the user's local clock hour (0-23).
   consumed?: PlanMacros;
   hour?: number;
+  training?: string;
 }): Promise<DayPlan | null> {
   let res: Response;
   try {
@@ -468,6 +596,7 @@ export async function fetchTodayPlan(input: {
         regenerate: input.regenerate ?? false,
         ...(input.consumed ? { consumed: input.consumed } : {}),
         ...(typeof input.hour === "number" ? { hour: input.hour } : {}),
+        ...(input.training ? { training: input.training } : {}),
       }),
     });
   } catch {
@@ -834,6 +963,7 @@ export async function addServerLog(
     photo_path: meal.photoPath,
     micros: meal.micros,
     micros_estimated: meal.microsEstimated,
+    food_items: meal.foodItems,
   });
 }
 

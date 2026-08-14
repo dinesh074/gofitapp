@@ -24,7 +24,8 @@ import time
 import hashlib
 import logging
 import threading
-from collections import defaultdict, deque
+import itertools
+from collections import Counter, defaultdict, deque
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,6 +55,11 @@ import exercise
 import prefs
 import entitlements
 import ai_provider
+import food_graph
+import nutrition_engine
+import dietary_rules
+import scan_resolution
+import recipe_combo_engine
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -299,6 +305,10 @@ app.include_router(food_review.router)
 progress.init_db()
 app.include_router(progress.router)
 
+# Canonical food graph foundation (additive tables, compatibility-safe).
+food_graph.init_db()
+recipe_combo_engine.init_db()
+
 # Packaged-food barcode lookup (POST /analyze/barcode) -- a deterministic
 # OpenFoodFacts lookup, NOT a Gemini call, so it does NOT consume a free-scan
 # credit (see barcode.py's module docstring).
@@ -325,6 +335,9 @@ app.include_router(prefs.router)
 # GET /entitlements returns the account's resolved tier + per-feature access.
 entitlements.init_db()
 app.include_router(entitlements.router)
+
+# Scanner confidence/correction loop over canonical scan-result tables.
+app.include_router(scan_resolution.router)
 
 # Retired: the experimental Food Intelligence Graph API (nutri_* tables,
 # nutrition_api.router) has been removed pending a proper, reviewed
@@ -706,6 +719,34 @@ def _resolve_combo_entry(name: str):
     return None
 
 
+def _persisted_combo_sides(combo_key: str) -> list[dict]:
+    with db.connect() as c:
+        row = c.execute(
+            "SELECT id, display_name FROM gofit_meal_combinations WHERE combo_key=?",
+            (combo_key,),
+        ).fetchone()
+        if not row:
+            return []
+        sides = c.execute(
+            """
+            SELECT side_food_key, side_count, reason
+            FROM gofit_meal_combination_items
+            WHERE combination_id=?
+            ORDER BY position ASC
+            """,
+            (row["id"],),
+        ).fetchall()
+    return [
+        {
+            "key": s["side_food_key"],
+            "count": s["side_count"],
+            "reason": s["reason"],
+            "pairs_with": row["display_name"],
+        }
+        for s in sides
+    ]
+
+
 def match_food(name: str):
     """Return the best-matching DB food for a free-text item name, or None.
 
@@ -717,6 +758,10 @@ def match_food(name: str):
     n = _norm(name)
     if not n:
         return None
+    canonical = food_graph.resolve_food_by_name(n)
+    if canonical:
+        canonical["_aliases"] = []
+        return canonical
     best = None
     best_len = 0
     for food in FOOD_DB:
@@ -758,6 +803,8 @@ def anchor_items(data: dict) -> dict:
     for it in data.get("items", []):
         food = match_food(it.get("item", ""))
         if food:
+            if food.get("key"):
+                it["key"] = food["key"]
             it["kcal_per_unit"] = food["kcal_per_unit"]
             for m in macros:
                 it[m + "_per_unit"] = food.get(m, 0)
@@ -797,42 +844,17 @@ def anchor_items(data: dict) -> dict:
                     it["micros_per_unit"] = clamped
                     it["micros_source"] = "ai_estimated"
             food_review.record_unmatched(it.get("item", ""), it)
-        count = it.get("count", 1)
-        it["kcal_total"] = round(count * it.get("kcal_per_unit", 0))
-        for m in macros:
-            it[m] = round(count * it.get(m + "_per_unit", 0), 1)
-        for m in micro_fields:
-            if (m + "_per_unit") in it:
-                it[m] = round(count * it[m + "_per_unit"], 1)
-        if "micros_per_unit" in it:
-            it["micros"] = {k: round(v * count, 4) for k, v in it["micros_per_unit"].items()}
+        scaled = nutrition_engine.scale_per_unit_item(it, it.get("count", 1))
+        it.clear()
+        it.update(scaled)
 
     items = data.get("items", [])
-    data["calories_kcal"] = sum(it["kcal_total"] for it in items)
-    totals = {
-        "kcal": data["calories_kcal"],
-        "protein_g": round(sum(it.get("protein_g", 0) for it in items), 1),
-        "carbs_g": round(sum(it.get("carbs_g", 0) for it in items), 1),
-        "fat_g": round(sum(it.get("fat_g", 0) for it in items), 1),
-    }
+    data["calories_kcal"] = round(sum(it["kcal_total"] for it in items))
+    totals = nutrition_engine.compute_meal_totals(items)
     for m in micro_fields:
         vals = [it[m] for it in items if m in it]
         if vals:
             totals[m] = round(sum(vals), 1)
-    micro_totals: dict = {}
-    any_estimated = False
-    for it in items:
-        for k, v in it.get("micros", {}).items():
-            micro_totals[k] = micro_totals.get(k, 0) + v
-        if it.get("micros_source") == "ai_estimated":
-            any_estimated = True
-    if micro_totals:
-        totals["micros"] = {k: round(v, 4) for k, v in micro_totals.items()}
-        # True when ANY contributing item's micros came from the AI's own
-        # estimate rather than a verified DB match -- lets the client show an
-        # honest "Estimated" badge on the whole meal's micro panel instead of
-        # silently mixing verified + guessed numbers with no distinction.
-        totals["micros_estimated"] = any_estimated
     data["totals"] = totals
     return data
 
@@ -841,6 +863,7 @@ def _food_suggestion(food: dict) -> dict:
     DB macros are already per-unit."""
     out = {
         "key": food["key"],
+        "id": food.get("id"),
         "name": food.get("name") or food["key"].replace("_", " ").title(),
         "unit": food["unit"],
         "kcal_per_unit": food["kcal_per_unit"],
@@ -858,6 +881,19 @@ def _food_suggestion(food: dict) -> dict:
         if food.get(k):
             out[k] = food[k]
     return out
+
+
+def _resolve_food_for_recipe(token: str) -> dict | None:
+    raw = (token or "").strip()
+    if not raw:
+        return None
+    key = _norm(raw).replace(" ", "_")
+    if key in FOOD_BY_KEY:
+        return _food_suggestion(FOOD_BY_KEY[key])
+    matched = match_food(raw)
+    if not matched:
+        return None
+    return _food_suggestion(matched)
 
 
 def _search_score(query: str, food: dict) -> int:
@@ -897,6 +933,9 @@ def foods_search(q: str, request: Request, limit: int = 20):
     if not query:
         return {"results": []}
     limit = max(1, min(50, limit))
+    canonical = food_graph.search_foods(query, limit=limit)
+    if canonical:
+        return {"results": [food_graph.compatibility_food_suggestion(f) for f in canonical]}
     scored = []
     for food in FOOD_DB:
         s = _search_score(query, food)
@@ -932,15 +971,22 @@ def foods_combos(request: Request, dish: str, limit: int = 6):
     seen: set[str] = set()
     out: list[dict] = []
     for nm in names:
-        entry = _resolve_combo_entry(nm)
-        if not entry:
-            continue
-        for side in entry.get("sides", []):
+        combo_key = _norm(nm).replace(" ", "_")
+        if combo_key not in COMBOS:
+            f = match_food(nm)
+            if f:
+                combo_key = f["key"]
+        persisted_sides = _persisted_combo_sides(combo_key)
+        sides = persisted_sides if persisted_sides else ((_resolve_combo_entry(nm) or {}).get("sides", []))
+        for side in sides:
             sk = side.get("key")
             if not sk or sk in seen or sk in present:
                 continue
             # Resolve this side's nutrition/diet flags from the curated FOOD_DB.
             food = FOOD_BY_KEY.get(sk)
+            if not food:
+                cands = food_graph.search_foods(sk, limit=1)
+                food = cands[0] if cands else None
             if not food:
                 continue  # curated key not in FOOD_DB -> silently skip
             seen.add(sk)
@@ -948,11 +994,116 @@ def foods_combos(request: Request, dish: str, limit: int = 6):
             sug["count"] = side.get("count", 1)
             if side.get("reason"):
                 sug["reason"] = side["reason"]
-            sug["pairs_with"] = entry.get("display", nm)
+            sug["pairs_with"] = side.get("pairs_with") or ((_resolve_combo_entry(nm) or {}).get("display", nm))
             out.append(sug)
 
     limit = max(1, min(20, limit))
     return {"pairings": out[:limit]}
+
+
+class ComboFingerprintBody(BaseModel):
+    dishes: list[str] = Field(default_factory=list)
+
+
+@app.post("/combos/fingerprint")
+def combos_fingerprint(body: ComboFingerprintBody, request: Request):
+    auth.require_account(request)
+    keys: list[str] = []
+    for name in body.dishes:
+        f = match_food(name)
+        if f:
+            keys.append(f["key"])
+        else:
+            n = _norm(name).replace(" ", "_")
+            if n:
+                keys.append(n)
+    fp = recipe_combo_engine.combo_fingerprint(keys)
+    return {"fingerprint": fp, "keys": sorted(set(keys))}
+
+
+class RecipeIngredientIn(BaseModel):
+    food_key: str | None = None
+    name: str | None = None
+    quantity: float = Field(1, ge=0)
+    quantity_unit: str = "serving"
+    notes: str | None = None
+
+
+class RecipeEstimateBody(BaseModel):
+    name: str = Field("", max_length=200)
+    servings: float = Field(1, gt=0, le=100)
+    ingredients: list[RecipeIngredientIn] = Field(default_factory=list)
+
+
+class RecipeSaveBody(RecipeEstimateBody):
+    recipe_code: str = Field(..., min_length=2, max_length=80)
+    source: str = Field(default="user", max_length=40)
+
+
+@app.post("/recipes/estimate")
+def recipes_estimate(body: RecipeEstimateBody, request: Request):
+    auth.require_account(request)
+    if not body.ingredients:
+        return {"name": body.name, "servings": body.servings, "items": [], "totals": {"kcal": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0}}
+    estimated = recipe_combo_engine.estimate_recipe(
+        [i.model_dump() for i in body.ingredients],
+        _resolve_food_for_recipe,
+    )
+    return {"name": body.name, "servings": body.servings, **estimated}
+
+
+@app.post("/recipes")
+def recipes_save(body: RecipeSaveBody, request: Request):
+    auth.require_account(request)
+    ingredients = [i.model_dump() for i in body.ingredients]
+    recipe_id = recipe_combo_engine.save_recipe(
+        recipe_code=body.recipe_code.strip(),
+        name=body.name.strip() or body.recipe_code.strip(),
+        servings=body.servings,
+        source=body.source.strip() or "user",
+        notes=None,
+        ingredients=ingredients,
+    )
+    estimated = recipe_combo_engine.estimate_recipe(ingredients, _resolve_food_for_recipe)
+    return {"ok": True, "id": recipe_id, "recipe_code": body.recipe_code, "estimate": estimated}
+
+
+@app.get("/recipes/search")
+def recipes_search(q: str, request: Request, limit: int = 20):
+    auth.require_account(request)
+    return {"results": recipe_combo_engine.search_recipes(q, limit=limit)}
+
+
+@app.get("/recipes/{recipe_id}")
+def recipes_get(recipe_id: int, request: Request):
+    auth.require_account(request)
+    rec = recipe_combo_engine.load_recipe(recipe_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    estimate = recipe_combo_engine.estimate_recipe(rec.get("ingredients", []), _resolve_food_for_recipe)
+    return {"recipe": rec, "estimate": estimate}
+
+
+@app.get("/meal-templates")
+def meal_templates_list(
+    request: Request,
+    slot: str = "",
+    training: str = "",
+    limit: int = 30,
+):
+    auth.require_account(request)
+    return {"templates": recipe_combo_engine.list_meal_templates(slot, training, limit)}
+
+
+@app.get("/meal-templates/roles")
+def meal_template_roles_list(
+    request: Request,
+    food_key: str = "",
+    role_key: str = "",
+    limit: int = 100,
+):
+    auth.require_account(request)
+    return {"roles": recipe_combo_engine.list_food_roles(food_key, role_key, limit)}
 
 
 # --------------------------------------------------------------------------- #
@@ -990,6 +1141,8 @@ def _food_diet_ok(food: dict, diet: str) -> bool:
     fix)."""
     if diet == "nonveg":
         return True
+    if food.get("id") is not None:
+        return dietary_rules.food_allowed(food, diet)
     if food.get("vegetarian") is not None:
         if diet == "eggetarian":
             return bool(food.get("eggetarian"))
@@ -1041,7 +1194,7 @@ def _india_tier(food: dict) -> int:
     return 0
 
 
-def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
+def _recommend_components(food: dict, rem: dict, goal: dict) -> dict:
     """Rank a single real DB food by how well one serving fits what's LEFT in
     the user's day. Mirrors the client's deterministic scorer (protein-first,
     penalise calorie/fat overshoot, small goal tilt) so server and client agree,
@@ -1049,7 +1202,7 @@ def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
     stays on the client."""
     kcal = food.get("kcal_per_unit", 0) or 0
     if kcal <= 0:
-        return -1e9
+        return {"score": -1e9}
     remKcal = rem["kcal"]
     remP = max(0, rem["protein_g"])
     remC = max(0, rem["carbs_g"])
@@ -1073,9 +1226,72 @@ def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
     )
     # Nudge toward healthier real foods (health_score is 0-100, 50 is neutral).
     hs = food.get("health_score")
+    hs_term = 0.0
     if isinstance(hs, (int, float)):
-        score += (hs - 50) * 0.03
-    return score
+        hs_term = (hs - 50) * 0.03
+        score += hs_term
+    return {
+        "score": score,
+        "protein_fill": protein_fill,
+        "carb_fill": carb_fill,
+        "kcal_over": kcal_over,
+        "fat_over": fat_over,
+        "health_term": hs_term,
+    }
+
+
+def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
+    return float(_recommend_components(food, rem, goal).get("score", -1e9))
+
+
+def _rank_foods_detailed(rem: dict, goal: dict, diet: str, limit: int) -> dict:
+    remKcal = rem["kcal"]
+    ceiling = max(remKcal * 1.2, 150)
+    source = FOOD_DB
+    after_diet = []
+    scored = []
+    for food in source:
+        if not _food_diet_ok(food, diet):
+            continue
+        after_diet.append(food)
+        kcal = food.get("kcal_per_unit", 0) or 0
+        if kcal <= 0 or kcal > ceiling:
+            continue
+        comp = _recommend_components(food, rem, goal)
+        s = comp.get("score", -1e9)
+        scored.append((_india_tier(food), s, -kcal, food, comp))
+    scored.sort(key=lambda x: (x[0], x[1], x[2]), reverse=True)
+    top = scored[:limit]
+    top_audit = []
+    for _, s, _, f, comp in scored[:20]:
+        top_audit.append(
+            {
+                "key": f.get("key"),
+                "name": f.get("name") or f.get("key", "").replace("_", " ").title(),
+                "score": round(float(s), 4),
+                "protein_fill": round(float(comp.get("protein_fill", 0.0)), 3),
+                "carb_fill": round(float(comp.get("carb_fill", 0.0)), 3),
+                "kcal_over": round(float(comp.get("kcal_over", 0.0)), 3),
+                "fat_over": round(float(comp.get("fat_over", 0.0)), 3),
+                "health_term": round(float(comp.get("health_term", 0.0)), 4),
+                "india_tier": _india_tier(f),
+            }
+        )
+    return {
+        "foods": [f for _, _, _, f, _ in top],
+        "counts": {
+            "food_db_total": len(source),
+            "after_diet_filter": len(after_diet),
+            "after_nutrition_filter": len(scored),
+        },
+        "top20_food_rank": top_audit,
+        "determinism": {
+            "sort_keys": ["india_tier(desc)", "score(desc)", "kcal_ascending"],
+            "fixed_seed": False,
+            "randomized": False,
+        },
+        "ceiling_kcal": round(float(ceiling), 2),
+    }
 
 
 def _rank_foods(rem: dict, goal: dict, diet: str, limit: int) -> list:
@@ -1084,21 +1300,51 @@ def _rank_foods(rem: dict, goal: dict, diet: str, limit: int) -> list:
     600 kcal thali when only 200 kcal remain. Ranks over FOOD_DB, the single
     curated food source (see /foods/search's docstring for why the
     experimental Food Intelligence Graph is not used here)."""
-    remKcal = rem["kcal"]
-    ceiling = max(remKcal * 1.2, 150)  # allow small foods even when nearly full
-    source = FOOD_DB
-    scored = []
-    for food in source:
-        if not _food_diet_ok(food, diet):
+    return _rank_foods_detailed(rem, goal, diet, limit)["foods"]
+
+
+_FOOD_ROLE_CACHE_TTL = 300
+_food_role_cache = {"ts": 0.0, "map": {}}
+
+
+def _food_roles_map() -> dict[str, set[str]]:
+    now = time.time()
+    if (now - float(_food_role_cache["ts"])) < _FOOD_ROLE_CACHE_TTL and _food_role_cache["map"]:
+        return _food_role_cache["map"]  # type: ignore[return-value]
+    role_rows = recipe_combo_engine.list_food_roles(limit=3000)
+    out: dict[str, set[str]] = {}
+    for row in role_rows:
+        key = str(row.get("food_key") or "").strip().lower()
+        role = str(row.get("role_key") or "").strip().lower()
+        if not key or not role:
             continue
-        kcal = food.get("kcal_per_unit", 0) or 0
-        if kcal <= 0 or kcal > ceiling:
+        out.setdefault(key, set()).add(role)
+    _food_role_cache["ts"] = now
+    _food_role_cache["map"] = out
+    return out
+
+
+def _template_role_prefs(slot: str, training: str) -> tuple[set[str], set[str], str, int]:
+    templates = recipe_combo_engine.list_meal_templates(
+        meal_type=(slot or "").strip().lower(),
+        training_context=(training or "").strip().lower(),
+        limit=8,
+    )
+    if not templates:
+        return set(), set(), "", 0
+    selected = templates[0]
+    required: set[str] = set()
+    optional: set[str] = set()
+    for role in selected.get("roles", []):
+        rk = str(role.get("role_key") or "").strip().lower()
+        req = str(role.get("requirement") or "").strip().lower()
+        if not rk:
             continue
-        s = _recommend_score(food, rem, goal)
-        scored.append((_india_tier(food), s, -kcal, food))
-    # India-first tier is the primary key, then macro-fit, then smaller serving.
-    scored.sort(key=lambda x: (x[0], x[1], x[2]), reverse=True)
-    return [f for _, _, _, f in scored[:limit]]
+        if req == "required":
+            required.add(rk)
+        elif req == "optional":
+            optional.add(rk)
+    return required, optional, str(selected.get("template_key") or ""), len(templates)
 
 
 # AI phrasing is cached so rapid re-renders / similar budgets don't re-hit
@@ -1186,6 +1432,13 @@ class Remaining(BaseModel):
     fat_g: float = 0
 
 
+class RecommendTargets(BaseModel):
+    kcal: float = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+
+
 class RecommendBody(BaseModel):
     remaining: Remaining
     diet: str = "veg"
@@ -1193,6 +1446,590 @@ class RecommendBody(BaseModel):
     slot: str = ""
     limit: int = 12
     phrase: bool = True
+    targets: RecommendTargets | None = None
+    consumed: RecommendTargets | None = None
+    date: str = ""
+    training: str = ""
+
+
+def _init_recommendation_history_table(c) -> None:
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS recommendation_history (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id    INTEGER NOT NULL,
+            date          TEXT NOT NULL,
+            slot          TEXT NOT NULL,
+            meal_key      TEXT NOT NULL,
+            meal_name     TEXT NOT NULL,
+            shown_keys    TEXT NOT NULL,
+            score         REAL NOT NULL DEFAULT 0,
+            created_at    REAL NOT NULL
+        )
+        """
+    )
+    c.execute(
+        "CREATE INDEX IF NOT EXISTS idx_reco_history_account_date ON recommendation_history(account_id, date, created_at)"
+    )
+
+
+def _core_slot(meal_type: str) -> str:
+    mt = (meal_type or "").strip().lower()
+    if mt in ("breakfast",):
+        return "breakfast"
+    if mt in ("lunch",):
+        return "lunch"
+    if mt in ("dinner",):
+        return "dinner"
+    return "snack"
+
+
+def _next_slot_from_logs(account_id: int, date_key: str, asked_slot: str) -> str:
+    asked = (asked_slot or "").strip().lower()
+    if asked in ("breakfast", "lunch", "snack", "dinner"):
+        return asked
+    with db.connect() as c:
+        if "meal_type" in db.table_columns(c, "meal_logs"):
+            rows = c.execute(
+                "SELECT meal_type FROM meal_logs WHERE account_id=? AND date=? ORDER BY at ASC",
+                (account_id, date_key),
+            ).fetchall()
+        else:
+            rows = []
+    seen = [_core_slot(r["meal_type"]) for r in rows if r["meal_type"]]
+    seen_set = set(seen)
+    if "breakfast" not in seen_set:
+        return "breakfast"
+    if "lunch" not in seen_set:
+        return "lunch"
+    if "snack" not in seen_set:
+        return "snack"
+    if "dinner" not in seen_set:
+        return "dinner"
+    return "snack"
+
+
+def _day_meal_strings(account_id: int, date_key: str, history_days: int = 5) -> list[str]:
+    # date is stored as YYYY-MM-DD text, so lexical ORDER BY works chronologically.
+    with db.connect() as c:
+        rows = c.execute(
+            """
+            SELECT dish FROM meal_logs
+            WHERE account_id=? AND date<=?
+            ORDER BY date DESC, at DESC
+            LIMIT ?
+            """,
+            (account_id, date_key, max(1, history_days * 8)),
+        ).fetchall()
+    return [str(r["dish"] or "").strip().lower() for r in rows if str(r["dish"] or "").strip()]
+
+
+def _recent_reco_counts(account_id: int, date_key: str, lookback: int = 4) -> dict[str, int]:
+    with db.connect() as c:
+        _init_recommendation_history_table(c)
+        rows = c.execute(
+            """
+            SELECT meal_key, COUNT(*) AS n
+            FROM recommendation_history
+            WHERE account_id=? AND date<=?
+            GROUP BY meal_key
+            ORDER BY MAX(created_at) DESC
+            LIMIT ?
+            """,
+            (account_id, date_key, max(8, lookback * 8)),
+        ).fetchall()
+    return {str(r["meal_key"]): int(r["n"]) for r in rows}
+
+
+def _target_kcal_share(slot: str) -> float:
+    if slot == "breakfast":
+        return 0.25
+    if slot == "lunch":
+        return 0.33
+    if slot == "dinner":
+        return 0.28
+    return 0.14
+
+
+_PREP_WORDS = {
+    "curry", "masala", "gravy", "dry", "fry", "fried", "sabzi", "sabji", "bhaji",
+    "tadka", "tikka", "roasted", "grilled", "steamed", "boiled", "spicy", "hot",
+    "special", "home", "style", "homestyle", "plain", "fresh", "classic", "with",
+    "and", "the", "of", "in", "ka", "ki", "ke", "wala", "wali", "veg", "non",
+    "half", "full", "plate", "bowl", "serving", "regular", "large", "small",
+}
+
+
+def _family(food: dict) -> str:
+    name = (food.get("name") or food.get("key", "")).lower().replace("_", " ").replace("-", " ")
+    for tok in name.split():
+        t = tok.strip()
+        if len(t) > 2 and t not in _PREP_WORDS:
+            return t
+    return name.strip() or str(food.get("key", ""))
+
+
+def _meal_fingerprint(items: list[dict]) -> str:
+    parts = []
+    for it in items:
+        parts.append(f"{str(it.get('key','')).strip().lower()}:{float(it.get('count',0) or 0):.2f}")
+    return recipe_combo_engine.combo_fingerprint(parts)
+
+
+def _meal_primary_key(items: list[dict]) -> str:
+    if not items:
+        return ""
+    return str(items[0].get("key", "")).strip().lower()
+
+
+def _meal_name(items: list[dict]) -> str:
+    names = [str(i.get("name", "")).strip() for i in items if str(i.get("name", "")).strip()]
+    return " + ".join(names[:4])
+
+
+def _meal_component_summary(items: list[dict]) -> list[dict]:
+    out = []
+    for it in items:
+        out.append(
+            {
+                "key": it.get("key"),
+                "name": it.get("name"),
+                "count": it.get("count"),
+                "unit": it.get("unit"),
+                "kcal": it.get("kcal"),
+                "protein_g": it.get("protein_g"),
+                "carbs_g": it.get("carbs_g"),
+                "fat_g": it.get("fat_g"),
+            }
+        )
+    return out
+
+
+def _macro_gap_reason(rem: dict, goal: str) -> tuple[str, str]:
+    rows = [
+        ("protein", rem.get("protein_g", 0)),
+        ("carbs", rem.get("carbs_g", 0)),
+        ("fat", rem.get("fat_g", 0)),
+    ]
+    rows.sort(key=lambda x: x[1], reverse=True)
+    top_k, top_v = rows[0]
+    if rem.get("kcal", 0) <= 160:
+        return "light", "You're close to your calorie limit, so this keeps things lighter."
+    if top_k == "protein" and top_v >= 12:
+        return "high_protein", f"You still need about {int(round(top_v))}g protein today."
+    if top_k == "carbs" and top_v >= 20:
+        return "carb_support", f"You still need about {int(round(top_v))}g carbs today."
+    if goal == "lose":
+        return "balanced_light", "This balances your remaining targets without overshooting calories."
+    return "balanced", "This is a balanced fit for what remains today."
+
+
+def _score_candidate_meal(
+    items: list[dict],
+    slot: str,
+    rem: dict,
+    goal_name: str,
+    day_meals: list[str],
+    reco_counts: dict[str, int],
+) -> tuple[float, dict]:
+    totals = _meal_totals(items)
+    if totals["kcal"] <= 0:
+        return -1e9, {}
+    # Nutrition fit (day-state aware).
+    fit_score = _meal_fit_score(items, rem)
+    score = fit_score
+    # Meal context fit.
+    slot_context_penalty = 0.0
+    if slot == "snack" and totals["kcal"] > max(320.0, rem["kcal"] * 0.7):
+        slot_context_penalty += 2.2
+        score -= 2.2
+    if slot in ("lunch", "dinner") and totals["kcal"] < 220:
+        slot_context_penalty += 1.6
+        score -= 1.6
+    # Repetition penalty from logged dishes + shown recommendations.
+    primary = _meal_primary_key(items)
+    meal_name = _meal_name(items).lower()
+    repeats_logged = 0
+    for d in day_meals:
+        if primary and primary in d:
+            repeats_logged += 1
+        elif meal_name and meal_name[:24] in d:
+            repeats_logged += 1
+    repeats_reco = reco_counts.get(primary, 0) if primary else 0
+    rep_penalty = (repeats_logged * 1.4) + (repeats_reco * 1.1)
+    score -= rep_penalty
+    # Diversity boost for meals not seen recently.
+    diversity_boost = 0.0
+    if repeats_logged == 0 and repeats_reco == 0:
+        diversity_boost = 0.8
+        score += diversity_boost
+    # Goal nuance.
+    goal_adjust = 0.0
+    if goal_name == "gain":
+        goal_adjust = min(1.2, totals["kcal"] / max(300.0, rem["kcal"])) * 0.4
+        score += goal_adjust
+    elif goal_name == "lose":
+        goal_adjust = -max(0.0, totals["kcal"] - rem["kcal"] * 0.95) * 0.01
+        score += goal_adjust
+    return score, {
+        "fit_score": round(float(fit_score), 4),
+        "slot_context_penalty": round(float(slot_context_penalty), 4),
+        "repeats_logged": int(repeats_logged),
+        "repeats_reco": int(repeats_reco),
+        "repetition_penalty": round(float(rep_penalty), 4),
+        "diversity_boost": round(float(diversity_boost), 4),
+        "goal_adjust": round(float(goal_adjust), 4),
+    }
+
+
+def _build_next_move_candidates(
+    account_id: int,
+    date_key: str,
+    slot: str,
+    rem: dict,
+    diet: str,
+    goal_name: str,
+    training: str,
+    limit: int,
+) -> list[dict]:
+    goal = {"goal": goal_name, "protein_g": rem.get("protein_g", 0) * 3}
+    rank_debug = _rank_foods_detailed(rem, goal, diet, max(30, limit * 10))
+    primaries = [_food_suggestion(f) for f in rank_debug["foods"]]
+    if not primaries:
+        log.info("reco.audit slot=%s stage=rank no_primaries counts=%s", slot, rank_debug.get("counts"))
+        return []
+    role_map = _food_roles_map()
+    required_roles, _, template_key, template_pool = _template_role_prefs(slot, training)
+    day_meals = _day_meal_strings(account_id, date_key, history_days=5)
+    reco_counts = _recent_reco_counts(account_id, date_key, lookback=4)
+    seen_fp: set[str] = set()
+    scored: list[tuple[float, dict]] = []
+    slot_filter_drops = 0
+    compatibility_rejects: dict[str, int] = defaultdict(int)
+
+    primary_pool = primaries[:18]
+    strict_primaries: list[dict] = []
+    for primary in primary_pool:
+        p_key = str(primary.get("key", "")).strip().lower()
+        if not p_key:
+            continue
+        p_roles = role_map.get(p_key, set())
+        if required_roles and ("staple" in required_roles) and ("staple" not in p_roles) and slot in ("breakfast", "lunch", "dinner"):
+            slot_filter_drops += 1
+            continue
+        strict_primaries.append(primary)
+    # Role map is sparse in early datasets; if strict-role filter collapses the
+    # pool, relax it rather than returning zero candidates.
+    relaxed_role_filter = False
+    if not strict_primaries and slot_filter_drops > 0:
+        strict_primaries = primary_pool
+        relaxed_role_filter = True
+
+    for primary in strict_primaries:
+        p_key = str(primary.get("key", "")).strip().lower()
+        if not p_key:
+            continue
+        meal_items: list[dict] = []
+        pst, plo, phi = _portion_step(str(primary.get("unit", "")), p_key)
+        p_count = _round_count(1.0 if pst >= 1.0 else 0.5, pst, plo, phi)
+        meal_items.append(_component_from_food(primary, p_count))
+
+        for side in _combo_sides_for_key(p_key):
+            sk = str(side.get("key") or "").strip().lower()
+            if not sk or sk == p_key:
+                continue
+            sf = FOOD_BY_KEY.get(sk)
+            if not sf or (not _food_diet_ok(sf, diet)):
+                continue
+            ss = _food_suggestion(sf)
+            cnt = float(side.get("count") or 1)
+            sst, slo, shi = _portion_step(str(ss.get("unit", "")), sk)
+            meal_items.append(_component_from_food(ss, _round_count(cnt, sst, slo, shi)))
+            if len(meal_items) >= max(2, limit):
+                break
+
+        # Fill missing required roles, if any.
+        have_roles = set()
+        for it in meal_items:
+            have_roles.update(role_map.get(str(it.get("key", "")).lower(), set()))
+        for req_role in required_roles:
+            if req_role in have_roles:
+                continue
+            for cand in primaries:
+                ck = str(cand.get("key", "")).strip().lower()
+                if ck in {str(i.get("key", "")).lower() for i in meal_items}:
+                    continue
+                if req_role not in role_map.get(ck, set()):
+                    continue
+                cst, clo, chi = _portion_step(str(cand.get("unit", "")), ck)
+                meal_items.append(_component_from_food(cand, _round_count(1.0, cst, clo, chi)))
+                have_roles.update(role_map.get(ck, set()))
+                break
+
+        ok, why = _is_compatible_meal(slot, meal_items)
+        if not ok:
+            log.info("next_move reject slot=%s primary=%s reason=%s", slot, p_key, why)
+            compatibility_rejects[why] += 1
+            continue
+
+        fp = _meal_fingerprint(meal_items)
+        if fp in seen_fp:
+            continue
+        seen_fp.add(fp)
+        score, score_parts = _score_candidate_meal(meal_items, slot, rem, goal_name, day_meals, reco_counts)
+        scored.append(
+            (
+                score,
+                {
+                    "slot": slot,
+                    "primary_key": _meal_primary_key(meal_items),
+                    "meal_name": _meal_name(meal_items),
+                    "items": meal_items,
+                    "totals": _meal_totals(meal_items),
+                    "fingerprint": fp,
+                    "score": round(score, 4),
+                    "score_parts": score_parts,
+                },
+            )
+        )
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top_ranked = [m for _, m in scored[: max(1, limit)]]
+    top20 = [m for _, m in scored[:20]]
+    rounded = Counter(round(float(m.get("score", 0.0)), 1) for m in top20)
+    tie_groups = sum(1 for n in rounded.values() if n > 1)
+    log.info(
+        "reco.audit slot=%s counts=%s template=%s template_pool=%s required_roles=%s strict_drops=%s relaxed=%s compat_rejects=%s unique_after_compat=%s after_repetition=%s top20=%s determinism=%s top20_food_rank=%s",
+        slot,
+        {
+            "food_db_total": rank_debug["counts"]["food_db_total"],
+            "after_diet_filter": rank_debug["counts"]["after_diet_filter"],
+            "after_nutrition_filter": rank_debug["counts"]["after_nutrition_filter"],
+            "primaries_considered": len(primary_pool),
+            "after_slot_filter": len(strict_primaries),
+        },
+        template_key or "none",
+        template_pool,
+        sorted(required_roles),
+        slot_filter_drops,
+        relaxed_role_filter,
+        dict(compatibility_rejects),
+        len(seen_fp),
+        len(top_ranked),
+        [
+            {
+                "meal": m.get("meal_name"),
+                "primary": m.get("primary_key"),
+                "score": m.get("score"),
+                "score_parts": m.get("score_parts"),
+                "totals": m.get("totals"),
+            }
+            for m in top20
+        ],
+        {
+            "sort_keys": ["candidate_score(desc)"],
+            "fixed_seed": False,
+            "stable_ordering": True,
+            "top20_tie_groups": tie_groups,
+            "top20_distinct_score_bands": len(rounded),
+            "top20_score_bands": dict(rounded),
+        },
+        rank_debug.get("top20_food_rank", []),
+    )
+    return top_ranked
+
+
+_PLAN_SLOT_ORDER = [
+    ("breakfast", "Breakfast", 0.25),
+    ("lunch", "Lunch", 0.35),
+    ("snack", "Snack", 0.15),
+    ("dinner", "Dinner", 0.25),
+]
+
+
+def _slot_budget_from_targets(targets: dict, frac: float) -> dict:
+    return {
+        "kcal": max(0.0, float(targets.get("kcal", 0) or 0) * frac),
+        "protein_g": max(0.0, float(targets.get("protein_g", 0) or 0) * frac),
+        "carbs_g": max(0.0, float(targets.get("carbs_g", 0) or 0) * frac),
+        "fat_g": max(0.0, float(targets.get("fat_g", 0) or 0) * frac),
+    }
+
+
+def _sum_meal_totals(meals: list[dict]) -> dict:
+    return {
+        "kcal": round(sum(float(m.get("totals", {}).get("kcal", 0) or 0) for m in meals)),
+        "protein_g": round(sum(float(m.get("totals", {}).get("protein_g", 0) or 0) for m in meals), 1),
+        "carbs_g": round(sum(float(m.get("totals", {}).get("carbs_g", 0) or 0) for m in meals), 1),
+        "fat_g": round(sum(float(m.get("totals", {}).get("fat_g", 0) or 0) for m in meals), 1),
+        "fiber_g": round(
+            sum(sum(float(i.get("fiber_g", 0) or 0) for i in (m.get("items") or [])) for m in meals),
+            1,
+        ),
+    }
+
+
+def _full_day_combo_score(
+    meals: list[dict],
+    targets: dict,
+    day_meals: list[str],
+    reco_counts: dict[str, int],
+) -> float:
+    totals = _sum_meal_totals(meals)
+    t_k = max(1.0, float(targets.get("kcal", 0) or 0))
+    t_p = max(1.0, float(targets.get("protein_g", 0) or 0))
+    t_c = max(1.0, float(targets.get("carbs_g", 0) or 0))
+    t_f = max(1.0, float(targets.get("fat_g", 0) or 0))
+    score = 0.0
+    score -= abs(totals["kcal"] - t_k) / t_k * 2.2
+    score -= abs(totals["protein_g"] - t_p) / t_p * 3.6
+    score -= abs(totals["carbs_g"] - t_c) / t_c * 1.6
+    score -= abs(totals["fat_g"] - t_f) / t_f * 2.0
+    score += sum(float(m.get("score", 0) or 0) for m in meals) * 0.06
+
+    seen_primary: set[str] = set()
+    seen_family: set[str] = set()
+    for m in meals:
+        pk = str(m.get("primary_key") or "")
+        if pk in seen_primary and pk:
+            score -= 1.6
+        seen_primary.add(pk)
+        fam = _family({"key": pk, "name": m.get("meal_name", "")})
+        if fam in seen_family and fam:
+            score -= 0.9
+        seen_family.add(fam)
+        # History penalties at day-plan level too.
+        reps = reco_counts.get(pk, 0)
+        score -= reps * 0.5
+        nm = str(m.get("meal_name", "")).lower()
+        if any(pk and pk in d for d in day_meals):
+            score -= 0.6
+        if nm and any(nm[:20] in d for d in day_meals):
+            score -= 0.5
+
+    return score
+
+
+def _build_shared_day_plan(
+    account_id: int | None,
+    date_key: str,
+    targets: dict,
+    diet: str,
+    goal: str,
+    training_context: str,
+) -> list[dict]:
+    """Shared engine for full-day planning used by /plan/today and next-move stack."""
+    acct = int(account_id or 0)
+    day_meals = _day_meal_strings(acct, date_key, history_days=5) if acct > 0 else []
+    reco_counts = _recent_reco_counts(acct, date_key, lookback=6) if acct > 0 else {}
+    slot_cands: dict[str, list[dict]] = {}
+    for slot, _, frac in _PLAN_SLOT_ORDER:
+        budget = _slot_budget_from_targets(targets, frac)
+        cands = _build_next_move_candidates(
+            account_id=acct,
+            date_key=date_key,
+            slot=slot,
+            rem=budget,
+            diet=diet,
+            goal_name=goal,
+            training=training_context,
+            limit=5,
+        )
+        if not cands:
+            log.info("shared_plan: slot=%s no candidates", slot)
+            return []
+        slot_cands[slot] = cands[:4]
+
+    best_combo: list[dict] = []
+    best_score = -1e9
+    combo_rows: list[tuple[float, list[dict], dict]] = []
+    choices = [slot_cands[s] for s, _, _ in _PLAN_SLOT_ORDER]
+    for combo in itertools.product(*choices):
+        meals = list(combo)
+        totals = _sum_meal_totals(meals)
+        score = _full_day_combo_score(meals, targets, day_meals, reco_counts)
+        combo_rows.append((score, meals, totals))
+        if score > best_score:
+            best_score = score
+            best_combo = meals
+
+    if not best_combo:
+        return []
+    combo_rows.sort(key=lambda x: x[0], reverse=True)
+    top20 = combo_rows[:20]
+    rounded = Counter(round(float(row[0]), 2) for row in top20)
+    tie_groups = sum(1 for n in rounded.values() if n > 1)
+
+    slots: list[dict] = []
+    for idx, (slot, label, frac) in enumerate(_PLAN_SLOT_ORDER):
+        meal = best_combo[idx]
+        items = meal.get("items", []) or []
+        totals = _meal_totals(items)
+        slots.append(
+            {
+                "slot": slot,
+                "label": label,
+                "target_kcal": round(float(targets.get("kcal", 0) or 0) * frac),
+                "items": items,
+                "kcal": totals["kcal"],
+                "protein_g": totals["protein_g"],
+                "carbs_g": totals["carbs_g"],
+                "fat_g": totals["fat_g"],
+                **({"fiber_g": round(sum(float(i.get("fiber_g", 0) or 0) for i in items), 1)} if any("fiber_g" in i for i in items) else {}),
+            }
+        )
+    log.info(
+        "shared_plan.audit slot_pool_sizes=%s combos_evaluated=%s top20=%s determinism=%s selected_score=%.4f selected_meals=%s selected_totals=%s",
+        {s: len(slot_cands.get(s, [])) for s, _, _ in _PLAN_SLOT_ORDER},
+        len(combo_rows),
+        [
+            {
+                "score": round(float(score), 4),
+                "meals": [m.get("meal_name") for m in meals],
+                "totals": totals,
+            }
+            for score, meals, totals in top20
+        ],
+        {
+            "sort_keys": ["full_day_score(desc)"],
+            "fixed_seed": False,
+            "stable_ordering": True,
+            "top20_tie_groups": tie_groups,
+            "top20_distinct_score_bands": len(rounded),
+            "top20_score_bands": dict(rounded),
+        },
+        best_score,
+        [m.get("meal_name") for m in best_combo],
+        _sum_meal_totals(best_combo),
+    )
+    return slots
+
+
+def _record_recommendation(account_id: int, date_key: str, slot: str, meal: dict) -> None:
+    if not meal:
+        return
+    try:
+        with db.write_lock(), db.connect() as c:
+            _init_recommendation_history_table(c)
+            c.execute(
+                """
+                INSERT INTO recommendation_history
+                (account_id, date, slot, meal_key, meal_name, shown_keys, score, created_at)
+                VALUES (?,?,?,?,?,?,?,?)
+                """,
+                (
+                    account_id,
+                    date_key,
+                    slot,
+                    str(meal.get("primary_key") or ""),
+                    str(meal.get("meal_name") or ""),
+                    json.dumps([str(i.get("key") or "") for i in meal.get("items", [])]),
+                    float(meal.get("score") or 0),
+                    time.time(),
+                ),
+            )
+    except Exception as ex:
+        log.info("next_move history write failed (%s)", ex)
 
 
 @app.post("/foods/recommend")
@@ -1203,28 +2040,82 @@ def foods_recommend(body: RecommendBody, request: Request):
     Gemini-composed one-liner grounded in the ranked foods. Like /foods/search
     this is a plain DB lookup -- it requires a signed-in account but NEVER
     consumes a free-scan credit and never calls the vision model."""
-    auth.require_account(request)
+    acct = auth.require_account(request)
     rem = {
         "kcal": max(0.0, body.remaining.kcal),
         "protein_g": max(0.0, body.remaining.protein_g),
         "carbs_g": max(0.0, body.remaining.carbs_g),
         "fat_g": max(0.0, body.remaining.fat_g),
     }
-    goal = {"goal": (body.goal or "maintain").strip().lower()}
+    goal_name = (body.goal or "maintain").strip().lower()
+    goal = {"goal": goal_name}
     # protein target isn't sent; derive a proxy so the protein-priority switch
     # still works: if a real gap exists, treat protein as a priority.
     goal["protein_g"] = rem["protein_g"] * 3 if rem["protein_g"] > 0 else 0
     diet = (body.diet or "veg").strip().lower()
     limit = max(1, min(24, body.limit))
+    date_key = (body.date or "").strip()[:10] or time.strftime("%Y-%m-%d")
+    slot = _next_slot_from_logs(acct["id"], date_key, body.slot)
+    training = (body.training or "").strip().lower()
+    # If targets are present, align slot budget to a realistic day share.
+    if body.targets is not None:
+        share = _target_kcal_share(slot)
+        rem["kcal"] = min(rem["kcal"], max(120.0, body.targets.kcal * share))
+        rem["protein_g"] = min(rem["protein_g"], max(8.0, body.targets.protein_g * share))
+        rem["carbs_g"] = min(rem["carbs_g"], max(10.0, body.targets.carbs_g * share))
+        rem["fat_g"] = min(rem["fat_g"], max(4.0, body.targets.fat_g * share))
 
+    meals = _build_next_move_candidates(
+        account_id=acct["id"],
+        date_key=date_key,
+        slot=slot,
+        rem=rem,
+        diet=diet,
+        goal_name=goal_name,
+        training=training,
+        limit=max(3, min(10, limit)),
+    )
+    reason_category, reason_text = _macro_gap_reason(rem, goal_name)
     top = _rank_foods(rem, goal, diet, limit)
-    out = {"results": [_food_suggestion(f) for f in top]}
+    out = {"results": [_food_suggestion(f) for f in top], "slot": slot}
+    if meals:
+        primary = meals[0]
+        alternatives = meals[1:4]
+        out["next_move"] = {
+            "category": reason_category,
+            "slot": slot,
+            "meal": {
+                "name": primary["meal_name"],
+                "items": _meal_component_summary(primary["items"]),
+                **primary["totals"],
+            },
+            "alternatives": [
+                {"name": m["meal_name"], "items": _meal_component_summary(m["items"]), **m["totals"]}
+                for m in alternatives
+            ],
+            "reason": reason_text,
+        }
+        _record_recommendation(acct["id"], date_key, slot, primary)
+        log.info(
+            "next_move selected slot=%s category=%s meal=%s totals=%s alternatives=%s",
+            slot,
+            reason_category,
+            primary["meal_name"],
+            primary["totals"],
+            [m["meal_name"] for m in alternatives],
+        )
+    else:
+        log.info("next_move no valid meal candidates; falling back to food-level ranking")
     if body.phrase:
         try:
-            out["suggestion"] = _ai_phrase(diet, goal, (body.slot or "").strip().lower(), rem, top)
+            out["suggestion"] = _ai_phrase(diet, goal, slot, rem, top)
         except Exception:
             out["suggestion"] = _deterministic_phrase(top, rem)
     return out
+
+
+with db.write_lock(), db.connect() as _c:
+    _init_recommendation_history_table(_c)
 
 
 # --------------------------------------------------------------------------- #
@@ -1700,6 +2591,15 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
             if cache_key:
                 _analyze_cache_put(cache_key, data)
             data["usage"] = auth.usage_for(account["id"])
+            scan_result_id = food_graph.record_scan_result(
+                account["id"],
+                raw_items=data.get("items", []),
+                resolved_items=data.get("items", []),
+                confidence=float(data.get("confidence", 0) or 0),
+                status="resolved",
+            )
+            if scan_result_id:
+                data["scan_result_id"] = scan_result_id
             items = data.get("items", [])
             progress.record_scan(
                 account["id"], success=True, item_count=len(items),
@@ -1801,14 +2701,265 @@ def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guar
 # The plan module owns its table, persistence and routes but delegates the two
 # things only this module can do -- picking real foods from FOOD_DB for a slot's
 # budget, and composing a grounded Gemini coach note -- back to these callables.
-def _plan_pick_for_slot(budget: dict, diet: str, goal_str: str, limit: int) -> list:
+def _plan_pick_for_slot(
+    budget: dict,
+    diet: str,
+    goal_str: str,
+    limit: int,
+    slot: str = "",
+    training: str = "",
+    role_hint: str = "",
+) -> list:
     """Top real DB foods that fit a single slot's calorie/macro budget, already
     diet-filtered and in the client-friendly _food_suggestion shape. Reuses the
     exact ranking the /foods/recommend endpoint uses so the plan and the (later)
     recommender stay consistent."""
     goal = {"goal": goal_str, "protein_g": budget.get("protein_g", 0) * 3}
-    top = _rank_foods(budget, goal, diet, limit)
-    return [_food_suggestion(f) for f in top]
+    pool = max(limit * 3, 24)
+    top = _rank_foods(budget, goal, diet, pool)
+    if not top:
+        return []
+
+    role_map = _food_roles_map()
+    required_roles, optional_roles, _, _ = _template_role_prefs(slot, training)
+    hint = (role_hint or "").strip().lower()
+
+    def _role_fit(food: dict) -> tuple[int, int, int]:
+        roles = role_map.get(str(food.get("key") or "").strip().lower(), set())
+        hint_hit = 1 if (hint and hint in roles) else 0
+        req_hits = sum(1 for r in required_roles if r in roles)
+        opt_hits = sum(1 for r in optional_roles if r in roles)
+        return hint_hit, req_hits, opt_hits
+
+    scored = []
+    for idx, food in enumerate(top):
+        fit = _role_fit(food)
+        scored.append((fit[0], fit[1], fit[2], -idx, food))
+    scored.sort(key=lambda x: (x[0], x[1], x[2], x[3]), reverse=True)
+    return [_food_suggestion(f) for _, _, _, _, f in scored[:limit]]
+
+
+_HEAVY_WORDS = (
+    "biryani", "pulao", "rice", "naan", "paratha", "bhatura", "puri",
+    "paneer", "butter", "makhani", "fried",
+)
+_INCOMPATIBLE_RULES = (
+    ("biryani", "sambar"),
+    ("naan", "sambar"),
+)
+
+
+def _portion_step(unit: str, key: str) -> tuple[float, float, float]:
+    t = f"{unit} {key}".lower()
+    if any(w in t for w in ("roti", "chapati", "naan", "paratha", "idli", "egg", "piece", "slice")):
+        return 1.0, 1.0, 4.0
+    if any(w in t for w in ("cup", "katori", "bowl", "serving")):
+        return 0.5, 0.5, 2.5
+    return 0.5, 0.5, 3.0
+
+
+def _round_count(v: float, step: float, lo: float, hi: float) -> float:
+    if step <= 0:
+        step = 0.5
+    r = round(v / step) * step
+    return min(hi, max(lo, r))
+
+
+def _component_from_food(food: dict, count: float) -> dict:
+    return {
+        "key": food["key"],
+        "name": food.get("name") or food["key"].replace("_", " ").title(),
+        "unit": food.get("unit", "serving"),
+        "count": count,
+        "kcal": round(count * float(food.get("kcal_per_unit", 0) or 0)),
+        "protein_g": round(count * float(food.get("protein_g_per_unit", 0) or 0), 1),
+        "carbs_g": round(count * float(food.get("carbs_g_per_unit", 0) or 0), 1),
+        "fat_g": round(count * float(food.get("fat_g_per_unit", 0) or 0), 1),
+        **({"fiber_g": round(count * float(food.get("fiber_g", 0) or 0), 1)} if ("fiber_g" in food) else {}),
+    }
+
+
+def _meal_totals(items: list[dict]) -> dict:
+    return {
+        "kcal": round(sum(float(i.get("kcal", 0) or 0) for i in items)),
+        "protein_g": round(sum(float(i.get("protein_g", 0) or 0) for i in items), 1),
+        "carbs_g": round(sum(float(i.get("carbs_g", 0) or 0) for i in items), 1),
+        "fat_g": round(sum(float(i.get("fat_g", 0) or 0) for i in items), 1),
+    }
+
+
+def _combo_sides_for_key(primary_key: str) -> list[dict]:
+    sides = _persisted_combo_sides(primary_key)
+    if sides:
+        return sides
+    entry = COMBOS.get(primary_key)
+    if isinstance(entry, dict):
+        return list(entry.get("sides", []) or [])
+    return []
+
+
+def _is_compatible_meal(slot: str, items: list[dict]) -> tuple[bool, str]:
+    if not items:
+        return False, "empty meal"
+    keys = [str(i.get("key", "")).lower() for i in items]
+    names = [str(i.get("name", "")).lower() for i in items]
+    def _has(tok: str) -> bool:
+        return any(tok in k for k in keys) or any(tok in n for n in names)
+    for a, b in _INCOMPATIBLE_RULES:
+        if _has(a) and _has(b):
+            return False, f"incompatible pair: {a}+{b}"
+    if slot in ("lunch", "dinner") and len(items) < 2:
+        return False, "main meal missing components"
+    if slot == "snack":
+        if len(items) > 2:
+            return False, "snack too complex"
+        if any(any(w in (str(i.get("key", "")).lower() + " " + str(i.get("name", "")).lower()) for w in _HEAVY_WORDS) for i in items):
+            return False, "snack too heavy"
+    if slot in ("lunch", "dinner") and len(items) == 1:
+        t = (str(items[0].get("key", "")) + " " + str(items[0].get("name", ""))).lower()
+        if any(w in t for w in ("naan", "roti", "rice", "biryani", "paratha")):
+            return False, "staple-only main meal"
+    return True, "ok"
+
+
+def _meal_fit_score(items: list[dict], budget: dict) -> float:
+    totals = _meal_totals(items)
+    if totals["kcal"] <= 0:
+        return -1e9
+    score = 0.0
+    score -= abs(totals["kcal"] - float(budget.get("kcal", 0) or 0)) / max(120.0, float(budget.get("kcal", 0) or 1))
+    score -= abs(totals["protein_g"] - float(budget.get("protein_g", 0) or 0)) / max(12.0, float(budget.get("protein_g", 0) or 1))
+    score -= max(0.0, totals["carbs_g"] - float(budget.get("carbs_g", 0) or 0)) * 0.03
+    score -= max(0.0, totals["fat_g"] - float(budget.get("fat_g", 0) or 0)) * 0.06
+    return score
+
+
+def _plan_pick_meal_for_slot(
+    budget: dict,
+    diet: str,
+    goal_str: str,
+    slot: str,
+    training: str,
+    limit: int = 3,
+) -> list[dict]:
+    """Build a culturally-valid meal first, then tune portions toward slot macros.
+
+    Debug logging reports template pick, candidate rejects, and final selection.
+    """
+    goal = {"goal": goal_str, "protein_g": budget.get("protein_g", 0) * 3}
+    ranked = _plan_pick_for_slot(budget, diet, goal_str, max(36, limit * 10), slot, training, "staple")
+    if not ranked:
+        log.info("plan.combo slot=%s no ranked foods", slot)
+        return []
+    role_map = _food_roles_map()
+    required_roles, _, _, _ = _template_role_prefs(slot, training)
+    template = recipe_combo_engine.list_meal_templates(slot, training, limit=1)
+    template_key = template[0]["template_key"] if template else "fallback"
+    rejects: list[str] = []
+    best_items: list[dict] = []
+    best_score = -1e9
+
+    for primary in ranked[:16]:
+        p_key = str(primary.get("key") or "").strip().lower()
+        p_roles = role_map.get(p_key, set())
+        if required_roles and ("staple" in required_roles) and ("staple" not in p_roles) and slot in ("lunch", "dinner", "breakfast"):
+            continue
+        meal_foods: list[dict] = []
+        p_step, p_lo, p_hi = _portion_step(str(primary.get("unit", "")), p_key)
+        base_primary_count = 1.0 if p_step >= 1.0 else 0.5
+        meal_foods.append(_component_from_food(primary, _round_count(base_primary_count, p_step, p_lo, p_hi)))
+
+        # Prefer curated combo accompaniments for realistic Indian pairings.
+        for side in _combo_sides_for_key(p_key):
+            sk = str(side.get("key") or "").strip().lower()
+            if not sk or sk == p_key:
+                continue
+            sf = FOOD_BY_KEY.get(sk)
+            if not sf:
+                continue
+            if not _food_diet_ok(sf, diet):
+                continue
+            side_sug = _food_suggestion(sf)
+            cnt = float(side.get("count") or 1)
+            st, lo, hi = _portion_step(str(side_sug.get("unit", "")), sk)
+            meal_foods.append(_component_from_food(side_sug, _round_count(cnt, st, lo, hi)))
+            if len(meal_foods) >= max(2, limit):
+                break
+
+        # Fill missing required roles from ranked pool.
+        have_roles = set()
+        for it in meal_foods:
+            have_roles.update(role_map.get(str(it.get("key", "")).lower(), set()))
+        for req_role in required_roles:
+            if req_role in have_roles:
+                continue
+            for cand in ranked:
+                ck = str(cand.get("key") or "").lower()
+                if ck in {str(m.get("key", "")).lower() for m in meal_foods}:
+                    continue
+                if req_role not in role_map.get(ck, set()):
+                    continue
+                st, lo, hi = _portion_step(str(cand.get("unit", "")), ck)
+                meal_foods.append(_component_from_food(cand, _round_count(1.0, st, lo, hi)))
+                have_roles.update(role_map.get(ck, set()))
+                break
+
+        # Protein rescue: if slot protein is clearly low, grow protein-role foods.
+        totals = _meal_totals(meal_foods)
+        if totals["protein_g"] < max(8.0, float(budget.get("protein_g", 0)) * 0.75):
+            for i, it in enumerate(meal_foods):
+                roles = role_map.get(str(it.get("key", "")).lower(), set())
+                if "protein" not in roles:
+                    continue
+                key = str(it.get("key", "")).lower()
+                st, lo, hi = _portion_step(str(it.get("unit", "")), key)
+                new_c = _round_count(float(it.get("count", 1)) + st, st, lo, hi)
+                sf = FOOD_BY_KEY.get(key)
+                if not sf:
+                    continue
+                meal_foods[i] = _component_from_food(_food_suggestion(sf), new_c)
+                break
+
+        # Energy trim if too high.
+        totals = _meal_totals(meal_foods)
+        if totals["kcal"] > float(budget.get("kcal", 0)) * 1.2 and meal_foods:
+            for i in range(len(meal_foods)):
+                it = meal_foods[i]
+                key = str(it.get("key", "")).lower()
+                st, lo, hi = _portion_step(str(it.get("unit", "")), key)
+                if float(it.get("count", 1)) <= lo:
+                    continue
+                sf = FOOD_BY_KEY.get(key)
+                if not sf:
+                    continue
+                meal_foods[i] = _component_from_food(_food_suggestion(sf), _round_count(float(it.get("count", 1)) - st, st, lo, hi))
+                totals = _meal_totals(meal_foods)
+                if totals["kcal"] <= float(budget.get("kcal", 0)) * 1.08:
+                    break
+
+        ok, why = _is_compatible_meal(slot, meal_foods)
+        if not ok:
+            rejects.append(f"{p_key}:{why}")
+            continue
+        score = _meal_fit_score(meal_foods, budget)
+        if score > best_score:
+            best_score = score
+            best_items = meal_foods
+
+    if rejects:
+        log.info("plan.combo slot=%s template=%s rejected=%s", slot, template_key, "; ".join(rejects[:6]))
+    if not best_items:
+        log.info("plan.combo slot=%s template=%s no valid combo", slot, template_key)
+        return []
+    log.info(
+        "plan.combo slot=%s template=%s selected=%s portions=%s macros=%s",
+        slot,
+        template_key,
+        [i["key"] for i in best_items],
+        {i["key"]: i["count"] for i in best_items},
+        _meal_totals(best_items),
+    )
+    return best_items
 
 
 def _plan_ai_note(plan_data: dict, diet: str, goal_str: str) -> str:
@@ -1842,6 +2993,10 @@ def _plan_ai_note(plan_data: dict, diet: str, goal_str: str) -> str:
 
 
 plan.init_db()
-plan.configure(pick_for_slot=_plan_pick_for_slot, ai_note=_plan_ai_note)
+plan.configure(
+    pick_for_slot=_plan_pick_for_slot,
+    ai_note=_plan_ai_note,
+    pick_meal_for_slot=_plan_pick_meal_for_slot,
+    build_day_plan=_build_shared_day_plan,
+)
 app.include_router(plan.router)
-

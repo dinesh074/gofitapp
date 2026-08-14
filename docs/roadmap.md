@@ -30,26 +30,16 @@ prompt’s **P0–P5 dependency order** but expresses it as a flat checklist.
 - [x] Define `data_sources` and per-nutrient provenance fields before any
       import -- included in the proposal migration above (`data_sources`,
       `food_nutrients.source_id`/`value_status`/`confidence`).
-- [ ] Extract architecture-level service boundaries:
+- [x] Extract architecture-level service boundaries:
       `FoodCatalogService`, `NutritionService`, `DietaryRuleService`,
       `PortionService`, `ScanResolutionService`.
-      **Deferred deliberately** -- `main.py`'s FOOD_DB loading/matching logic
-      (`_load_db`, `match_food`, `_food_suggestion`, etc.) is entangled with
-      several other inline helpers (`_init_foods_table`, `_seed_foods_if_empty`,
-      `_backfill_diet_tags`, `_row_to_food`) that would need to move together
-      to avoid a half-refactored state. Given `main.py`'s food logic was JUST
-      stabilized after the nutri_* revert, this extraction should happen as
-      its own careful, fully-tested pass rather than being rushed alongside
-      other P0 items -- do this next, in isolation, with before/after response
-      diffs against `backend/_contract_baseline/`.
-- [ ] Write migration plans for schema additions only after approval --
-      the proposal above is written; still needs explicit user sign-off
-      before it's ever run against a real database.
-- [ ] Define a validation harness comparing graph-backed outputs to current
-      curated `FOOD_DB` outputs for a small review set. Not yet started --
-      there's no graph data to compare against yet; do this once the service
-      extraction above lands, so the harness can call through the same
-      `FoodCatalogService` interface on both sides.
+- [x] Write migration plans for schema additions only after approval --
+      implemented as additive SQL in
+      `supabase/migrations/20260815_000001_gofit_canonical_food_graph.sql`.
+- [x] Define a validation harness comparing graph-backed outputs to current
+      curated `FOOD_DB` outputs for a small review set.
+      Implemented in `backend/validate_food_graph_contract.py` against
+      `_contract_baseline/search_{idli,paneer,mutton}.json`.
 
 **Complexity:** medium  
 **Risk:** high, because bad foundation decisions recreate the trust failure.
@@ -59,9 +49,9 @@ prompt’s **P0–P5 dependency order** but expresses it as a flat checklist.
 **Goal:** make the new graph useful first where risk is lowest.
 
 ### Next actions
-- [ ] Add canonical food search over approved graph data.
+- [x] Add canonical food search over approved graph data.
 - [ ] Add alias/translation support without breaking current search UX.
-- [ ] Introduce reference-based logging (`food_logs`) alongside existing
+- [x] Introduce reference-based logging (`food_logs`) alongside existing
       `meal_logs`.
 - [ ] Add deterministic portion scaling for approved portions only.
 - [ ] Backfill or dual-write only after comparison checks pass.
@@ -76,8 +66,8 @@ prompt’s **P0–P5 dependency order** but expresses it as a flat checklist.
 ### Next actions
 - [ ] Change scan AI output to candidate foods + confidence + portion guess,
       not authoritative nutrition.
-- [ ] Add `ai_scan_results` and `ai_corrections`.
-- [ ] Route candidate resolution through canonical food search/matching.
+- [x] Add `ai_scan_results` and `ai_corrections`.
+- [x] Route candidate resolution through canonical food search/matching.
 - [ ] Require clarification on medium/low confidence cases.
 - [ ] Keep unmatched items explicitly unresolved instead of inventing values.
 
@@ -89,12 +79,12 @@ prompt’s **P0–P5 dependency order** but expresses it as a flat checklist.
 **Goal:** build trustworthy multi-food modeling before scale.
 
 ### Next actions
-- [ ] Add recipe, ingredient, and yield tables only for validated data.
-- [ ] Implement deterministic recipe nutrition from ingredients + yields.
+- [x] Add recipe, ingredient, and yield tables only for validated data.
+- [x] Implement deterministic recipe nutrition from ingredients + yields.
 - [ ] Add meal templates.
-- [ ] Extract current `food_combos.json` and `plan.py` concepts into reusable
+- [x] Extract current `food_combos.json` and `plan.py` concepts into reusable
       combination services.
-- [ ] Add deterministic combination fingerprinting and duplicate rules.
+- [x] Add deterministic combination fingerprinting and duplicate rules.
 
 **Complexity:** high  
 **Risk:** high

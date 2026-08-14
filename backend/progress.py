@@ -46,6 +46,7 @@ from pydantic import BaseModel, Field
 import db
 import auth
 import blob_storage
+import food_graph
 
 log = logging.getLogger("gofit.progress")
 
@@ -365,6 +366,75 @@ class ProfileBody(BaseModel):
     goalKind: Optional[str] = None
 
 
+_VALID_GENDERS = {"male", "female", "other"}
+_VALID_GOALS = {"lose", "maintain", "gain"}
+_VALID_ACTIVITIES = {"sedentary", "light", "moderate", "active", "very_active"}
+_VALID_DIETS = {"veg", "nonveg", "eggetarian", "vegan", "jain", "sattvic"}
+_GOAL_PACE_ALIASES = {
+    "relaxed": "relaxed",
+    "slow": "relaxed",
+    "recommended": "recommended",
+    "steady": "recommended",
+    "moderate": "recommended",
+    "ambitious": "ambitious",
+    "aggressive": "ambitious",
+}
+_GOAL_KIND_ALIASES = {
+    "loss": "loss",
+    "lose": "loss",
+    "lose_weight": "loss",
+    "weight_loss": "loss",
+    "muscle": "muscle",
+    "gain_muscle": "muscle",
+    "muscle_gain": "muscle",
+    "maintain": "maintain",
+    "maintenance": "maintain",
+    "fitness": "fitness",
+    "general_fitness": "fitness",
+}
+
+
+def _coerce_choice(value: Optional[str], valid: set[str], field_name: str) -> str:
+    v = (value or "").strip().lower()
+    if v not in valid:
+        raise HTTPException(status_code=422, detail=f"Invalid {field_name}: {value}")
+    return v
+
+
+def _normalize_goal_kind(goal_kind: Optional[str], goal: str) -> str:
+    raw = (goal_kind or "").strip().lower()
+    if raw:
+        mapped = _GOAL_KIND_ALIASES.get(raw)
+        if not mapped:
+            raise HTTPException(status_code=422, detail=f"Invalid goalKind: {goal_kind}")
+        return mapped
+    if goal == "lose":
+        return "loss"
+    if goal == "gain":
+        return "muscle"
+    return "maintain"
+
+
+def _normalize_goal_pace(goal_pace: Optional[str], goal_kind: str) -> Optional[str]:
+    if goal_kind not in {"loss", "muscle"}:
+        return None
+    if goal_pace is None:
+        return "recommended"
+    raw = goal_pace.strip().lower()
+    mapped = _GOAL_PACE_ALIASES.get(raw)
+    if not mapped:
+        raise HTTPException(status_code=422, detail=f"Invalid goalPace: {goal_pace}")
+    return mapped
+
+
+def _goal_from_kind(goal_kind: str) -> str:
+    if goal_kind == "loss":
+        return "lose"
+    if goal_kind == "muscle":
+        return "gain"
+    return "maintain"
+
+
 def _row_to_profile(row) -> dict:
     return {
         "name": row["name"],
@@ -406,6 +476,13 @@ def get_profile(request: Request):
 @router.put("/profile")
 def put_profile(body: ProfileBody, request: Request):
     acct = auth.require_account(request)
+    gender = _coerce_choice(body.gender, _VALID_GENDERS, "gender")
+    goal = _coerce_choice(body.goal, _VALID_GOALS, "goal")
+    activity = _coerce_choice(body.activity, _VALID_ACTIVITIES, "activity")
+    diet = _coerce_choice(body.diet, _VALID_DIETS, "diet")
+    goal_kind = _normalize_goal_kind(body.goalKind, goal)
+    goal = _goal_from_kind(goal_kind)
+    goal_pace = _normalize_goal_pace(body.goalPace, goal_kind)
     now = time.time()
     with db.write_lock(), db.connect() as c:
         existing = c.execute(
@@ -428,9 +505,9 @@ def put_profile(body: ProfileBody, request: Request):
                 updated_at=excluded.updated_at
             """,
             (
-                acct["id"], body.name, body.gender, body.age, body.heightCm,
-                body.weightKg, body.targetWeightKg, body.goal, body.activity,
-                body.diet, body.goalPace, body.goalKind, created_at, now,
+                acct["id"], body.name, gender, body.age, body.heightCm,
+                body.weightKg, body.targetWeightKg, goal, activity,
+                diet, goal_pace, goal_kind, created_at, now,
             ),
         )
         row = c.execute(
@@ -462,6 +539,8 @@ class MealBody(BaseModel):
     # model's own best-guess estimate rather than a verified food-DB match
     # (see main.py's anchor_items/micros_source, totals.micros_estimated).
     micros_estimated: Optional[bool] = None
+    # Optional itemized food rows used for canonical reference-based logging.
+    food_items: Optional[list[dict]] = None
 
 
 _MEAL_TYPES = {"breakfast", "morning_snack", "lunch", "afternoon_snack", "evening_snack", "dinner"}
@@ -588,6 +667,14 @@ def add_log(body: MealBody, request: Request):
         new_id = cur.lastrowid
         _refresh_daily_summary(c, acct["id"], body.date)
         _touch_log_day(c, acct["id"], body.date)
+    if body.food_items:
+        food_graph.record_food_log(
+            acct["id"],
+            body.date,
+            body.dish,
+            legacy_meal_log_id=new_id,
+            items=body.food_items,
+        )
     return {"ok": True, "id": new_id, "at": at, "mealType": meal_type}
 
 

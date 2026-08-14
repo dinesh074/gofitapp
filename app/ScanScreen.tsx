@@ -20,6 +20,7 @@ import {
   getCombos,
   PaywallError,
   AuthRequiredError,
+  submitScanCorrection,
 } from "./api";
 import { inferMealType, Meal, MEAL_TYPES, MEAL_TYPE_LABEL, MealType } from "./storage";
 import { colors, radius, elevation, type as T } from "./theme";
@@ -35,6 +36,7 @@ import PortionPicker from "./PortionPicker";
 function itemFromSuggestion(s: FoodSuggestion, count = 1): FoodItem {
   const c = Math.max(1, count);
   return {
+    key: s.key,
     item: s.name,
     count: c,
     unit: s.unit,
@@ -183,16 +185,37 @@ export default function ScanScreen() {
   }
 
   function removeItem(index: number) {
+    const before = result?.items[index];
+    const scanResultId = result?.scan_result_id;
     setResult((prev) => (prev ? { ...prev, items: prev.items.filter((_, i) => i !== index) } : prev));
+    if (scanResultId && before?.item) {
+      void submitScanCorrection({
+        scan_result_id: scanResultId,
+        item_name: before.item,
+        from_food_name: before.source === "db" ? before.item : undefined,
+        note: "user_removed",
+      });
+    }
   }
 
   function applySwap(index: number, s: FoodSuggestion) {
+    const before = result?.items[index];
+    const scanResultId = result?.scan_result_id;
     setResult((prev) => {
       if (!prev) return prev;
       const items = prev.items.map((it, i) => (i === index ? itemFromSuggestion(s) : it));
       return { ...prev, items };
     });
     setSwapIndex(null);
+    if (scanResultId && before?.item) {
+      void submitScanCorrection({
+        scan_result_id: scanResultId,
+        item_name: before.item,
+        from_food_name: before.source === "db" ? before.item : undefined,
+        to_food_name: s.name,
+        note: "user_swap",
+      });
+    }
   }
 
   function addPairing(p: Pairing) {
@@ -251,6 +274,22 @@ export default function ScanScreen() {
       // estimate for unmatched items (see FoodItem.micros_source).
       micros: mealMicros.micros,
       microsEstimated: mealMicros.estimated,
+      foodItems: result.items.map((it) => ({
+        key: it.key,
+        item: it.item,
+        count: it.count,
+        unit: it.unit,
+        source: it.source,
+        kcal_per_unit: it.kcal_per_unit,
+        protein_g_per_unit: it.protein_g_per_unit,
+        carbs_g_per_unit: it.carbs_g_per_unit,
+        fat_g_per_unit: it.fat_g_per_unit,
+        kcal_total: it.kcal_total,
+        protein_g: it.protein_g,
+        carbs_g: it.carbs_g,
+        fat_g: it.fat_g,
+        micros: it.micros,
+      })),
     };
     logMeal(meal);
     setAdded(true);

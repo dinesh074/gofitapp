@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, fetchTodayPlan, DayPlan } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
@@ -22,7 +23,7 @@ import WeightSheet from "./WeightSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
 import WorkoutLibrary from "./WorkoutLibrary";
 import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
-import { APP_NAME, APP_TAGLINE } from "./config";
+import { APP_NAME, APP_SUBTAGLINE, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
   dayMacros,
@@ -46,7 +47,7 @@ import {
 } from "./storage";
 import { colors, radius, shadow, type as T, gradients, elevation } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
-import Icon from "./Icon";
+import Icon, { IconName } from "./Icon";
 import CalorieRing from "./CalorieRing";
 import { computeSuggestions, recentsToCandidates, BASE_CANDIDATES, Candidate } from "./mealSuggest";
 import { mealVerdict, VerdictState } from "./mealVerdict";
@@ -72,10 +73,8 @@ import PressableScale from "./PressableScale";
 import TodayPlanCard from "./TodayPlanCard";
 import { Account } from "./auth";
 
-// Deferred to a later phase: the AI meal-coaching surfaces (Today's training,
-// "Your next meal" suggester, and the Micronutrients roll-up) plus their backend
-// AI endpoints (/foods/recommend and /meals/verdict). Flip this to `true` to
-// bring them back once the plan-driven coaching is designed.
+// AI-backed extras (Gemini phrasing + micronutrients panel). Core action cards
+// (next best move + training) remain visible even when this is off.
 const AI_COACH_ENABLED = false;
 
 type Props = {
@@ -95,6 +94,27 @@ type Props = {
   onWeightLogged?: (kg: number) => void;
 };
 
+type AddOptionKey =
+  | "camera"
+  | "gallery"
+  | "barcode"
+  | "describe"
+  | "voice"
+  | "exercise"
+  | "water"
+  | "weight";
+
+const HOME_ADD_OPTIONS: Array<{ key: AddOptionKey; label: string; icon: IconName }> = [
+  { key: "camera", label: "Scan meal", icon: "camera" },
+  { key: "voice", label: "Voice log", icon: "mic" },
+  { key: "gallery", label: "Gallery", icon: "gallery" },
+  { key: "barcode", label: "Barcode", icon: "barcode" },
+  { key: "describe", label: "Manual", icon: "edit" },
+  { key: "exercise", label: "Workout", icon: "dumbbell" },
+  { key: "water", label: "Water", icon: "water" },
+  { key: "weight", label: "Weight", icon: "scale" },
+];
+
 function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
 }
@@ -111,6 +131,7 @@ function itemFromSuggestion(s: FoodSuggestion, count = 1): FoodItem {
   const c = Math.max(1, Math.round(count));
   const scale = (v?: number) => (v == null ? undefined : Math.round(v * c * 10) / 10);
   const item: FoodItem = {
+    key: s.key,
     item: s.name,
     count: c,
     unit: s.unit,
@@ -221,6 +242,32 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // resolves (the suggester falls back to built-in ideas meanwhile).
   const [dbPool, setDbPool] = useState<Candidate[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [nextMove, setNextMove] = useState<{
+    category: string;
+    slot: string;
+    reason: string;
+    meal: {
+      name: string;
+      kcal: number;
+      protein_g: number;
+      carbs_g: number;
+      fat_g: number;
+      items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+    };
+    alternatives: {
+      name: string;
+      kcal: number;
+      protein_g: number;
+      carbs_g: number;
+      fat_g: number;
+      items: { name: string; count: number; unit: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[];
+    }[];
+  } | null>(null);
+  const [nextMoveChoice, setNextMoveChoice] = useState(0);
+  const [nextMealExpanded, setNextMealExpanded] = useState(true);
+  const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
+  const [previewPlan, setPreviewPlan] = useState<DayPlan | null>(null);
+  const [previewPlanLoading, setPreviewPlanLoading] = useState(false);
   const recoSig = useRef<string | null>(null);
   // AI-enhanced "should I eat this?" verdict for the meal under review. Tagged
   // with the signature it was fetched for so we never show stale advice after a
@@ -337,10 +384,22 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const remP = Math.max(0, goal.protein_g - dm.protein_g);
   const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
   const remF = Math.max(0, goal.fat_g - dm.fat_g);
+  const biggestGap = useMemo(() => {
+    const rows = [
+      { key: "protein", left: remP, target: Math.max(1, goal.protein_g) },
+      { key: "carbs", left: remC, target: Math.max(1, goal.carbs_g) },
+      { key: "fat", left: remF, target: Math.max(1, goal.fat_g) },
+    ];
+    rows.sort((a, b) => b.left / b.target - a.left / a.target);
+    const top = rows[0];
+    if (!top || top.left <= 0) return "You're broadly on track today.";
+    return `${Math.round(top.left)}g ${top.key} still to go today.`;
+  }, [remP, remC, remF, goal.protein_g, goal.carbs_g, goal.fat_g]);
   useEffect(() => {
-    if (!AI_COACH_ENABLED || !account) {
+    if (!account) {
       setDbPool([]);
       setAiSuggestion(null);
+      setNextMove(null);
       recoSig.current = null;
       return;
     }
@@ -354,16 +413,26 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         { kcal: remKcal, protein_g: remP, carbs_g: remC, fat_g: remF },
         profile.diet,
         profile.goal,
+        "",
+        {
+          targets: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
+          consumed: { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
+          date: today,
+          training: training ?? "",
+        },
       )
-        .then(({ candidates, suggestion }) => {
+        .then(({ candidates, suggestion, nextMove: move }) => {
           if (!alive) return;
           setDbPool(candidates);
           setAiSuggestion(suggestion);
+          setNextMove(move ?? null);
+          setNextMoveChoice(0);
         })
         .catch(() => {
           if (alive) {
             setDbPool([]);
             setAiSuggestion(null);
+            setNextMove(null);
           }
         });
     }, 700);
@@ -371,7 +440,25 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       alive = false;
       clearTimeout(timer);
     };
-  }, [account?.id, profile.diet, profile.goal, remKcal, remP, remC, remF]);
+  }, [
+    account?.id,
+    profile.diet,
+    profile.goal,
+    remKcal,
+    remP,
+    remC,
+    remF,
+    goal.kcal,
+    goal.protein_g,
+    goal.carbs_g,
+    goal.fat_g,
+    dayKcal,
+    dm.protein_g,
+    dm.carbs_g,
+    dm.fat_g,
+    training,
+    today,
+  ]);
 
   // Water + habit (steps) load from local cache instantly, then reconcile with
   // the server. Pure data entry -- no AI, no scan credit touched here.
@@ -589,7 +676,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Single dispatcher for every option in AddFoodSheet -- one gate (auth +
   // paywall) shared across all four entry points instead of each button
   // repeating its own copy of the same two checks.
-  function handleAddOption(option: "camera" | "search" | "gallery" | "barcode" | "describe" | "voice" | "exercise" | "water" | "weight") {
+  function handleAddOption(option: AddOptionKey) {
     setShowAddSheet(false);
     if (!account) {
       onRequireAuth();
@@ -597,10 +684,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }
     if (option === "camera") {
       navigation.navigate("Scan", { mode: "camera" });
-      return;
-    }
-    if (option === "search") {
-      navigation.navigate("FoodSelector");
       return;
     }
     if (option === "gallery") {
@@ -739,6 +822,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Ingredient swap: replace a mis-identified item with the right food from the
   // DB (local search, no AI, no scan credit). Count resets to 1 serving.
   function applySwap(index: number, s: FoodSuggestion) {
+    const before = result?.items[index];
+    const scanResultId = result?.scan_result_id;
     setResult((prev) => {
       if (!prev) return prev;
       const items = prev.items.map((it, i) => (i === index ? itemFromSuggestion(s) : it));
@@ -754,6 +839,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       return next;
     });
     setSwapIndex(null);
+    if (scanResultId && before?.item) {
+      void submitScanCorrection({
+        scan_result_id: scanResultId,
+        item_name: before.item,
+        from_food_name: before.source === "db" ? before.item : undefined,
+        to_food_name: s.name,
+        note: "user_swap",
+      });
+    }
   }
 
   // "Goes well with": append a suggested accompaniment as a new item (count from
@@ -809,6 +903,22 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       fat_g: mealMacros.fat_g,
       at: Date.now(),
       ...(hasData ? { micros } : {}),
+      foodItems: result.items.map((it) => ({
+        key: it.key,
+        item: it.item,
+        count: it.count,
+        unit: it.unit,
+        source: it.source,
+        kcal_per_unit: it.kcal_per_unit,
+        protein_g_per_unit: it.protein_g_per_unit,
+        carbs_g_per_unit: it.carbs_g_per_unit,
+        fat_g_per_unit: it.fat_g_per_unit,
+        kcal_total: it.kcal_total,
+        protein_g: it.protein_g,
+        carbs_g: it.carbs_g,
+        fat_g: it.fat_g,
+        micros: it.micros,
+      })),
     };
     logMeal(meal);
     // Correction engine: learn the portions the user settled on for each food,
@@ -891,11 +1001,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // ranked options and let the user shuffle for more, so it never feels canned.
   const [mealShuffle, setMealShuffle] = useState(0);
   const nextPlan = useMemo(() => {
-    const candidates: Candidate[] = [
-      ...BASE_CANDIDATES,
-      ...recentsToCandidates(recents),
-      ...dbPool,
-    ];
+    // Database-first by default: use ranked DB candidates + user recents.
+    // Hardcoded ideas are an emergency-only fallback when nothing else exists.
+    const recentsPool = recentsToCandidates(recents);
+    const candidates: Candidate[] =
+      dbPool.length > 0
+        ? [...recentsPool, ...dbPool]
+        : recentsPool.length > 0
+          ? recentsPool
+          : BASE_CANDIDATES;
     return computeSuggestions(
       { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
       goal,
@@ -928,8 +1042,44 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   // Daily micronutrient roll-up (from DB-matched foods only -- see micros.ts).
   const micro = useMemo(() => dayMicros(logs, today), [logs, today]);
+  const fibreRow = micro.rows.find((r) => r.key === "fiber_g");
 
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
+
+  async function openDayPlanPreview(dateKey: string) {
+    if (!account) {
+      onRequireAuth();
+      return;
+    }
+    setPreviewDateKey(dateKey);
+    setPreviewPlanLoading(true);
+    setPreviewPlan(null);
+    const logged = dayMacros(logs, dateKey);
+    const fiberForDay = dayMicros(logs, dateKey).rows.find((r) => r.key === "fiber_g");
+    const plan = await fetchTodayPlan({
+      targets: {
+        kcal: goal.kcal,
+        protein_g: goal.protein_g,
+        carbs_g: goal.carbs_g,
+        fat_g: goal.fat_g,
+        ...(fiberForDay ? { fiber_g: fiberForDay.target } : {}),
+      },
+      diet: profile.diet,
+      goal: profile.goal,
+      date: dateKey,
+      consumed: {
+        kcal: dayTotal(logs, dateKey),
+        protein_g: logged.protein_g,
+        carbs_g: logged.carbs_g,
+        fat_g: logged.fat_g,
+        ...(fiberForDay ? { fiber_g: fiberForDay.have } : {}),
+      },
+      hour: new Date().getHours(),
+      training: training ?? "",
+    });
+    setPreviewPlan(plan);
+    setPreviewPlanLoading(false);
+  }
 
   // Each dashboard module rendered on demand in the user's chosen order. These
   // are the exact sections that were previously hard-coded top-to-bottom in the
@@ -939,7 +1089,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       case "summary":
         return (
           <View style={styles.dayCard}>
-            <Text style={styles.dayLabel}>TODAY</Text>
+            <Text style={styles.dayLabel}>TODAY&apos;S NUTRITION</Text>
             <View style={styles.ringWrap}>
               <CalorieRing value={dayKcal} goal={goal.kcal} />
             </View>
@@ -975,11 +1125,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             date={today}
             account={account}
             onRequireAuth={onRequireAuth}
-            consumed={{ kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g }}
+            training={training}
+            fiberTarget={fibreRow?.target}
+            consumed={{
+              kcal: dayKcal,
+              protein_g: dm.protein_g,
+              carbs_g: dm.carbs_g,
+              fat_g: dm.fat_g,
+              ...(fibreRow ? { fiber_g: fibreRow.have } : {}),
+            }}
           />
         );
       case "training":
-        return AI_COACH_ENABLED ? (
+        return (
           <View style={styles.trainCard}>
             <View style={styles.trainHeadRow}>
               <Icon name="pulse" size={14} color={colors.green} />
@@ -1004,54 +1162,165 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               {trainTip ?? "Tag today's plan and we'll tune your next-meal and fuelling tips to match."}
             </Text>
           </View>
-        ) : null;
+        );
       case "nextMeal":
-        return AI_COACH_ENABLED ? (
+        const options = nextMove
+          ? [nextMove.meal, ...(nextMove.alternatives ?? [])]
+          : nextPlan.options.map((o) => ({
+              name: o.name,
+              kcal: o.kcal,
+              protein_g: 0,
+              carbs_g: 0,
+              fat_g: 0,
+              items: [],
+            }));
+        const selected = options[Math.max(0, nextMove ? (nextMoveChoice % options.length) : 0)];
+        const alternatives = nextMove
+          ? options.filter((_, idx) => idx !== (nextMoveChoice % options.length)).slice(0, 3)
+          : nextPlan.options.slice(1).map((o) => ({
+              name: o.name,
+              kcal: o.kcal,
+              protein_g: 0,
+              carbs_g: 0,
+              fat_g: 0,
+              items: [],
+            }));
+        const nextMovePayload = {
+          category: nextMove?.category ?? "",
+          slot: nextMove?.slot ?? "",
+          reason: nextMove?.reason ?? nextPlan.rationale,
+          biggestGap,
+          selected: selected
+            ? {
+                name: selected.name,
+                kcal: selected.kcal ?? 0,
+                protein_g: selected.protein_g ?? 0,
+                carbs_g: selected.carbs_g ?? 0,
+                fat_g: selected.fat_g ?? 0,
+              }
+            : null,
+          alternatives: alternatives.map((opt) => ({
+            name: opt.name,
+            kcal: opt.kcal ?? 0,
+            protein_g: opt.protein_g ?? 0,
+            carbs_g: opt.carbs_g ?? 0,
+            fat_g: opt.fat_g ?? 0,
+          })),
+        };
+        return (
           <View style={styles.nextCard}>
             <View style={styles.nextHeaderRow}>
-              <Icon name="sparkles" size={15} color={colors.green} />
-              <Text style={styles.nextHeader}>{nextPlan.headline}</Text>
-            </View>
-            <View style={styles.nextFocusRow}>
-              {nextPlan.focus.map((f) => (
-                <View key={f} style={styles.nextChip}>
-                  <Text style={styles.nextChipText}>{f}</Text>
-                </View>
-              ))}
-            </View>
-            {nextPlan.options.map((opt, i) => (
-              <Text key={`${opt.name}-${i}`} style={styles.nextIdea}>
-                <Text style={styles.nextIdeaLabel}>{i === 0 ? "Try: " : "or: "}</Text>
-                {opt.name}
-                {opt.detail ? <Text style={styles.nextIdeaKcal}>{`  (${opt.detail})`}</Text> : null}
-                {opt.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${opt.kcal} kcal`}</Text> : null}
-              </Text>
-            ))}
-            <Text style={styles.nextRationale}>{nextPlan.rationale}</Text>
-            {!!aiSuggestion && nextPlan.options[0]?.source === "db" && (
-              <View style={styles.nextCoachRow}>
-                <Icon name="nutrition" size={12} color={colors.mute} />
-                <Text style={styles.nextCoach}>{aiSuggestion}</Text>
+              <View style={styles.nextHeaderTitle}>
+                <Icon name="sparkles" size={15} color={colors.green} />
+                <Text style={styles.nextHeader}>What should I do next?</Text>
               </View>
-            )}
-            {nextPlan.poolSize > nextPlan.options.length && (
               <Pressable
-                style={styles.nextMoreBtn}
-                onPress={() => setMealShuffle((n) => n + 1)}
+                style={styles.moduleToggleBtn}
+                onPress={() => setNextMealExpanded((v) => !v)}
                 hitSlop={8}
               >
-                <Icon name="refresh" size={13} color={colors.green} />
-                <Text style={styles.nextMoreText}>More ideas</Text>
+                <Text style={styles.moduleToggleText}>{nextMealExpanded ? "Hide" : "Show"}</Text>
+                <Icon name={nextMealExpanded ? "chevronUp" : "chevronDown"} size={13} color={colors.green} />
               </Pressable>
+            </View>
+            {!nextMealExpanded ? (
+              <Text style={styles.nextCollapsedText}>
+                {selected?.name ? `Next meal: ${selected.name}` : "Tap Show to view your next best move."}
+              </Text>
+            ) : (
+              <>
+                <Text style={styles.nextMoveTitle}>Your next best move</Text>
+                {!!nextMove?.category && (
+                  <View style={styles.nextCategoryPill}>
+                    <Text style={styles.nextCategoryText}>{nextMove.category.replace(/_/g, " ")}</Text>
+                  </View>
+                )}
+                <View style={styles.nextFocusRow}>
+                  {(nextMove ? [`${selected?.protein_g ?? 0}g protein`, `${selected?.kcal ?? 0} kcal`] : nextPlan.focus).map((f) => (
+                    <View key={f} style={styles.nextChip}>
+                      <Text style={styles.nextChipText}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+                {!!selected && (
+                  <View style={styles.nextMainCard}>
+                    <Text style={styles.nextMainName}>{selected.name}</Text>
+                    <Text style={styles.nextMainMeta}>
+                      {selected.kcal > 0 ? `~${selected.kcal} kcal` : "Light option"}
+                      {nextMove ? ` · P ${Math.round(selected.protein_g)}g · C ${Math.round(selected.carbs_g)}g · F ${Math.round(selected.fat_g)}g` : ""}
+                    </Text>
+                  </View>
+                )}
+                {alternatives.map((opt, i) => (
+                  <Text key={`${opt.name}-${i}`} style={styles.nextIdea}>
+                    <Text style={styles.nextIdeaLabel}>Swap option: </Text>
+                    {opt.name}
+                    {opt.kcal > 0 ? <Text style={styles.nextIdeaKcal}>{`  ~${opt.kcal} kcal`}</Text> : null}
+                  </Text>
+                ))}
+                <Text style={styles.nextGap}>{biggestGap}</Text>
+                <Text style={styles.nextRationale}>{nextMove?.reason ?? nextPlan.rationale}</Text>
+                {!!aiSuggestion && nextPlan.options[0]?.source === "db" && (
+                  <View style={styles.nextCoachRow}>
+                    <Icon name="nutrition" size={12} color={colors.mute} />
+                    <Text style={styles.nextCoach}>{aiSuggestion}</Text>
+                  </View>
+                )}
+                <View style={styles.nextActions}>
+                  <PressableScale style={[styles.btn, styles.btnPrimary, styles.nextActionBtn]} onPress={() => setShowAddSheet(true)}>
+                    <Icon name="plus" size={15} color="#fff" />
+                    <Text style={styles.btnPrimaryText}>Log this now</Text>
+                  </PressableScale>
+                  <Pressable
+                    style={styles.nextMoreBtn}
+                    onPress={() => {
+                      if (nextMove && options.length > 1) {
+                        setNextMoveChoice((n) => n + 1);
+                      } else {
+                        setMealShuffle((n) => n + 1);
+                      }
+                    }}
+                    hitSlop={8}
+                  >
+                    <Icon name="refresh" size={13} color={colors.green} />
+                    <Text style={styles.nextMoreText}>Swap</Text>
+                  </Pressable>
+                </View>
+                <Pressable
+                  style={styles.nextOpenScreenBtn}
+                  onPress={() => navigation.navigate("NextMove" as never, nextMovePayload as never)}
+                >
+                  <Icon name="chevronRight" size={13} color={colors.green} />
+                  <Text style={styles.nextOpenScreenText}>Open full screen</Text>
+                </Pressable>
+              </>
             )}
           </View>
-        ) : null;
+        );
+      case "addHub":
+        return (
+          <View style={styles.addHubCard}>
+            <View style={styles.addHubHead}>
+              <Icon name="plus" size={15} color={colors.green} />
+              <Text style={styles.addHubTitle}>Add / Track</Text>
+            </View>
+            <Text style={styles.addHubSub}>All scan and logging options in one place.</Text>
+            <View style={styles.addHubGrid}>
+              {HOME_ADD_OPTIONS.map((opt) => (
+                <Pressable key={opt.key} style={styles.addHubChip} onPress={() => handleAddOption(opt.key)}>
+                  <Icon name={opt.icon} size={15} color={colors.green} />
+                  <Text style={styles.addHubChipText}>{opt.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        );
       case "streak":
         return (
           <MonthStreak
             logs={logs}
             goalKcal={goal.kcal}
-            onDayPress={(dateKey) => navigation.navigate("DayLog", { dateKey })}
+            onDayPress={openDayPlanPreview}
           />
         );
       case "micros":
@@ -1194,6 +1463,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           <View>
             <Text style={styles.brand}>{APP_NAME}</Text>
             <Text style={styles.tagline}>{APP_TAGLINE}</Text>
+            <Text style={styles.taglineSub}>{APP_SUBTAGLINE}</Text>
           </View>
           <View style={styles.streakPill}>
             <Icon name="flame" size={15} color="#FFD8A8" />
@@ -1215,15 +1485,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           const node = renderModule(key);
           return node ? <React.Fragment key={key}>{node}</React.Fragment> : null;
         })}
-
-        {/* One button, one sheet (AddFoodSheet) -- camera, gallery, barcode
-            and describe used to each get their own row on this screen, which
-            just meant hunting for the right one. The center TabBar button
-            (via scanTrigger) opens the exact same sheet. */}
-        <PressableScale style={[styles.btn, styles.btnPrimary, styles.addFoodBtn]} onPress={() => setShowAddSheet(true)}>
-          <Icon name="camera" size={18} color="#fff" />
-          <Text style={styles.btnPrimaryText}>Add / track</Text>
-        </PressableScale>
 
         {account && !isPro && (
           <Pressable style={styles.trialChip} onPress={() => (scansLeft && scansLeft > 0 ? null : setShowPaywall(true))}>
@@ -1449,6 +1710,71 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         )}
       </ScrollView>
 
+      {previewDateKey && (
+        <Modal
+          visible={!!previewDateKey}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setPreviewDateKey(null)}
+        >
+          <View style={styles.previewOverlay}>
+            <Pressable style={styles.previewBackdrop} onPress={() => setPreviewDateKey(null)} />
+            <View style={styles.previewSheet}>
+              <View style={styles.previewHeadRow}>
+                <View>
+                  <Text style={styles.previewHead}>Day plan preview</Text>
+                  <Text style={styles.previewSub}>{prettyDate(previewDateKey)}</Text>
+                </View>
+                <Pressable onPress={() => setPreviewDateKey(null)} style={styles.previewCloseBtn}>
+                  <Icon name="close" size={15} color={colors.mute} />
+                </Pressable>
+              </View>
+              {previewPlanLoading ? (
+                <View style={styles.previewLoadingRow}>
+                  <ActivityIndicator size="small" color={colors.green} />
+                  <Text style={styles.previewLoadingText}>Loading plan…</Text>
+                </View>
+              ) : previewPlan ? (
+                <>
+                  {!!previewPlan.next_meal && (
+                    <View style={styles.previewNextPill}>
+                      <Icon name="time" size={12} color={colors.green} />
+                      <Text style={styles.previewNextText}>Next meal: {previewPlan.next_meal}</Text>
+                    </View>
+                  )}
+                  <View style={styles.previewSlotsWrap}>
+                    {previewPlan.slots.map((slot) => (
+                      <View key={slot.slot} style={styles.previewSlotRow}>
+                        <Text style={styles.previewSlotName}>{slot.label}</Text>
+                        <Text style={styles.previewSlotMeal} numberOfLines={1}>
+                          {slot.items[0]?.name ?? "No items"}
+                        </Text>
+                        <Text style={styles.previewSlotKcal}>{slot.kcal} kcal</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <PressableScale
+                    style={[styles.btn, styles.btnPrimary, styles.previewOpenBtn]}
+                    onPress={() => {
+                      const dateKey = previewDateKey;
+                      setPreviewDateKey(null);
+                      if (dateKey) navigation.navigate("DayLog", { dateKey });
+                    }}
+                  >
+                    <Icon name="time" size={15} color="#fff" />
+                    <Text style={styles.btnPrimaryText}>Open day details</Text>
+                  </PressableScale>
+                </>
+              ) : (
+                <Text style={styles.previewEmpty}>
+                  Couldn&apos;t load a plan for this date right now.
+                </Text>
+              )}
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {showShare && (
         <ShareSheet
           visible={showShare}
@@ -1614,26 +1940,116 @@ const styles = StyleSheet.create({
   streakPill: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
   streakText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   brand: { color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.3 },
-  tagline: { color: "#CDEBD9", fontSize: 13, marginTop: 2 },
+  tagline: { color: "#CDEBD9", fontSize: 13, marginTop: 2, fontWeight: "700", lineHeight: 18, maxWidth: 250 },
+  taglineSub: { color: "#E4F4EA", fontSize: 11.5, marginTop: 3, fontWeight: "600", maxWidth: 260 },
   body: { padding: 16, paddingBottom: 24, marginTop: -12 },
   customizeRow: { flexDirection: "row", justifyContent: "flex-end", marginBottom: 8 },
   customizeBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingVertical: 4, paddingHorizontal: 6 },
   customizeText: { color: colors.mute, fontWeight: "700", fontSize: 12.5 },
   dayCard: { backgroundColor: colors.card, borderRadius: 22, padding: 20, marginBottom: 16, ...elevation.md },
   nextCard: { backgroundColor: colors.greenTint, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8 },
-  nextHeaderRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  nextHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  nextHeaderTitle: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
   nextHeader: { color: colors.green, fontSize: 14, fontWeight: "900" },
+  moduleToggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.cardMuted,
+    borderRadius: 999,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  moduleToggleText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  nextCollapsedText: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  nextMoveTitle: { color: colors.ink, fontSize: 18, fontWeight: "900" },
+  nextCategoryPill: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.card,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  nextCategoryText: { color: colors.inkSoft, fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
+  nextMainCard: { backgroundColor: colors.card, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.line },
+  nextMainName: { color: colors.ink, fontSize: 15.5, fontWeight: "800" },
+  nextMainMeta: { color: colors.mute, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  nextGap: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "700" },
   nextFocusRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
-  nextChip: { backgroundColor: "#fff", borderRadius: 999, paddingVertical: 4, paddingHorizontal: 11, borderWidth: 1, borderColor: colors.line },
+  nextChip: { backgroundColor: colors.white, borderRadius: 999, paddingVertical: 4, paddingHorizontal: 11, borderWidth: 1, borderColor: colors.line },
   nextChipText: { color: colors.ink, fontSize: 11.5, fontWeight: "800" },
-  nextIdea: { color: colors.ink, fontSize: 14.5, fontWeight: "700", lineHeight: 20 },
+  nextIdea: { color: colors.ink, fontSize: 13.5, fontWeight: "700", lineHeight: 19 },
   nextIdeaLabel: { color: colors.green, fontWeight: "900" },
   nextIdeaKcal: { color: colors.mute, fontSize: 12, fontWeight: "700" },
   nextRationale: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 16 },
   nextCoachRow: { flexDirection: "row", alignItems: "flex-start", gap: 5, marginTop: 8 },
   nextCoach: { flex: 1, color: colors.mute, fontSize: 11.5, fontStyle: "italic", lineHeight: 15 },
-  nextMoreBtn: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10, alignSelf: "flex-start" },
+  nextActions: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 },
+  nextActionBtn: { flex: 0, paddingHorizontal: 14, paddingVertical: 11, borderRadius: 12 },
+  nextMoreBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingVertical: 8, paddingHorizontal: 10 },
   nextMoreText: { color: colors.green, fontSize: 12.5, fontWeight: "800" },
+  nextOpenScreenBtn: { marginTop: 2, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4 },
+  nextOpenScreenText: { color: colors.green, fontSize: 12.5, fontWeight: "800", textDecorationLine: "underline" },
+  addHubCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8, ...elevation.sm },
+  addHubHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  addHubTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  addHubSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  addHubGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 2 },
+  addHubChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: colors.greenTint,
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+  },
+  addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  previewOverlay: { flex: 1, justifyContent: "flex-end" },
+  previewBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
+  previewSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: 16,
+    paddingBottom: 20,
+    gap: 10,
+    maxHeight: "70%",
+    ...elevation.md,
+  },
+  previewHeadRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  previewHead: { color: colors.ink, fontSize: 16, fontWeight: "900" },
+  previewSub: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 2 },
+  previewCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.cardMuted,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  previewLoadingRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8 },
+  previewLoadingText: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  previewNextPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    backgroundColor: colors.greenTint,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  previewNextText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  previewSlotsWrap: { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 8, gap: 8 },
+  previewSlotRow: { backgroundColor: colors.bg, borderRadius: 12, paddingVertical: 9, paddingHorizontal: 10, gap: 2 },
+  previewSlotName: { color: colors.inkSoft, fontSize: 11.5, fontWeight: "800", textTransform: "uppercase" },
+  previewSlotMeal: { color: colors.ink, fontSize: 13, fontWeight: "700" },
+  previewSlotKcal: { color: colors.mute, fontSize: 11.5, fontWeight: "700" },
+  previewOpenBtn: { marginTop: 4 },
+  previewEmpty: { color: colors.mute, fontSize: 12.5, fontWeight: "600", lineHeight: 18 },
 
   trainCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 10, ...elevation.sm },
   trainHeadRow: { flexDirection: "row", alignItems: "center", gap: 6 },

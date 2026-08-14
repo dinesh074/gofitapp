@@ -42,7 +42,7 @@ import logging
 from typing import Callable, Optional
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 import db
 import auth
@@ -55,13 +55,22 @@ router = APIRouter(tags=["plan"])
 # route handlers can reach the food DB + Gemini without importing main.
 _pick_for_slot: Optional[Callable] = None
 _ai_note: Optional[Callable] = None
+_pick_meal_for_slot: Optional[Callable] = None
+_build_day_plan: Optional[Callable] = None
 
 
-def configure(pick_for_slot: Callable, ai_note: Callable) -> None:
+def configure(
+    pick_for_slot: Callable,
+    ai_note: Callable,
+    pick_meal_for_slot: Optional[Callable] = None,
+    build_day_plan: Optional[Callable] = None,
+) -> None:
     """Wire in the food-selection + AI-note callables owned by main.py."""
-    global _pick_for_slot, _ai_note
+    global _pick_for_slot, _ai_note, _pick_meal_for_slot, _build_day_plan
     _pick_for_slot = pick_for_slot
     _ai_note = ai_note
+    _pick_meal_for_slot = pick_meal_for_slot
+    _build_day_plan = build_day_plan
 
 
 def init_db() -> None:
@@ -200,6 +209,7 @@ def _signature(targets: dict, diet: str, goal: str) -> str:
             str(int(round(targets["protein_g"] / 5.0))),
             str(int(round(targets["carbs_g"] / 10.0))),
             str(int(round(targets["fat_g"] / 5.0))),
+            str(int(round((targets.get("fiber_g", 0) or 0) / 5.0))),
         ]
     )
 
@@ -223,7 +233,7 @@ def _size_item(food: dict, rem: dict) -> float:
 
 def _scale_item(food: dict, servings: float) -> dict:
     """Scale a _food_suggestion-shaped record (per-unit macros) to a portion."""
-    return {
+    out = {
         "key": food["key"],
         "name": food.get("name") or food["key"].replace("_", " ").title(),
         "unit": food.get("unit", "serving"),
@@ -233,18 +243,107 @@ def _scale_item(food: dict, servings: float) -> dict:
         "carbs_g": round(servings * (food.get("carbs_g_per_unit", 0) or 0), 1),
         "fat_g": round(servings * (food.get("fat_g_per_unit", 0) or 0), 1),
     }
+    if food.get("fiber_g") is not None:
+        out["fiber_g"] = round(servings * (food.get("fiber_g") or 0), 1)
+    return out
+
+
+def _slot_has_incompatible_pair(slot_items: list[dict]) -> bool:
+    keys = [str(i.get("key", "")).lower() for i in slot_items]
+    names = [str(i.get("name", "")).lower() for i in slot_items]
+    def _has(token: str) -> bool:
+        return any(token in k for k in keys) or any(token in n for n in names)
+    # Hard reject rules from product constraints.
+    if _has("biryani") and _has("sambar"):
+        return True
+    if _has("naan") and len(slot_items) == 1:
+        return True
+    return False
+
+
+def _looks_staple_only(slot_items: list[dict]) -> bool:
+    if len(slot_items) != 1:
+        return False
+    t = f"{slot_items[0].get('key', '')} {slot_items[0].get('name', '')}".lower()
+    return any(w in t for w in _STAPLE_WORDS)
+
+
+def _plan_quality_score(plan: dict, targets: dict) -> float:
+    totals = plan.get("totals", {})
+    t_kcal = max(1.0, float(targets.get("kcal", 0) or 0))
+    t_p = max(1.0, float(targets.get("protein_g", 0) or 0))
+    t_c = max(1.0, float(targets.get("carbs_g", 0) or 0))
+    t_f = max(1.0, float(targets.get("fat_g", 0) or 0))
+    kcal_ratio = float(totals.get("kcal", 0) or 0) / t_kcal
+    p_ratio = float(totals.get("protein_g", 0) or 0) / t_p
+    c_ratio = float(totals.get("carbs_g", 0) or 0) / t_c
+    f_ratio = float(totals.get("fat_g", 0) or 0) / t_f
+    score = 0.0
+    score += abs(1.0 - kcal_ratio) * 2.0
+    score += max(0.0, 0.9 - p_ratio) * 4.0
+    score += max(0.0, c_ratio - 1.1) * 2.0
+    score += max(0.0, f_ratio - 1.1) * 2.0
+    for s in plan.get("slots", []):
+        if s.get("slot") in ("lunch", "dinner") and _looks_staple_only(s.get("items", [])):
+            score += 3.0
+        if _slot_has_incompatible_pair(s.get("items", [])):
+            score += 6.0
+    return score
+
+
+def _validate_plan(plan: dict, targets: dict) -> tuple[bool, str]:
+    totals = plan.get("totals", {})
+    t_kcal = max(1.0, float(targets.get("kcal", 0) or 0))
+    t_p = max(1.0, float(targets.get("protein_g", 0) or 0))
+    t_c = max(1.0, float(targets.get("carbs_g", 0) or 0))
+    t_f = max(1.0, float(targets.get("fat_g", 0) or 0))
+    kcal_ratio = float(totals.get("kcal", 0) or 0) / t_kcal
+    p_ratio = float(totals.get("protein_g", 0) or 0) / t_p
+    c_ratio = float(totals.get("carbs_g", 0) or 0) / t_c
+    f_ratio = float(totals.get("fat_g", 0) or 0) / t_f
+    if p_ratio < 0.8:
+        return False, f"protein too low ({p_ratio:.2f}x target)"
+    if c_ratio > 1.2:
+        return False, f"carbs too high ({c_ratio:.2f}x target)"
+    if f_ratio > 1.2:
+        return False, f"fat too high ({f_ratio:.2f}x target)"
+    if kcal_ratio < 0.88 or kcal_ratio > 1.12:
+        return False, f"calories off target ({kcal_ratio:.2f}x)"
+    for s in plan.get("slots", []):
+        items = s.get("items", [])
+        if s.get("slot") in ("lunch", "dinner") and _looks_staple_only(items):
+            return False, f"{s.get('slot')} is staple-only"
+        if _slot_has_incompatible_pair(items):
+            return False, f"{s.get('slot')} contains incompatible foods"
+    return True, "ok"
 
 
 def _sum_items(items: list) -> dict:
-    return {
+    out = {
         "kcal": round(sum(i["kcal"] for i in items)),
         "protein_g": round(sum(i["protein_g"] for i in items), 1),
         "carbs_g": round(sum(i["carbs_g"] for i in items), 1),
         "fat_g": round(sum(i["fat_g"] for i in items), 1),
     }
+    fibre_vals = [i.get("fiber_g") for i in items if i.get("fiber_g") is not None]
+    if fibre_vals:
+        out["fiber_g"] = round(sum(fibre_vals), 1)
+    return out
 
 
-def _build_slot(slot_key: str, label: str, frac: float, anchor_grain: bool, targets: dict, diet: str, goal: str, used: dict, used_family: dict, rng: random.Random) -> dict:
+def _build_slot(
+    slot_key: str,
+    label: str,
+    frac: float,
+    anchor_grain: bool,
+    targets: dict,
+    diet: str,
+    goal: str,
+    training_context: str,
+    used: dict,
+    used_family: dict,
+    rng: random.Random,
+) -> dict:
     """Greedily fill one slot toward its share of the day's budget, re-ranking
     the food DB against the SHRINKING remaining budget after each pick. Because
     the scorer penalises fat/calorie overshoot, once protein or fat is met the
@@ -261,6 +360,35 @@ def _build_slot(slot_key: str, label: str, frac: float, anchor_grain: bool, targ
         "carbs_g": targets["carbs_g"] * frac,
         "fat_g": targets["fat_g"] * frac,
     }
+    if _pick_meal_for_slot is not None:
+        try:
+            built = _pick_meal_for_slot(budget, diet, goal, slot_key, training_context, MAX_ITEMS_PER_SLOT) or []
+            if built:
+                used_local: list[dict] = []
+                for it in built:
+                    key = str(it.get("key", "")).strip()
+                    if not key:
+                        continue
+                    if used.get(key, 0) >= MAX_DISH_PER_DAY:
+                        continue
+                    fam = _family(it)
+                    if used_family.get(fam, 0) >= MAX_FAMILY_PER_DAY:
+                        continue
+                    used[key] = used.get(key, 0) + 1
+                    used_family[fam] = used_family.get(fam, 0) + 1
+                    used_local.append(it)
+                if used_local:
+                    slot = {
+                        "slot": slot_key,
+                        "label": label,
+                        "target_kcal": round(budget["kcal"]),
+                        "items": used_local,
+                    }
+                    slot.update(_sum_items(used_local))
+                    return slot
+        except TypeError:
+            # Older call signatures are still accepted by fallback picker logic.
+            pass
     rem = dict(budget)
     items: list = []
     for _ in range(MAX_ITEMS_PER_SLOT):
@@ -271,7 +399,13 @@ def _build_slot(slot_key: str, label: str, frac: float, anchor_grain: bool, targ
         # carb-heavy and rank below protein dishes on macro-fit) are actually in
         # reach, then restrict to grains. Fillers use the normal pool.
         pool = (GRAIN_POOL if (is_anchor and anchor_grain) else CANDIDATE_POOL)
-        foods = _pick_for_slot(rem, diet, goal, pool) or []
+        role_hint = "staple" if (is_anchor and anchor_grain) else ("snack_base" if (is_anchor and slot_key == "snack") else "protein")
+        # Backward-compatible call shape: newer pickers can use slot/training/role
+        # context; older ones still receive the 4-arg signature.
+        try:
+            foods = _pick_for_slot(rem, diet, goal, pool, slot_key, training_context, role_hint) or []
+        except TypeError:
+            foods = _pick_for_slot(rem, diet, goal, pool) or []
         # Candidates that aren't already used up for the day (by exact dish OR by
         # ingredient family), aren't already in THIS slot, and (once the slot has
         # something) wouldn't blow the fat budget even at the minimum portion --
@@ -331,11 +465,38 @@ def _deterministic_note(plan: dict) -> str:
     )
 
 
-def build_plan(targets: dict, diet: str, goal: str, date_key: str, rng: Optional[random.Random] = None) -> dict:
+def build_plan(
+    targets: dict,
+    diet: str,
+    goal: str,
+    date_key: str,
+    training_context: str = "",
+    account_id: Optional[int] = None,
+    rng: Optional[random.Random] = None,
+) -> dict:
     rng = rng or random.Random()
-    used: dict = {}
-    used_family: dict = {}
-    slots = [_build_slot(k, l, f, ag, targets, diet, goal, used, used_family, rng) for k, l, f, ag in SLOTS]
+    slots = []
+    if _build_day_plan is not None:
+        try:
+            shared_slots = _build_day_plan(
+                account_id=account_id,
+                date_key=date_key,
+                targets=targets,
+                diet=diet,
+                goal=goal,
+                training_context=training_context,
+            )
+            if isinstance(shared_slots, list) and shared_slots:
+                slots = shared_slots
+        except Exception as ex:
+            log.info("plan: shared day planner failed (%s) -- falling back to slot builder", ex)
+    if not slots:
+        used: dict = {}
+        used_family: dict = {}
+        slots = [
+            _build_slot(k, l, f, ag, targets, diet, goal, training_context, used, used_family, rng)
+            for k, l, f, ag in SLOTS
+        ]
     totals = _sum_items([it for s in slots for it in s["items"]])
     plan = {
         "date": date_key,
@@ -388,22 +549,25 @@ class Targets(BaseModel):
     protein_g: float = Field(0, ge=0, le=2000)
     carbs_g: float = Field(0, ge=0, le=2000)
     fat_g: float = Field(0, ge=0, le=2000)
+    fiber_g: Optional[float] = Field(None, ge=0, le=500)
 
     # The client computes these locally (nutrition.ts) and a transient
     # NaN during a profile edit/reload (e.g. a field briefly blank) serializes
     # to JSON `null`. Coerce that -- and any other non-finite value -- to 0
     # instead of hard-422ing the whole plan request: a client-side bug in one
     # macro shouldn't take down the plan for the rest of the (valid) numbers.
-    @field_validator("kcal", "protein_g", "carbs_g", "fat_g", mode="before")
+    @field_validator("kcal", "protein_g", "carbs_g", "fat_g", "fiber_g", mode="before")
     @classmethod
-    def _coerce_missing_to_zero(cls, v):
+    def _coerce_missing_to_zero(cls, v, info: ValidationInfo):
         if v is None:
-            return 0
+            return None if info.field_name == "fiber_g" else 0
         try:
             f = float(v)
         except (TypeError, ValueError):
-            return 0
-        return f if f == f and f not in (float("inf"), float("-inf")) else 0  # f == f is False for NaN
+            return None if info.field_name == "fiber_g" else 0
+        if f == f and f not in (float("inf"), float("-inf")):
+            return f
+        return None if info.field_name == "fiber_g" else 0  # f == f is False for NaN
 
 
 # The clock hour (local) by which each meal is assumed to be over. Used to decide
@@ -411,7 +575,63 @@ class Targets(BaseModel):
 # calories/macros they have left -- meals already behind them are left as they
 # were (a record of what was suggested), never resized retroactively.
 _SLOT_END_HOUR = {"breakfast": 10, "lunch": 15, "snack": 18, "dinner": 24}
-_MACRO_KEYS = ("kcal", "protein_g", "carbs_g", "fat_g")
+_CORE_KEYS = ("kcal", "protein_g", "carbs_g", "fat_g")
+_OPTIONAL_KEYS = ("fiber_g",)
+_NUTRIENT_KEYS = _CORE_KEYS + _OPTIONAL_KEYS
+
+_STATUS_ON = 0.05
+_STATUS_SLIGHT = 0.12
+_STAPLE_WORDS = (
+    "roti", "chapati", "naan", "rice", "biryani", "poha", "upma", "idli", "dosa",
+    "puri", "paratha", "khichdi", "pulao", "pongal",
+)
+
+
+def _slot_actionable(slot: dict, hour: Optional[int]) -> bool:
+    if "upcoming" in slot:
+        return bool(slot.get("upcoming"))
+    if hour is None:
+        return True
+    return hour < _SLOT_END_HOUR.get(slot.get("slot", ""), 24)
+
+
+def _metric_status(have: float, target: float) -> str:
+    if target <= 0:
+        return "on_target"
+    d = (have - target) / target
+    if abs(d) <= _STATUS_ON:
+        return "on_target"
+    if d < 0:
+        return "slightly_below" if abs(d) <= _STATUS_SLIGHT else "significantly_below"
+    return "slightly_above" if abs(d) <= _STATUS_SLIGHT else "significantly_above"
+
+
+def _attach_plan_sections(plan: dict, hour: Optional[int]) -> dict:
+    completed_slots: list[str] = []
+    planned_slots: list[str] = []
+    next_slot: Optional[str] = None
+    next_label: Optional[str] = None
+    for s in plan.get("slots", []):
+        actionable = _slot_actionable(s, hour)
+        s["actionable"] = actionable
+        s["completed"] = not actionable
+        if actionable:
+            planned_slots.append(s.get("slot"))
+            if next_slot is None and s.get("items"):
+                next_slot = s.get("slot")
+                next_label = s.get("label")
+        else:
+            completed_slots.append(s.get("slot"))
+    if next_slot is None and planned_slots:
+        # Fallback if upcoming slots are intentionally empty after adaptation.
+        first = next((s for s in plan.get("slots", []) if s.get("slot") == planned_slots[0]), None)
+        next_slot = planned_slots[0]
+        next_label = first.get("label") if first else planned_slots[0]
+    plan["completed_slots"] = completed_slots
+    plan["planned_slots"] = planned_slots
+    plan["next_slot"] = next_slot
+    plan["next_meal"] = next_label
+    return plan
 
 
 def _rescale_item(it: dict, factor: float) -> dict:
@@ -429,6 +649,7 @@ def _rescale_item(it: dict, factor: float) -> dict:
         "protein_g": round((it.get("protein_g", 0) or 0) * r, 1),
         "carbs_g": round((it.get("carbs_g", 0) or 0) * r, 1),
         "fat_g": round((it.get("fat_g", 0) or 0) * r, 1),
+        **({"fiber_g": round((it.get("fiber_g", 0) or 0) * r, 1)} if ("fiber_g" in it) else {}),
     }
 
 
@@ -440,7 +661,10 @@ def _adapt_plan(plan: dict, targets: dict, consumed: dict, hour: Optional[int]) 
     persisted -- the saved plan remains the clean full-day version; this is the
     live view layered on top for the current moment."""
     adapted = json.loads(json.dumps(plan))  # deep copy, never mutate the saved plan
-    remaining = {m: max(0.0, targets[m] - consumed.get(m, 0.0)) for m in _MACRO_KEYS}
+    keys = [k for k in _NUTRIENT_KEYS if (k in targets and k in consumed)]
+    raw_remaining = {m: targets[m] - consumed.get(m, 0.0) for m in keys}
+    remaining = {m: max(0.0, raw_remaining[m]) for m in keys}
+    over_target = {m: max(0.0, -raw_remaining[m]) for m in keys}
 
     def _upcoming(slot_key: str) -> bool:
         if hour is None:
@@ -467,11 +691,18 @@ def _adapt_plan(plan: dict, targets: dict, consumed: dict, hour: Optional[int]) 
             s["items"] = [_rescale_item(it, factor) for it in s["items"]]
         s.update(_sum_items(s["items"]))
 
-    adapted["consumed"] = {m: round(consumed.get(m, 0.0), 1) for m in _MACRO_KEYS}
-    adapted["remaining"] = {m: round(remaining[m], 1) for m in _MACRO_KEYS}
+    adapted["consumed"] = {m: round(consumed.get(m, 0.0), 1) for m in keys}
+    adapted["remaining"] = {m: round(remaining[m], 1) for m in keys}
+    adapted["over_target"] = {m: round(over_target[m], 1) for m in keys}
     adapted["adapted"] = True
     # Keep the totals row consistent with the (re-portioned) slots on screen.
     adapted["totals"] = _sum_items([it for s in adapted["slots"] for it in s["items"]])
+    adapted = _attach_plan_sections(adapted, hour)
+    planned = _sum_items([it for s in adapted["slots"] if s.get("actionable") for it in s["items"]])
+    projected = {m: round((adapted["consumed"].get(m, 0.0) + planned.get(m, 0.0)), 1) for m in keys}
+    adapted["planned"] = {m: round(planned.get(m, 0.0), 1) for m in keys}
+    adapted["projected"] = projected
+    adapted["status"] = {m: _metric_status(projected[m], targets[m]) for m in keys}
     return adapted
 
 
@@ -486,6 +717,7 @@ class PlanBody(BaseModel):
     # have left (see _adapt_plan). Optional so the base plan still works alone.
     consumed: Optional[Targets] = None
     hour: Optional[int] = Field(None, ge=0, le=23)
+    training: Optional[str] = None
 
 
 @router.post("/plan/today")
@@ -504,6 +736,8 @@ def plan_today(body: PlanBody, request: Request):
         "carbs_g": max(0.0, body.targets.carbs_g),
         "fat_g": max(0.0, body.targets.fat_g),
     }
+    if body.targets.fiber_g is not None:
+        targets["fiber_g"] = max(0.0, body.targets.fiber_g)
     if targets["kcal"] <= 0:
         raise HTTPException(status_code=422, detail="a positive calorie target is required")
     diet = (body.diet or "veg").strip().lower()
@@ -518,19 +752,56 @@ def plan_today(body: PlanBody, request: Request):
             "carbs_g": max(0.0, body.consumed.carbs_g),
             "fat_g": max(0.0, body.consumed.fat_g),
         }
+        if body.consumed.fiber_g is not None:
+            consumed["fiber_g"] = max(0.0, body.consumed.fiber_g)
 
     def _respond(plan: dict, cached: bool) -> dict:
         # The saved plan is always the clean full-day version; adaptation to
         # what's been logged is a live view layered on top, never persisted.
         if consumed is not None:
             return {"plan": _adapt_plan(plan, targets, consumed, body.hour), "cached": cached}
-        return {"plan": plan, "cached": cached}
+        base = _attach_plan_sections(json.loads(json.dumps(plan)), body.hour)
+        base["planned"] = _sum_items([it for s in base["slots"] if s.get("actionable") for it in s["items"]])
+        base["status"] = {m: _metric_status(base["planned"][m], targets[m]) for m in _CORE_KEYS}
+        if "fiber_g" in targets and "fiber_g" in base["planned"]:
+            base["status"]["fiber_g"] = _metric_status(base["planned"]["fiber_g"], targets["fiber_g"])
+        return {"plan": base, "cached": cached}
 
     if not body.regenerate:
         saved = _load_saved(acct["id"], date_key)
         if saved and saved.get("signature") == sig:
             return _respond(saved["plan"], True)
 
-    plan = build_plan(targets, diet, goal, date_key)
+    best_plan = None
+    best_score = 1e18
+    seed = abs(hash((acct["id"], date_key, sig))) % 1_000_000
+    for i in range(8):
+        cand = build_plan(
+            targets,
+            diet,
+            goal,
+            date_key,
+            training_context=((body.training or "").strip().lower()),
+            account_id=acct["id"],
+            rng=random.Random(seed + i),
+        )
+        ok, reason = _validate_plan(cand, targets)
+        score = _plan_quality_score(cand, targets)
+        if score < best_score:
+            best_score = score
+            best_plan = cand
+        if ok:
+            best_plan = cand
+            log.info("plan validation: accepted on attempt %d (score=%.3f)", i + 1, score)
+            break
+        log.info("plan validation: rejected attempt %d (%s, score=%.3f)", i + 1, reason, score)
+    plan = best_plan or build_plan(
+        targets,
+        diet,
+        goal,
+        date_key,
+        training_context=((body.training or "").strip().lower()),
+        account_id=acct["id"],
+    )
     _save(acct["id"], date_key, sig, plan)
     return _respond(plan, False)

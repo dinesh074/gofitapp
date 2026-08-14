@@ -74,6 +74,24 @@ export type Meal = {
   // the server returns this meal (see /logs) -- never persisted verbatim
   // since Supabase signed URLs expire.
   photoUrl?: string;
+  // Optional itemized rows captured at log time for canonical food-log
+  // reference storage on the backend.
+  foodItems?: Array<{
+    key?: string;
+    item: string;
+    count: number;
+    unit: string;
+    source?: string;
+    kcal_per_unit: number;
+    protein_g_per_unit: number;
+    carbs_g_per_unit: number;
+    fat_g_per_unit: number;
+    kcal_total: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    micros?: Record<string, number>;
+  }>;
 };
 export type DayLog = { date: string; meals: Meal[] };
 export type LogMap = Record<string, DayLog>;
@@ -707,4 +725,3 @@ export function consistencyScore(
   const loggedCount = sorted.length;
   return { pct: totalDays > 0 ? Math.round((loggedCount / totalDays) * 100) : 0, loggedCount, totalDays };
 }
-

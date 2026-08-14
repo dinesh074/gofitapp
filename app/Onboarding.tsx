@@ -6,12 +6,14 @@ import {
   ACTIVITY_LABELS,
   clamp,
   computeBmi,
+  dailyCalorieDelta,
   computeGoal,
   Diet,
   Gender,
-  Goal,
   GoalKind,
   GoalPace,
+  goalOfKind,
+  hasWeightTargetGoalKind,
   kgToLb,
   lbToKg,
   cmToIn,
@@ -28,8 +30,8 @@ import { APP_NAME } from "./config";
 import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
 import Icon, { IconName } from "./Icon";
 import PressableScale from "./PressableScale";
-import WheelPicker from "./WheelPicker";
 import PaceSlider from "./PaceSlider";
+import NumberStepper from "./NumberStepper";
 import Screen from "./Screen";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -81,12 +83,6 @@ const DIET_OPTIONS: { key: Diet; label: string; icon: IconName }[] = [
   { key: "sattvic", label: "Sattvic", icon: "nutrition" },
 ];
 
-function goalOf(kind: GoalKind): Goal {
-  return kind === "loss" ? "lose" : kind === "muscle" ? "gain" : "maintain";
-}
-
-const hasWeightTarget = (kind?: GoalKind) => kind === "loss" || kind === "muscle";
-
 export default function Onboarding({ onComplete }: Props) {
   const [step, setStep] = useState(0);
   const [heightUnit, setHeightUnit] = useState<HeightUnit>("cm");
@@ -130,7 +126,7 @@ export default function Onboarding({ onComplete }: Props) {
   }, [key, d]);
 
   function next() {
-    if (key === "goal" && !hasWeightTarget(d.goalKind)) {
+    if (key === "goal" && !hasWeightTargetGoalKind(d.goalKind)) {
       setD((s) => ({ ...s, targetWeightKg: s.weightKg }));
       setStep(IDX.diet);
       return;
@@ -139,7 +135,7 @@ export default function Onboarding({ onComplete }: Props) {
   }
 
   function back() {
-    if (key === "diet" && !hasWeightTarget(d.goalKind)) {
+    if (key === "diet" && !hasWeightTargetGoalKind(d.goalKind)) {
       setStep(IDX.goal);
       return;
     }
@@ -162,8 +158,8 @@ export default function Onboarding({ onComplete }: Props) {
       age: d.age,
       heightCm: d.heightCm,
       weightKg: d.weightKg,
-      targetWeightKg: hasWeightTarget(kind) ? d.targetWeightKg : d.weightKg,
-      goal: goalOf(kind),
+      targetWeightKg: hasWeightTargetGoalKind(kind) ? d.targetWeightKg : d.weightKg,
+      goal: goalOfKind(kind),
       goalKind: kind,
       goalPace: d.goalPace,
       activity: d.activity!,
@@ -211,11 +207,12 @@ export default function Onboarding({ onComplete }: Props) {
             />
             <Text style={[styles.fieldLabel, styles.fieldLabelSpaced]}>Age</Text>
             <View style={styles.inputSurface}>
-              <WheelPicker
+              <NumberStepper
                 min={LIMITS.age.min}
                 max={LIMITS.age.max}
                 value={d.age}
                 unit="yrs"
+                compact
                 onChange={(v) => setD({ ...d, age: v })}
               />
             </View>
@@ -354,6 +351,7 @@ function BodyStep({
   weightUnit: WeightUnit;
   setWeightUnit: (u: WeightUnit) => void;
 }) {
+  const [showExplain, setShowExplain] = useState(false);
   const bmi = computeBmi(d.heightCm, d.weightKg);
   const maintain = tdee({
     gender: d.gender ?? "other",
@@ -362,6 +360,7 @@ function BodyStep({
     weightKg: d.weightKg,
     activity: d.activity ?? "light",
   });
+  const bmiText = bmi ? `${bmi.value} (${bmi.category})` : "—";
 
   return (
     <Question
@@ -408,6 +407,7 @@ function BodyStep({
       </View>
 
       <View style={styles.estimateCard}>
+        <InfoInline label="How this is calculated" onPress={() => setShowExplain((s) => !s)} />
         <View style={styles.inlineIconBadge}>
           <Icon name="sparkles" size={16} color={colors.green} />
         </View>
@@ -415,6 +415,16 @@ function BodyStep({
         <Text style={styles.estimateSub}>
           based on your current profile{bmi ? ` · BMI ${bmi.value}` : ""}
         </Text>
+        {showExplain ? (
+          <InfoPanel
+            text={
+              `BMI = weight(kg) / height(m)^2\n` +
+              `Your BMI: ${bmiText}\n\n` +
+              `Maintenance kcal is estimated from BMR × activity factor.\n` +
+              `This is a starting estimate, not a medical diagnosis.`
+            }
+          />
+        ) : null}
       </View>
     </Question>
   );
@@ -460,13 +470,14 @@ function TargetStep({
 }
 
 function PaceStep({ d, setD }: { d: Draft; setD: React.Dispatch<React.SetStateAction<Draft>> }) {
+  const [showExplain, setShowExplain] = useState(false);
   const profile: Profile = {
     gender: d.gender ?? "other",
     age: d.age,
     heightCm: d.heightCm,
     weightKg: d.weightKg,
     targetWeightKg: d.targetWeightKg,
-    goal: goalOf(d.goalKind ?? "maintain"),
+    goal: goalOfKind(d.goalKind ?? "maintain"),
     goalKind: d.goalKind,
     goalPace: d.goalPace,
     activity: d.activity ?? "light",
@@ -474,6 +485,10 @@ function PaceStep({ d, setD }: { d: Draft; setD: React.Dispatch<React.SetStateAc
     createdAt: Date.now(),
   };
   const plan = projectPlan(profile);
+  const maintenance = tdee(profile);
+  const dailyDelta = Math.abs(dailyCalorieDelta(profile.goal, profile.goalPace ?? "recommended", maintenance));
+  const weeklyRate = (dailyDelta * 7) / 7700;
+  const deltaKg = Math.abs(profile.targetWeightKg - profile.weightKg);
 
   return (
     <Question
@@ -482,6 +497,21 @@ function PaceStep({ d, setD }: { d: Draft; setD: React.Dispatch<React.SetStateAc
     >
       <View style={styles.sliderCard}>
         <PaceSlider value={d.goalPace} onChange={(p) => setD((s) => ({ ...s, goalPace: p }))} />
+        <InfoInline label="How timeline is calculated" onPress={() => setShowExplain((s) => !s)} />
+        {showExplain ? (
+          <InfoPanel
+            text={
+              `1) Daily calorie change is based on pace (4% / 5% / 6% of maintenance kcal).\n` +
+              `2) Weekly weight change ≈ (daily change × 7) / 7700.\n` +
+              `3) Weeks ≈ target kg change / weekly kg change.\n\n` +
+              `Your current estimate:\n` +
+              `- Target change: ${fmtKg(deltaKg)} kg\n` +
+              `- Daily change: ${Math.round(dailyDelta)} kcal\n` +
+              `- Weekly change: ${weeklyRate.toFixed(2)} kg/week\n` +
+              `- Timeline: ~${plan.weeks} weeks`
+            }
+          />
+        ) : null}
       </View>
 
       <View style={styles.planGrid}>
@@ -506,21 +536,23 @@ function HeightWheel({
     const minIn = Math.round(cmToIn(LIMITS.heightCm.min));
     const maxIn = Math.round(cmToIn(LIMITS.heightCm.max));
     return (
-      <WheelPicker
+      <NumberStepper
         min={minIn}
         max={maxIn}
         value={Math.round(cmToIn(valueCm))}
-        formatLabel={(v) => formatHeight(inToCm(v), "in")}
+        formatValue={(v) => formatHeight(inToCm(v), "in")}
+        compact
         onChange={(v) => onChangeCm(Math.round(inToCm(v)))}
       />
     );
   }
   return (
-    <WheelPicker
+    <NumberStepper
       min={LIMITS.heightCm.min}
       max={LIMITS.heightCm.max}
       value={Math.round(valueCm)}
       unit="cm"
+      compact
       onChange={onChangeCm}
     />
   );
@@ -545,23 +577,25 @@ function WeightWheel({
 }) {
   if (unit === "lb") {
     return (
-      <WheelPicker
+      <NumberStepper
         min={Math.round(kgToLb(minKg))}
         max={Math.round(kgToLb(maxKg))}
         value={Math.round(kgToLb(valueKg))}
         unit="lb"
+        compact
         onChange={(v) => onChangeKg(Math.round(lbToKg(v) * 10) / 10)}
       />
     );
   }
   return (
-    <WheelPicker
+    <NumberStepper
       min={minKg}
       max={maxKg}
       step={step}
       decimals={decimals}
       value={valueKg}
       unit="kg"
+      compact
       onChange={onChangeKg}
     />
   );
@@ -676,6 +710,23 @@ function UnitToggle({
   );
 }
 
+function InfoInline({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <PressableScale style={styles.infoRow} onPress={onPress}>
+      <Icon name="info" size={16} color={colors.green} />
+      <Text style={styles.infoText}>{label}</Text>
+    </PressableScale>
+  );
+}
+
+function InfoPanel({ text }: { text: string }) {
+  return (
+    <View style={styles.infoPanel}>
+      <Text style={styles.infoPanelText}>{text}</Text>
+    </View>
+  );
+}
+
 function Option({
   icon,
   label,
@@ -759,8 +810,8 @@ function Summary({ draft }: { draft: Draft }) {
     age: draft.age,
     heightCm: draft.heightCm,
     weightKg: draft.weightKg,
-    targetWeightKg: hasWeightTarget(kind) ? draft.targetWeightKg : draft.weightKg,
-    goal: goalOf(kind),
+    targetWeightKg: hasWeightTargetGoalKind(kind) ? draft.targetWeightKg : draft.weightKg,
+    goal: goalOfKind(kind),
     goalKind: kind,
     goalPace: draft.goalPace,
     activity: draft.activity!,
@@ -789,11 +840,11 @@ function Summary({ draft }: { draft: Draft }) {
 
       <View style={styles.statsCard}>
         <StatRow label="Current weight" value={`${fmtKg(draft.weightKg)} kg`} />
-        {hasWeightTarget(kind) ? (
+        {hasWeightTargetGoalKind(kind) ? (
           <StatRow label="Goal weight" value={`${fmtKg(draft.targetWeightKg)} kg`} />
         ) : null}
         <StatRow label="Activity" value={prettyActivity(draft.activity!)} />
-        {hasWeightTarget(kind) ? <StatRow label="Goal pace" value={paceLabel} /> : null}
+        {hasWeightTargetGoalKind(kind) ? <StatRow label="Goal pace" value={paceLabel} /> : null}
         {plan.targetDate ? (
           <StatRow label="Estimated to reach" value={`${fmtDate(plan.targetDate)} · ~${plan.weeks} wk`} last />
         ) : (
@@ -906,15 +957,15 @@ const styles = StyleSheet.create({
   questionCard: {
     backgroundColor: colors.card,
     borderRadius: radius.xl,
-    padding: sp(5),
+    padding: sp(4),
     ...elevation.md,
   },
   qTitle: { ...T.h1, color: colors.ink },
   qSub: { ...T.body, color: colors.mute, marginTop: sp(1.5), lineHeight: 22 },
-  questionBody: { marginTop: sp(5) },
+  questionBody: { marginTop: sp(4) },
 
   fieldLabel: { ...T.overline, color: colors.mute, marginBottom: sp(2.5) },
-  fieldLabelSpaced: { marginTop: sp(6.5) },
+  fieldLabelSpaced: { marginTop: sp(4.5) },
 
   segment: {
     flexDirection: "row",
@@ -941,8 +992,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.line,
-    paddingHorizontal: sp(2),
-    paddingVertical: sp(1.5),
+    paddingHorizontal: sp(1.5),
+    paddingVertical: sp(1),
   },
 
   unitToggle: {
@@ -959,8 +1010,8 @@ const styles = StyleSheet.create({
   unitText: { ...T.caption, color: colors.mute },
   unitTextOn: { color: colors.green },
 
-  dualRow: { flexDirection: "row", gap: sp(3), marginTop: sp(1) },
-  dualCol: { flex: 1 },
+  dualRow: { flexDirection: "column", gap: sp(3), marginTop: sp(1) },
+  dualCol: { width: "100%" },
   dualHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: sp(2) },
 
   estimateCard: {
@@ -1008,6 +1059,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: sp(4),
     paddingVertical: sp(4),
   },
+  infoRow: {
+    marginTop: sp(3),
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: sp(1.5),
+    backgroundColor: colors.card,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    paddingHorizontal: sp(3),
+    paddingVertical: sp(1.25),
+  },
+  infoText: { ...T.caption, color: colors.green },
+  infoPanel: {
+    marginTop: sp(2.5),
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    paddingHorizontal: sp(3),
+    paddingVertical: sp(2.5),
+  },
+  infoPanelText: { ...T.caption, color: colors.mute, lineHeight: 18 },
   planGrid: { flexDirection: "row", gap: sp(2.5), marginTop: sp(6) },
   planStat: {
     flex: 1,

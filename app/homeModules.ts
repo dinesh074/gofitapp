@@ -7,6 +7,7 @@ import { HomeLayout } from "./api";
 export type HomeModuleKey =
   | "summary"
   | "todayPlan"
+  | "addHub"
   | "training"
   | "nextMeal"
   | "streak"
@@ -27,17 +28,26 @@ export type HomeModuleMeta = {
 };
 
 export const HOME_MODULES: HomeModuleMeta[] = [
-  { key: "summary", label: "Calories & macros", desc: "Today's ring, protein / carbs / fat", icon: "flame", lockedVisible: true },
+  { key: "summary", label: "Today's nutrition", desc: "Calories, macros and remaining budget", icon: "flame", lockedVisible: true },
   { key: "todayPlan", label: "Today's plan", desc: "Your planned meals for the day", icon: "nutrition" },
-  { key: "training", label: "Today's training", desc: "Tag your session to tune targets", icon: "pulse", requiresCoach: true },
-  { key: "nextMeal", label: "Your next meal", desc: "AI meal suggestions", icon: "sparkles", requiresCoach: true },
+  { key: "nextMeal", label: "Next best move", desc: "Action-first next meal guidance", icon: "sparkles" },
+  { key: "addHub", label: "Add / Track", desc: "All scan and logging options in one place", icon: "plus" },
   { key: "streak", label: "Monthly streak", desc: "Days you hit your goal", icon: "trophy" },
   { key: "micros", label: "Micronutrients", desc: "Fibre, iron, sodium and more", icon: "nutrition", requiresCoach: true },
   { key: "wellness", label: "Water & steps", desc: "Hydration and daily steps", icon: "water" },
   { key: "exercise", label: "Exercise", desc: "Log workouts & calories burned", icon: "dumbbell" },
 ];
 
-export const DEFAULT_ORDER: HomeModuleKey[] = HOME_MODULES.map((m) => m.key);
+export const DEFAULT_ORDER: HomeModuleKey[] = [
+  "nextMeal",
+  "addHub",
+  "todayPlan",
+  "summary",
+  "exercise",
+  "wellness",
+  "streak",
+  "micros",
+];
 
 const META_BY_KEY: Record<string, HomeModuleMeta> = Object.fromEntries(
   HOME_MODULES.map((m) => [m.key, m])

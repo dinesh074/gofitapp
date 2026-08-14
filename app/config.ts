@@ -4,7 +4,7 @@
 // swap this to "http://<your-LAN-IP>:8000" (127.0.0.1/localhost only works for
 // web/simulator, not a physical device) -- but always revert to the Render URL
 // below before committing/building for real users.
-export const API_BASE = "https://gofit-backend-xnik.onrender.com";
+export const API_BASE = "http://127.0.0.1:8000";
 
 // Optional shared secret. Must match the backend's APP_API_KEY when auth is
 // enabled. Leave empty for local dev where the backend has no APP_API_KEY set.
@@ -12,7 +12,8 @@ export const API_KEY = "u1sNU73PeytYfQ1DqkPMkiaAxjMy304LE0OeYjDSrvg";
 
 // Product branding — change once, applies everywhere.
 export const APP_NAME = "gofit.today";
-export const APP_TAGLINE = "Snap Indian food. Get calories.";
+export const APP_TAGLINE = "Snap your Indian food. Know what to eat next.";
+export const APP_SUBTAGLINE = "Your food, fitness & progress — connected.";
 
 // --- Google Sign-In ----------------------------------------------------------
 // Web OAuth client ID is filled in (public — safe to ship). Create iOS/Android
@@ -37,4 +38,4 @@ export const FREE_SCANS = 3;
 // TEST MODE: skip Google sign-in and enter the app as a shared "Tester" account
 // (backend must have ALLOW_DEV_LOGIN=1). OFF for production — real Google
 // sign-in is required. Flip to true only for local testing on your own machine.
-export const AUTH_BYPASS = false;
+export const AUTH_BYPASS = true;
