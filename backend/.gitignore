@@ -16,4 +16,5 @@ uploads/
 __pycache__/
 *.pyc
 .venv/
+GOFIT_REAL_INDB_DATABASE
 venv/

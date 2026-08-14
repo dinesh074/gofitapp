@@ -53,6 +53,8 @@ import plan
 import exercise
 import prefs
 import entitlements
+import ai_provider
+import nutrition_api
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -324,6 +326,12 @@ app.include_router(prefs.router)
 # GET /entitlements returns the account's resolved tier + per-feature access.
 entitlements.init_db()
 app.include_router(entitlements.router)
+
+# Read-only Food Intelligence Graph API (nutri_* tables) -- Month 1 of
+# GOFIT_MASTER_ARCHITECTURE_PROMPT.txt's roadmap. Separate from the existing
+# /foods/* endpoints above, which still serve the live scanner's `foods`
+# table; both exist side by side until the Month 4 scanner migration.
+app.include_router(nutrition_api.router)
 
 # --- Auth (optional shared secret) -------------------------------------------
 # If APP_API_KEY is set, every /analyze request must send a matching X-API-Key
@@ -1460,6 +1468,9 @@ _client = None
 
 
 def get_client():
+    """Deprecated direct accessor -- kept only in case anything still expects
+    a raw genai client. New code should use ai_provider.get_provider() so
+    Gemini isn't the only provider the rest of the app can talk to."""
     global _client
     if _client is None:
         key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -1470,12 +1481,13 @@ def get_client():
 
 
 def _generate(contents):
-    """Single entry point for all Gemini calls. `contents` is a prompt string,
-    or a [prompt, PIL.Image] list for the photo path. Uses the google-genai
-    SDK (the google.generativeai package it replaced is end-of-life)."""
-    return get_client().models.generate_content(
-        model=MODEL, contents=contents, config=GEN_CONFIG
-    )
+    """Single entry point for all Gemini calls, now routed through the
+    AIProvider abstraction (ai_provider.py) so main.py itself no longer talks
+    to the genai SDK directly -- swapping providers (Qwen/OpenAI) means
+    implementing a new AIProvider subclass, not touching every call site
+    here. `contents` is a prompt string, or a [prompt, PIL.Image] list for
+    the photo path."""
+    return ai_provider.get_provider().generate(contents)
 
 
 def extract_json(text: str) -> dict:

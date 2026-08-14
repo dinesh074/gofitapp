@@ -1,0 +1,739 @@
+GOFIT.TODAY — MASTER ARCHITECTURE & DEVELOPMENT BRIEF
+
+Build gofit.today as an Indian-first Food Intelligence + Nutrition + Training platform, not a generic calorie tracker.
+
+CORE PRINCIPLE
+AI understands.
+Database knows.
+Deterministic code calculates.
+Rules engine validates.
+Combination engine optimizes.
+AI explains.
+
+Everything must operate on one canonical Food Intelligence Graph. Do not build separate nutrition databases for scanner, logging, recipes, planning, or coaching.
+
+CURRENT STACK
+- Frontend: existing gofit.today frontend; preserve existing UI unless required.
+- Backend: Render Free for MVP.
+- Database: Supabase PostgreSQL + Auth + Storage; use pgvector where useful.
+- AI: Gemini API initially.
+  - Gemini 2.5 Flash-Lite for cheap/simple operations.
+  - Gemini 2.5 Flash for harder reasoning and image/multimodal operations.
+  - Keep AI provider replaceable so Qwen/OpenAI/other providers can be added later.
+- Do not self-host GPUs during MVP unless real usage proves it necessary.
+
+AI PROVIDER ABSTRACTION
+Create an AIProvider interface with implementations such as:
+- GeminiProvider
+- FutureQwenProvider
+- FutureOpenAIProvider
+
+Do not scatter Gemini-specific calls throughout the application.
+
+FOOD INTELLIGENCE GRAPH
+Core entity: FoodEntity.
+
+Relationships:
+- aliases
+- translations
+- nutrients
+- portions
+- recipes
+- recipe variants
+- preparation methods
+- dietary rules
+- allergens
+- regional classifications
+- cuisine
+- substitutions
+- images
+- source/provenance
+- meal combinations
+- tags
+
+Food entity types:
+ingredient, dish, recipe, breakfast, snack, dessert, beverage, restaurant_food, packaged_food, meal_combination.
+
+Model canonical food + variant + preparation + portion rather than unrelated duplicate foods.
+
+Examples:
+Paneer -> raw, grilled, tikka, butter masala, palak paneer, bhurji.
+Rice -> steamed, fried rice, lemon rice, curd rice, pulao, biryani.
+Chicken -> grilled, boiled, tandoori, curry, butter chicken, fried, biryani.
+
+NUTRITION MODEL
+Support:
+- kcal, kJ
+- protein, carbohydrate, available carbohydrate, starch, total/free sugar, fibre
+- total fat, saturated, MUFA, PUFA, trans fat, omega-3, omega-6, cholesterol
+- calcium, iron, magnesium, phosphorus, potassium, sodium, zinc, copper, manganese, selenium, iodine, chromium, molybdenum
+- vitamins A, B1, B2, B3, B5, B6, B7, B9, B12, C, D, E, K
+- carotenoids, beta-carotene, lycopene, lutein, zeaxanthin
+- amino acids where reliable data exists: leucine, isoleucine, valine, lysine, methionine, phenylalanine, threonine, tryptophan, histidine.
+
+NEVER invent nutrient values.
+Every nutrient value needs:
+source_id, source_record_id, source_version, value_status, confidence.
+
+value_status:
+measured, calculated, estimated, trace, missing.
+
+Unknown != zero. Use NULL + missing status where data is unavailable.
+
+DATA PROVENANCE
+Create a data_sources registry with:
+source_id, source_name, source_type, version, publisher, url, license_status, allowed_use, notes.
+
+Do not scrape/copy restricted nutrition databases into production without permission. Use authoritative Indian food composition resources where legally permitted and preserve provenance/version information.
+
+SCALE STRATEGY
+Do not manually create 1,000,000 foods.
+
+Target:
+- Phase 1: ~20,000 high-quality canonical records.
+- Phase 2: 50,000–100,000 canonical + variants.
+- Phase 3: 100,000–300,000 food/recipe/preparation/portion variants.
+- Phase 4: 1,000,000+ validated meal combinations.
+
+The 1M combinations are generated from foods + recipes + portions + preparations + meal templates + dietary rules + nutrition constraints + regional preferences + user preferences.
+
+The dynamic search space can be much larger than 1M.
+
+COMBINATION ENGINE
+Build deterministic:
+generateMeal()
+findMeals()
+rankMeals()
+findSubstitutions()
+findMealsForNutritionGap()
+generateDailyPlan()
+generateWeeklyPlan()
+
+Inputs:
+calories, protein, carbs, fat, fibre, micronutrient gaps, meal type, diet, allergens, region, cuisine, goal, training context, available ingredients, budget, cooking time, meal size, preferences.
+
+Pipeline:
+1. Filter candidates.
+2. Apply dietary rules.
+3. Apply allergens.
+4. Apply exclusions.
+5. Apply calorie constraints.
+6. Apply macro constraints.
+7. Score micronutrients.
+8. Apply meal-type constraints.
+9. Apply regional/cuisine preferences.
+10. Apply user preferences.
+11. Apply variety/diversity.
+12. Rank.
+13. Return top candidates.
+
+LLM must not perform final nutrition arithmetic.
+
+MEAL TEMPLATES
+Create reusable templates such as:
+- grain + protein + vegetable + side
+- roti + protein + vegetable + curd
+- rice + dal + vegetable
+- millet + dal + vegetable
+- dosa + protein accompaniment
+- idli + sambar + chutney
+- poha + protein side + fruit
+- paratha + curd + vegetable
+- salad + protein + grain
+- bowl meal
+- thali
+- snack + beverage
+- breakfast bowl
+- pre-workout
+- post-workout
+- recovery
+
+1M COMBINATION TARGET
+Approximate targets:
+- Breakfast 150k
+- Lunch 250k
+- Dinner 250k
+- Snacks 100k
+- Post-workout 75k
+- Pre-workout 50k
+- Recovery 50k
+- Drinks/sides 25k
+- Fasting-specific 25k
+- Regional/cultural 25k
+
+Only materialize useful/validated combinations. Generate others dynamically.
+
+DIETARY ENGINE
+Use profiles + rules, not simple booleans.
+
+Support:
+- Vegetarian
+- Vegan
+- Eggetarian
+- Lacto-vegetarian
+- Lacto-ovo vegetarian
+- Non-vegetarian
+- Pescatarian
+- Jain
+- Sattvic
+- Halal
+- Kosher
+- No beef
+- No pork
+- No seafood
+- No eggs
+- Dairy-free
+- Lactose-free
+- Gluten-free
+- Peanut-free
+- Tree-nut-free
+- Soy-free
+- Sesame-free
+- Egg-free
+- Fish-free
+- Shellfish-free
+- High protein
+- High fibre
+- lower added sugar
+- lower sodium
+- lower saturated fat
+- lower carb
+- higher carb
+- energy dense
+- low calorie density.
+
+JAIN
+Implement as a configurable ruleset, not food.jain=true. Support configurable exclusions/preparation rules because practices can vary. Validate recipes against the selected profile.
+
+SATTVIC
+Implement as a configurable ruleset with strict/custom profiles. Do not claim one universal definition.
+
+ALLERGENS
+At minimum:
+milk, lactose, egg, peanut, tree nuts, soy, wheat/gluten, sesame, fish, shellfish.
+States: contains, may_contain, free_from, unknown.
+Never infer allergy safety from an LLM.
+
+PORTIONS
+Support grams/ml and Indian household units:
+katori, bowl, cup, glass, plate, ladle, teaspoon, tablespoon, roti, paratha, dosa, idli, piece, slice, plus food-specific portions such as 1 idli, 2 idli, 1 dosa, 1 roti, 2 roti, 1 katori dal, 1 bowl rice.
+Map portions to weight where reliable and store source/confidence.
+
+RAW VS COOKED
+Explicitly model raw, cooked, boiled, steamed, fried, deep-fried, air-fried, grilled, roasted, pressure-cooked.
+Use cooking-yield factors. Do not treat raw and cooked values as interchangeable.
+
+RECIPE ENGINE
+Recipe:
+- ingredients
+- quantities
+- preparation
+- cooking method
+- steps
+- servings
+- yield
+- raw/cooked state.
+
+Calculate recipe nutrition from ingredients where possible.
+Support per 100g, per serving, bowl and custom portion.
+Preserve calculation provenance.
+
+HOMEMADE VS RESTAURANT
+Model:
+homemade, restaurant, street_food, packaged.
+Allow materially different nutritional profiles.
+When uncertain, return a range/confidence instead of false precision.
+
+FOOD SCANNER
+IMAGE -> Gemini Vision -> candidate foods -> portion estimate -> preparation estimate -> confidence -> Food Intelligence Graph -> exact matching -> NutritionEngine.
+
+AI returns structured candidates, not authoritative calories.
+Example:
+{
+  "items": [
+    {
+      "candidate_food": "masala dosa",
+      "confidence": 0.89,
+      "portion": {"value": 1, "unit": "medium_dosa"}
+    }
+  ]
+}
+
+Confidence:
+- high: automatic result
+- medium: ask for confirmation
+- low: ask user to choose/clarify.
+
+MANUAL LOGGING
+Example:
+"2 rotis + dal + curd"
+-> parser
+-> 2 x roti, 1 x dal, 1 x curd
+-> FoodEntity resolution
+-> portion resolver
+-> NutritionEngine.
+
+VOICE LOGGING
+Speech-to-text -> parser -> FoodEntity -> portion resolver -> NutritionEngine.
+
+SUBSTITUTION ENGINE
+Support food, ingredient, protein, dairy and carb substitutions.
+Rank by protein, calories, fat, carbs, micronutrients, diet, allergens, category/taste, availability.
+
+MICRONUTRIENT GAP ENGINE
+Calculate daily and weekly intake and identify relative gaps.
+Use wording like "Your logged intake is relatively low in..." rather than diagnosing deficiencies.
+Use the combination engine to suggest foods/meals that help close gaps.
+
+FIX MY DAY
+Given consumed calories/nutrients and targets:
+1. Calculate remaining nutrition.
+2. Apply dietary rules.
+3. Apply preferences.
+4. Search combinations.
+5. Rank.
+6. Explain.
+Example: 1200 consumed, 2000 target, 55g protein remaining -> find 3 suitable options.
+
+DAILY PLANNER
+Consider calories, macros, micronutrients, diet, allergens, preferences, cuisine, region, training, ingredients, budget, cooking time.
+Slots: breakfast, lunch, snack, dinner, optional pre/post-workout.
+
+WEEKLY PLANNER
+Optimize the week rather than each meal independently.
+Consider weekly calories, protein consistency, micronutrient diversity, variety, ingredient reuse, budget and cooking effort.
+Generate grocery list.
+
+TRAINING-AWARE NUTRITION
+Eventually support running, cycling, strength, walking and other exercise.
+Use training context for pre-workout, post-workout, recovery, higher-carb training days and rest days.
+Do not make medical claims.
+
+REGIONAL INDIAN FOOD MODEL
+Structure:
+India -> state -> region -> cuisine -> dish -> recipe -> preparation -> portion.
+Support North, South, West, East, Northeast, Central and Pan-Indian, eventually state/city/cuisine detail.
+
+LANGUAGE / ALIASES
+Support English, Hindi, Hinglish, regional-language names, transliterations and common misspellings.
+Examples: roti/chapati/phulka; sabzi/sabji; curd/dahi.
+Aliases map to canonical FoodEntity.
+Use pgvector where useful.
+
+FOOD SEARCH
+Support exact, fuzzy, alias, semantic, regional, dietary and nutrient filtering.
+Search results must resolve to real database entities.
+
+MEAL SIZE
+Support planning labels:
+micro, light, regular, heavy, very_heavy.
+These are planning labels, not medical recommendations.
+
+BUDGET
+Eventually support estimated price, cost per serving, cost per gram protein and budget meals.
+Keep estimates clearly labelled.
+
+COOKING TIME
+Track 5, 10, 20, 30, 60+ minute ranges.
+Support quick, office, travel and batch-cooking meals.
+
+AVAILABLE INGREDIENTS
+User: "I have eggs, bread, tomato and spinach."
+Search available ingredients + templates + diet rules + nutrition targets and return possible meals.
+
+RESTAURANT FOOD
+Support restaurant-style recommendations using remaining calories, protein, diet, preferences and meal type.
+Scanner should distinguish homemade, restaurant, street food and packaged where possible.
+
+GROCERY ENGINE
+Weekly recipes -> ingredients -> normalize quantities -> aggregate -> grocery list.
+
+AI COACH
+LLM is conversational interface and tool user.
+Tools:
+search_food()
+get_food()
+search_recipe()
+calculate_nutrition()
+find_meals()
+find_substitutions()
+check_dietary_rules()
+get_daily_nutrition()
+get_micronutrient_gaps()
+generate_daily_plan()
+generate_weekly_plan()
+generate_grocery_list()
+get_training_context()
+
+The LLM calls tools rather than fabricating answers.
+
+USER DATA
+Store:
+profile, dietary profile, allergens, food preferences, disliked foods, goals, nutrition targets, training context, meal preferences, regional preferences, language, budget, cooking preferences.
+
+FOOD LOG
+Reference FoodEntity.
+Store:
+user_id, food_id, portion_id, quantity, raw/cooked, meal_type, timestamp, source.
+Source:
+manual, voice, scanner, planner, import.
+Also store AI confidence, user confirmation and correction history.
+
+AI FEEDBACK LOOP
+Record user corrections:
+wrong food, wrong portion, wrong preparation, wrong source type, etc.
+Use corrections as evaluation/training data.
+Do not automatically fine-tune from every correction.
+
+DATABASE TABLES
+At minimum:
+foods
+food_aliases
+food_translations
+food_variants
+food_preparations
+nutrients
+food_nutrients
+food_nutrient_sources
+portions
+portion_conversions
+recipes
+recipe_ingredients
+recipe_steps
+recipe_variants
+cooking_yields
+dietary_profiles
+dietary_rules
+dietary_rule_exclusions
+dietary_rule_requirements
+food_allergens
+regional_foods
+regional_aliases
+meal_templates
+meal_combinations
+meal_combination_items
+food_substitutions
+users
+user_preferences
+user_goals
+user_nutrition_targets
+food_logs
+meal_logs
+training_sessions
+training_context
+daily_nutrition
+weekly_nutrition
+ai_scan_results
+ai_corrections
+data_sources
+
+SECURITY
+Use Supabase RLS.
+Users only access their own profiles, preferences, goals, logs, training, plans and AI history.
+Food master data is public/read-only where appropriate.
+Admin-only: food creation, nutrient updates, source mapping, rule changes, combination validation.
+Never expose service-role keys to frontend.
+
+API
+Use clean service boundaries:
+ /api/foods
+ /api/recipes
+ /api/nutrition
+ /api/scanner
+ /api/logs
+ /api/plans
+ /api/combinations
+ /api/substitutions
+ /api/dietary
+ /api/training
+ /api/ai
+
+Keep business logic out of route handlers. Use controllers, services, repositories, domain logic and validators.
+
+NUTRITION ENGINE
+One central NutritionEngine:
+calculateFoodNutrition()
+calculatePortionNutrition()
+calculateRecipeNutrition()
+calculateMealNutrition()
+calculateDailyNutrition()
+calculateWeeklyNutrition()
+
+RULE ENGINE
+DietaryRuleEngine:
+isVegetarian()
+isVegan()
+isEggetarian()
+isPescatarian()
+isJain()
+isSattvic()
+containsAllergen()
+matchesDiet()
+validateRecipe()
+
+COMBINATION RANKING
+CombinationRankingEngine scores:
+nutrition_fit
+calorie_fit
+protein_fit
+micronutrient_fit
+dietary_fit
+user_preference
+regional_fit
+meal_type_fit
+variety
+availability
+budget
+time
+Make weights configurable.
+
+CACHING
+Cache common food searches, nutrition, recipes, meal combinations and recommendations.
+Add Redis only when needed; do not introduce it prematurely.
+
+VECTOR SEARCH
+Use pgvector for food names, aliases, recipes, descriptions and ingredients.
+Vector search helps find "something like paneer", "South Indian high protein breakfast", etc.
+Final nutrition still comes from canonical entities.
+
+1M COMBINATION STORAGE
+Do not blindly insert every theoretical combination.
+Use:
+combination_candidates
+combination_validated
+combination_scores
+Validate:
+dietary rules
+nutrition
+duplicates
+portions
+recipes
+Materialize the best/popular combinations; keep dynamic generation.
+
+DUPLICATE DETECTION
+Normalize food IDs, portions, quantities and preparation.
+Create deterministic combination fingerprints.
+Do not treat different item order as a different combination.
+
+DATA QUALITY
+Validation jobs should check:
+missing nutrients
+duplicate foods
+duplicate aliases
+invalid portions
+missing sources
+impossible nutrient values
+invalid recipes
+dietary-rule conflicts
+negative quantities
+raw/cooked conflicts.
+Never silently fix scientific data; flag for review.
+
+ADMIN DATA PIPELINE
+CSV/JSON:
+source -> staging -> normalization -> validation -> review -> production.
+Never import directly into production.
+
+OBSERVABILITY
+Track:
+AI latency
+AI errors
+AI token usage
+AI cost
+scanner confidence
+scanner correction rate
+food-match success
+nutrition calculation errors
+API latency
+database latency.
+Set budget alerts.
+
+AI COST CONTROL
+Route:
+simple -> Flash-Lite
+complex -> Flash
+vision -> Flash
+low confidence -> fallback/more capable model.
+Do not call expensive AI where deterministic code can answer.
+During MVP use a monthly AI budget threshold such as ₹3,000 and gracefully degrade when approaching it.
+
+MVP INFRASTRUCTURE
+Render Free + Supabase Free + Gemini API.
+Do not introduce Kubernetes, GPU clusters, Redis, Kafka or microservices unless real scale requires them.
+Start as a modular monolith.
+
+YEAR ROADMAP
+Month 1: foundation — schema, FoodEntity, NutritionEngine, DietaryRuleEngine, PortionEngine, API, AI abstraction.
+Month 2: food intelligence — canonical foods, aliases, Indian/regional mapping, nutrient sources, portions, recipes.
+Month 3: logging — manual, voice, search, daily nutrition.
+Month 4: scanner — Gemini image analysis, candidate detection, portions, confidence, corrections.
+Month 5: recipe intelligence — decomposition, nutrition, raw/cooked, yields, homemade vs restaurant, variants.
+Month 6: combination engine — templates, generator, diet filters, constraints, ranking, first 100k.
+Month 7: 1M combinations — generation, deduplication, validation, scoring, materialization/dynamic generation.
+Month 8: personalized daily/weekly planning + micronutrient gaps.
+Month 9: training integration.
+Month 10: substitutions, grocery, budget and quick meals.
+Month 11: tool-using AI coach.
+Month 12: optimize based on real usage; evaluate Qwen/self-hosting/GPU/vector/Redis/paid infrastructure only if justified.
+
+DEVELOPMENT PRIORITY
+P0:
+FoodEntity
+NutritionEngine
+DietaryRuleEngine
+PortionEngine
+Supabase schema
+Food source/provenance
+
+P1:
+Food search
+Manual logging
+Recipe nutrition
+Daily tracking
+
+P2:
+Gemini scanner
+Voice logging
+
+P3:
+Combination Engine
+Meal templates
+Personalized planning
+
+P4:
+Micronutrient intelligence
+Substitutions
+Grocery
+Training-aware planning
+
+P5:
+AI coach
+1M combination materialization
+Advanced personalization
+
+DO NOT:
+- fabricate nutrient values
+- let LLM calculate authoritative calories
+- hardcode Jain/Sattvic as simple booleans
+- create separate databases for diets
+- create 1M manually duplicated foods
+- duplicate nutrition logic
+- hardcode Gemini throughout the codebase
+- expose service keys
+- build microservices prematurely
+- add GPU infrastructure prematurely
+- ignore FoodEntity
+- treat restaurant and homemade food as identical
+- ignore raw vs cooked
+- ignore Indian household portions
+- turn missing nutrients into zero
+- claim medical diagnoses from food logs
+- over-engineer before user validation
+
+ACCEPTANCE CRITERIA
+A food must answer:
+What is this?
+How much is it?
+How was it prepared?
+What nutrients does it contain?
+Where did the nutrient data come from?
+What diets can include it?
+What allergens does it contain?
+What can replace it?
+What recipes use it?
+What meals can it belong to?
+What does it contribute to today's nutrition?
+
+The same FoodEntity must be usable by:
+scanner
+manual logger
+voice logger
+recipe engine
+meal planner
+combination engine
+AI coach
+grocery engine
+training planner
+
+FIRST IMPLEMENTATION TASK — CRITICAL
+DO NOT immediately rewrite the existing application.
+
+First:
+1. Inspect the current repository.
+2. Understand the existing architecture.
+3. Identify current database/schema.
+4. Identify existing UI and APIs.
+5. Identify reusable components.
+6. Identify technical debt.
+7. Create an architecture gap report.
+8. Propose migration steps.
+9. Do not destroy existing functionality.
+10. Do not make large schema changes without migrations.
+
+Create:
+ /docs/architecture.md
+ /docs/data-model.md
+ /docs/nutrition-engine.md
+ /docs/dietary-rules.md
+ /docs/combination-engine.md
+ /docs/ai-architecture.md
+ /docs/roadmap.md
+
+Use:
+ /supabase/migrations/
+for database changes.
+
+MOST IMPORTANT:
+Do not blindly create every table from an old ZIP/database blueprint.
+
+First compare the current Supabase schema with this architecture.
+If a table already exists, prefer extending/migrating it rather than creating a duplicate.
+The goal is ONE canonical Food Intelligence system.
+
+Before making destructive or large-scale changes, return:
+1. Current architecture summary
+2. Existing database tables
+3. Existing APIs
+4. Existing frontend flows
+5. Reusable components
+6. Duplicates/conflicts
+7. Missing tables
+8. Missing services
+9. Migration strategy
+10. Recommended implementation order
+11. Risks
+12. Estimated complexity per phase
+
+Then WAIT for approval.
+
+FINAL PRODUCT PRINCIPLE
+
+gofit.today should not compete by saying:
+"We have the biggest food database."
+
+The advantage should become:
+"We understand Indian food deeply and can turn what you eat into an adaptive nutrition plan."
+
+Core loop:
+
+USER
+  ↓
+UNDERSTAND
+  ↓
+FOOD INTELLIGENCE
+  ↓
+NUTRITION
+  ↓
+RULES
+  ↓
+GOAL
+  ↓
+COMBINATION ENGINE
+  ↓
+PERSONALIZED ACTION
+  ↓
+USER FEEDBACK
+  ↓
+BETTER PERSONALIZATION
+
+Build the system around this loop.
