@@ -122,7 +122,7 @@ function ProgressTab() {
 function CommunityTab() {
   const { profile, logs, account, requireAuth, streak } = useApp();
   return (
-    <Screen>
+    <Screen edgeTop>
       <CommunityScreen
         profile={profile}
         logs={logs}
@@ -138,7 +138,7 @@ function ProfileTab() {
   const { profile, goal, logs, account, openSettings, requireAuth, signOut, streak, bestStreak } =
     useApp();
   return (
-    <Screen>
+    <Screen edgeTop>
       <ProfileScreen
         profile={profile}
         goal={goal}
