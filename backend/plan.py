@@ -42,7 +42,7 @@ import logging
 from typing import Callable, Optional
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 import db
 import auth
@@ -388,6 +388,22 @@ class Targets(BaseModel):
     protein_g: float = Field(0, ge=0, le=2000)
     carbs_g: float = Field(0, ge=0, le=2000)
     fat_g: float = Field(0, ge=0, le=2000)
+
+    # The client computes these locally (nutrition.ts) and a transient
+    # NaN during a profile edit/reload (e.g. a field briefly blank) serializes
+    # to JSON `null`. Coerce that -- and any other non-finite value -- to 0
+    # instead of hard-422ing the whole plan request: a client-side bug in one
+    # macro shouldn't take down the plan for the rest of the (valid) numbers.
+    @field_validator("kcal", "protein_g", "carbs_g", "fat_g", mode="before")
+    @classmethod
+    def _coerce_missing_to_zero(cls, v):
+        if v is None:
+            return 0
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return 0
+        return f if f == f and f not in (float("inf"), float("-inf")) else 0  # f == f is False for NaN
 
 
 # The clock hour (local) by which each meal is assumed to be over. Used to decide

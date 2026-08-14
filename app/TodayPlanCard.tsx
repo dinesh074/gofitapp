@@ -57,6 +57,12 @@ export default function TodayPlanCard({ goal, diet, goalName, date, account, onR
   const load = useCallback(
     async (regenerate: boolean) => {
       if (!account || goal.kcal <= 0) return;
+      // Defense in depth: goal/consumed are computed client-side and a
+      // transient NaN (e.g. mid-edit profile field) must never reach the
+      // network as JSON `null`, which the server would reject outright.
+      const finite = (n: number | undefined) => typeof n === "number" && Number.isFinite(n);
+      if (![targets.kcal, targets.protein_g, targets.carbs_g, targets.fat_g].every(finite)) return;
+      if (consumed && !Object.values(consumed).every(finite)) return;
       setLoading(true);
       setFailed(false);
       const p = await fetchTodayPlan({

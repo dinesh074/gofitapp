@@ -416,7 +416,7 @@ export function deleteMeal(logs: LogMap, date: string, index: number): LogMap {
 
 export function dayTotal(logs: LogMap, date = todayKey()): number {
   const d = logs[date];
-  return d ? d.meals.reduce((s, m) => s + m.kcal, 0) : 0;
+  return d ? d.meals.reduce((s, m) => s + (m.kcal || 0), 0) : 0;
 }
 
 export function dayMacros(logs: LogMap, date = todayKey()) {
