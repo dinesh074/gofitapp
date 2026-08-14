@@ -261,6 +261,14 @@ export default function App() {
       if (!prev) return prev;
       const next = { ...prev, weightKg: kg };
       saveProfile(next);
+      // Persist the new current weight to the account's SERVER profile too.
+      // Without this, BMR/TDEE/targets recompute now but silently REVERT on the
+      // next reload: syncProfileAndLogs pulls getProfile(), which would still
+      // return the old onboarding weight, overwriting this change. Logging a
+      // weight must move the profile the metabolism is computed from.
+      putProfile(next).catch((e) => {
+        if (e instanceof AuthRequiredError) void requireAuth();
+      });
       return next;
     });
   }

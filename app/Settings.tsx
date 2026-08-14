@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -17,10 +17,12 @@ import {
   Goal,
   resolveGoalKind,
   resolveGoalPace,
+  isCompleteProfile,
   LIMITS,
   Profile,
 } from "./nutrition";
 import { APP_NAME } from "./config";
+import { getProfile } from "./api";
 import { loadRemindersEnabled } from "./storage";
 import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
@@ -70,12 +72,38 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
   const [d, setD] = useState<Profile>({ ...profile });
   const [confirmReset, setConfirmReset] = useState(false);
   const [reminders, setReminders] = useState(true);
+  // Set once the user changes any field, so an in-flight server refresh (below)
+  // can't clobber edits already in progress.
+  const edited = useRef(false);
 
   const goal = useMemo(() => computeGoal(d), [d]);
 
   useEffect(() => {
     loadRemindersEnabled().then(setReminders);
   }, []);
+
+  // Always edit against the account's TRUE saved profile. The `profile` prop is
+  // normally the server-synced truth, but on a fast boot it can briefly be the
+  // local cache -- so pull the authoritative server copy on open and seed the
+  // form with it (unless the user has already started editing). This is why the
+  // edit screen shows your real saved values to update, not stale/blank data.
+  useEffect(() => {
+    let cancelled = false;
+    getProfile()
+      .then(({ profile: sp }) => {
+        if (!cancelled && !edited.current && isCompleteProfile(sp)) setD({ ...sp });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Every field change goes through this so `edited` is tracked in one place.
+  function update(patch: Partial<Profile> | ((s: Profile) => Profile)) {
+    edited.current = true;
+    setD((s) => (typeof patch === "function" ? patch(s) : { ...s, ...patch }));
+  }
 
   function toggleReminders(on: boolean) {
     setReminders(on); // optimistic; setRemindersEnabled persists + (re)schedules
@@ -87,7 +115,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
   // Keep target sensible: maintain => equals current weight. Keep the 4-way
   // goalKind in sync with the 3-way engine goal so downstream copy stays correct.
   function setGoal(g: Goal) {
-    setD((s) => ({
+    update((s) => ({
       ...s,
       goal: g,
       goalKind: resolveGoalKind({ goal: g }),
@@ -131,7 +159,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
             placeholder="Your name"
             placeholderTextColor={MUTE}
             maxLength={24}
-            onChangeText={(t) => setD({ ...d, name: t })}
+            onChangeText={(t) => update({ name: t })}
           />
         </Field>
 
@@ -139,7 +167,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
           <Segmented
             options={GENDERS}
             value={d.gender}
-            onChange={(v) => setD({ ...d, gender: v })}
+            onChange={(v) => update({ gender: v })}
           />
         </Field>
 
@@ -149,7 +177,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
             unit="yrs"
             min={LIMITS.age.min}
             max={LIMITS.age.max}
-            onChange={(v) => setD({ ...d, age: v })}
+            onChange={(v) => update({ age: v })}
           />
         </Field>
 
@@ -159,7 +187,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
             unit="cm"
             min={LIMITS.heightCm.min}
             max={LIMITS.heightCm.max}
-            onChange={(v) => setD({ ...d, heightCm: v })}
+            onChange={(v) => update({ heightCm: v })}
           />
         </Field>
 
@@ -169,7 +197,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
             unit="kg"
             min={LIMITS.weightKg.min}
             max={LIMITS.weightKg.max}
-            onChange={(v) => setD({ ...d, weightKg: v })}
+            onChange={(v) => update({ weightKg: v })}
           />
         </Field>
 
@@ -184,7 +212,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
               unit="kg"
               min={LIMITS.weightKg.min}
               max={LIMITS.weightKg.max}
-              onChange={(v) => setD({ ...d, targetWeightKg: v })}
+              onChange={(v) => update({ targetWeightKg: v })}
             />
           </Field>
         )}
@@ -193,7 +221,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
           <Field label="Goal pace">
             <PaceSlider
               value={resolveGoalPace(d)}
-              onChange={(v) => setD({ ...d, goalPace: v })}
+              onChange={(v) => update({ goalPace: v })}
             />
           </Field>
         )}
@@ -205,7 +233,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
                 key={a}
                 label={ACTIVITY_SHORT[a]}
                 selected={d.activity === a}
-                onPress={() => setD({ ...d, activity: a })}
+                onPress={() => update({ activity: a })}
               />
             ))}
           </View>
@@ -219,7 +247,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
                 key={o.key}
                 label={o.label}
                 selected={d.diet === o.key}
-                onPress={() => setD({ ...d, diet: o.key })}
+                onPress={() => update({ diet: o.key })}
               />
             ))}
           </View>
