@@ -29,7 +29,7 @@ All PKs are `TEXT` (not UUID) so the real INDB source IDs
 | `nutri_food_aliases` | Alias/transliteration/misspelling → `food_id` | 1,892 |
 | `nutri_food_translations` | Structured per-language translated names | 0 |
 | `nutri_portions` | Household portion → gram/ml weight | 1,014 |
-| `nutri_portion_conversions` | Free-form unit → gram conversions | 0 |
+| `nutri_portion_conversions` | Free-form unit → gram conversions | 5 (generic tsp/tbsp/cup/ml water-basis, confidence='low' — Month 2) |
 | `nutri_recipes` | Recipe metadata → optional `food_id` | 1,014 |
 | `nutri_recipe_ingredients` | Recipe → ingredient `food_id` + quantity/unit | 10,271 |
 | `nutri_recipe_steps` | Recipe instructions | 0 (INDB package didn't include step text) |
@@ -50,7 +50,19 @@ observations across 39 nutrient codes, 1,014 recipes with 10,271 real
 ingredient-quantity mappings, 1,014 portions, 1,892 aliases. Verified zero
 orphaned foreign keys after load (`backend/load_real_indb.py`).
 
-## Known gaps vs the full spec's table list
+## Month 2 fixes (see backend/populate_portion_conversions.py, backend/backfill_diet_flags.py)
+
+- `nutri_foods.vegetarian/vegan/eggetarian` backfilled for all 1,347 rows
+  (previously 100% NULL) using the existing word-list classifier PLUS real
+  recipe-ingredient names — catching composite dishes whose own name doesn't
+  reveal what's inside. 319 non-vegetarian / 765 non-vegan foods found this
+  way, vs. 129/353 with name-only classification (main.py's original
+  method). Re-run `backfill_diet_flags.py` after any bulk food import.
+- Generic (food-agnostic) tsp/tbsp/cup/ml → gram conversions added so
+  `calculate_recipe_nutrition` can sum the 51% of recipe_ingredient rows
+  that use those units instead of skipping them.
+
+## Known gaps vs the full spec's table list (still open)
 Not yet created (Month 2+ per roadmap, only when there's real data to put in
 them — never as empty scaffolding pretending to be populated):
 `food_variants`, `food_preparations`, `recipe_variants`, `dietary_profiles`,

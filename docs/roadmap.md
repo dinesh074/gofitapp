@@ -40,7 +40,31 @@ Not done yet (explicitly deferred, not forgotten):
 ## Month 2 — Food intelligence
 Canonical foods, aliases, Indian/regional mapping, nutrient sources,
 portions, recipes — expanding the real dataset toward the ~20,000 Phase 1
-target. Not started.
+target.
+
+Delivered this cycle (real gaps found by auditing the Month-1 load, fixed
+not fabricated):
+- Populated `nutri_portion_conversions` with generic tsp/tbsp/cup/ml → gram
+  conversions (water-basis, confidence='low') so recipe nutrition math can
+  use the 51% of `nutri_recipe_ingredients` rows that aren't already in g/ml.
+- Fixed `calculate_recipe_nutrition` to use those conversions — verified
+  ingredients that previously fell into `unconverted_ingredients` now
+  contribute correctly.
+- Backfilled `nutri_foods.vegetarian/vegan/eggetarian` for all 1,347 foods
+  (previously 100% NULL), using the existing classifier PLUS real
+  recipe-ingredient names — a real accuracy improvement over name-only
+  classification (found 765 non-vegan / 319 non-vegetarian foods vs.
+  353/129 with name-only checks).
+
+Explicitly NOT done (real, audited gaps — not invented data):
+- Region/cuisine are 100% placeholder ("India"/"Indian") — the INDB source
+  has no real per-food regional tagging (Punjab/Gujarat/South
+  Indian/Bengali/etc.). Needs a real data source before this can be filled
+  in; fabricating regions was rejected as dishonest.
+- Expanding beyond the 1,347 real foods toward the ~20,000 target — no new
+  bulk data source identified yet this cycle.
+- `nutri_food_nutrient_sources` (extended per-value citation trail) still
+  empty.
 
 ## Month 3 — Logging
 Manual logging parser, voice logging, search, daily nutrition aggregation,
