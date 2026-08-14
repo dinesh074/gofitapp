@@ -143,6 +143,24 @@ def calculate_portion_nutrition(food_id: str, portion_id: str | None = None, gra
     }
 
 
+def _generic_conversion_to_grams() -> dict[str, float]:
+    """Loads generic (food_id IS NULL) unit -> grams conversions from
+    nutri_portion_conversions -- see populate_portion_conversions.py. Cached
+    per-call rather than at import time so a re-run of that script is picked
+    up without restarting the process."""
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT from_unit, from_quantity, to_grams FROM nutri_portion_conversions "
+            "WHERE food_id IS NULL"
+        ).fetchall()
+    out = {}
+    for r in rows:
+        qty = float(r["from_quantity"])
+        if qty:
+            out[r["from_unit"].strip().lower()] = float(r["to_grams"]) / qty
+    return out
+
+
 def calculate_recipe_nutrition(recipe_id: str) -> dict:
     """Sum quantity-weighted ingredient nutrition for a recipe. Falls back to
     the recipe's own dish-level nutri_food_nutrients (via nutri_recipes.food_id)
@@ -165,22 +183,32 @@ def calculate_recipe_nutrition(recipe_id: str) -> dict:
     totals: dict[str, float] = {}
     statuses: dict[str, set] = {}
     missing_ingredients = []
+    unconverted_ingredients = []
+    generic_grams_per_unit = _generic_conversion_to_grams()
     for ing in ingredients:
         fid = ing["ingredient_food_id"]
         nutrients = get_food_nutrients(fid)
         if not nutrients:
             missing_ingredients.append(fid)
             continue
-        # Quantities here are in the recipe's original units (g/ml/tsp/etc),
-        # not necessarily grams -- without a portion_conversions row for every
-        # unit, we can only sum reliably when unit=="g"/"ml" (~100g/ml basis).
-        # Anything else is counted as an ingredient but not summed into
-        # totals, and reported in `unconverted_ingredients` so this is never
-        # silently wrong.
+        # Quantities here are in the recipe's original units (g/ml/tsp/tbsp/
+        # cup/etc). g/ml sum directly on a per-100g basis; tsp/tbsp/cup go
+        # through the generic (food_id-agnostic) water-basis conversion from
+        # nutri_portion_conversions (see populate_portion_conversions.py) --
+        # confidence='low', not a sourced per-ingredient density. Count/size
+        # units (sprig, nos, unit, sheet, pinch, drops) have no honest generic
+        # gram value and are reported in `unconverted_ingredients` instead of
+        # guessed.
         unit = (ing["unit"] or "").strip().lower()
-        if unit not in ("g", "ml", "gram", "grams"):
+        qty = float(ing["quantity"])
+        if unit in ("g", "gram", "grams"):
+            grams = qty
+        elif unit in generic_grams_per_unit:
+            grams = qty * generic_grams_per_unit[unit]
+        else:
+            unconverted_ingredients.append({"food_id": fid, "quantity": qty, "unit": ing["unit"]})
             continue
-        factor = float(ing["quantity"]) / 100.0
+        factor = grams / 100.0
         for n in nutrients:
             if n["amount"] is None:
                 continue
@@ -217,4 +245,5 @@ def calculate_recipe_nutrition(recipe_id: str) -> dict:
         "yield_weight_g": recipe["yield_weight_g"],
         "nutrients_per_100g_equivalent": combined,
         "missing_ingredient_nutrition": missing_ingredients,
+        "unconverted_ingredients": unconverted_ingredients,
     }

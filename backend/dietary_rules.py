@@ -46,59 +46,108 @@ def _get_aliases(food_id: str) -> list[str]:
     return [r["alias"] for r in rows]
 
 
+def _recipe_ingredient_names(food_id: str) -> list[str]:
+    """Every ingredient's canonical name for the recipe backing this food, if
+    any -- real INDB data the original main.py classifier never had access
+    to (it only ever saw a single dish name/alias list)."""
+    with db.connect() as c:
+        rows = c.execute(
+            """
+            SELECT f.canonical_name FROM nutri_recipe_ingredients ri
+            JOIN nutri_recipes r ON r.recipe_id = ri.recipe_id
+            JOIN nutri_foods f ON f.food_id = ri.ingredient_food_id
+            WHERE r.food_id = ?
+            """,
+            (food_id,),
+        ).fetchall()
+    return [r["canonical_name"] for r in rows]
+
+
+def _get_classification_text(food_id: str, canonical_name: str) -> str:
+    """Text to run the word-list classifiers against: the food's own name +
+    aliases, PLUS -- when a real recipe exists for this food -- every
+    ingredient's canonical name. This is a real improvement over main.py's
+    original classifier (which only ever saw a single dish name/alias list,
+    since it had no ingredient data to draw on): a dish like "Hot tea (Garam
+    Chai)" doesn't mention "milk" in its own name, so name-only
+    classification wrongly calls it vegan. Cross-referencing
+    nutri_recipe_ingredients (real INDB data, not available to the old
+    classifier) fixes exactly this class of error."""
+    parts = [canonical_name] + _get_aliases(food_id) + _recipe_ingredient_names(food_id)
+    return " ".join(parts)
+
+
 def is_vegetarian(food_id: str) -> str:
     """Returns 'yes'/'no'/'unknown'. Prefers the explicit nutri_foods column
-    (set for a minority of rows today); falls back to the name-based
-    classifier's non-veg word check when the column is NULL."""
+    (backfilled including recipe-ingredient text, see backfill_diet_flags.py);
+    falls back to a live classification (also ingredient-aware) for any food
+    not yet backfilled."""
     row = _get_food_row(food_id)
     if not row:
         return "unknown"
     if row["vegetarian"] is not None:
         return "yes" if row["vegetarian"] else "no"
     import main as _main  # noqa: PLC0415
-    text = _main._norm(" ".join([row["canonical_name"]] + _get_aliases(food_id)))
-    # The Jain classifier's non-veg word list also determines non-vegetarian
-    # status -- reused here directly rather than re-deriving it, but only
-    # trusted in the non-veg direction (onion/garlic/root-veg words also
-    # trigger a Jain "no" while still being vegetarian, so absence of a
-    # non-veg word does not by itself prove "yes").
+    text = _main._norm(_get_classification_text(food_id, row["canonical_name"]))
     if _main._word_in(_main._NON_VEG_WORDS, text):
         return "no"
-    return "unknown"
+    return "yes"
 
 
 def is_vegan(food_id: str) -> str:
+    """Returns 'yes'/'no'/'unknown'. Prefers the explicit column; falls back
+    to main.py's vegan word list (_NON_VEG_WORDS + _DAIRY_WORDS) run against
+    ingredient-aware text, the same rule the existing recommender uses for a
+    vegan diet filter."""
     row = _get_food_row(food_id)
     if not row:
         return "unknown"
     if row["vegan"] is not None:
         return "yes" if row["vegan"] else "no"
-    return "unknown"
+    import main as _main  # noqa: PLC0415
+    text = _main._norm(_get_classification_text(food_id, row["canonical_name"]))
+    if _main._word_in(_main._NON_VEG_WORDS, text) or _main._word_in(_main._DAIRY_WORDS, text):
+        return "no"
+    return "yes"
 
 
 def is_eggetarian(food_id: str) -> str:
+    """Returns 'yes'/'no'/'unknown'. Prefers the explicit column; falls back
+    to main.py's meat/fish word list (non-veg minus egg words) run against
+    ingredient-aware text, so an eggetarian food can still contain egg but
+    never meat/fish."""
     row = _get_food_row(food_id)
     if not row:
         return "unknown"
     if row["eggetarian"] is not None:
         return "yes" if row["eggetarian"] else "no"
-    return "unknown"
+    import main as _main  # noqa: PLC0415
+    text = _main._norm(_get_classification_text(food_id, row["canonical_name"]))
+    if _main._word_in(_main._MEAT_FISH_WORDS, text):
+        return "no"
+    return "yes"
 
 
 def is_jain(food_id: str) -> str:
-    """Returns 'yes'/'no'/'depends'/'unknown' -- never a boolean, per spec."""
+    """Returns 'yes'/'no'/'depends'/'unknown' -- never a boolean, per spec.
+    Ingredient-aware (see _get_classification_text) -- a dish's own name
+    doesn't have to mention onion/garlic/root veg for the recipe to contain
+    them."""
     row = _get_food_row(food_id)
     if not row:
         return "unknown"
-    jain, _ = _classify_diet_tags(row["canonical_name"], _get_aliases(food_id))
+    aliases = _get_aliases(food_id) + _recipe_ingredient_names(food_id)
+    jain, _ = _classify_diet_tags(row["canonical_name"], aliases)
     return jain
 
 
 def is_sattvic(food_id: str) -> str:
+    """Ingredient-aware, same reasoning as is_jain."""
     row = _get_food_row(food_id)
     if not row:
         return "unknown"
-    _, sattvic = _classify_diet_tags(row["canonical_name"], _get_aliases(food_id))
+    aliases = _get_aliases(food_id) + _recipe_ingredient_names(food_id)
+    _, sattvic = _classify_diet_tags(row["canonical_name"], aliases)
     return sattvic
 
 
