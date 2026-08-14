@@ -725,6 +725,58 @@ NUTRI_FOOD_DB = _load_nutri_food_db()
 NUTRI_FOOD_BY_KEY = {f["key"]: f for f in NUTRI_FOOD_DB}
 
 
+def _build_nutri_alias_index(nutri_db: list) -> dict:
+    """alias/name -> nutri food, for matching a FOOD_DB entry to its nutri
+    counterpart in _merge_food_dbs() below. First writer wins (stable, since
+    NUTRI_FOOD_DB order is a fixed SQL query order)."""
+    idx: dict = {}
+    for nf in nutri_db:
+        keys = set(nf.get("_aliases", [])) | {_norm(nf["key"])}
+        if nf.get("name"):
+            keys.add(_norm(nf["name"]))
+        for k in keys:
+            if k and k not in idx:
+                idx[k] = nf
+    return idx
+
+
+def _merge_food_dbs(old_db: list, nutri_db: list) -> list:
+    """Union FOOD_DB (curated, has health_score/jain_status/sattvic_status/
+    benefits/watch_outs) and NUTRI_FOOD_DB (real ingredient-derived macros +
+    diet flags) into ONE combined list, so search/recommend/combos/analyze
+    draw from a single food source instead of each maintaining its own
+    "prefer nutri, fall back to old" branch.
+
+    IMPORTANT -- this does NOT overwrite a matched FOOD_DB entry's
+    kcal_per_unit/protein_g/carbs_g/fat_g with the nutri values: FOOD_DB units
+    are real servings ("piece", "katori", "plate", "cup"), while every
+    NUTRI_FOOD_DB entry is per-100g. Copying nutri's per-100g calories onto a
+    "1 piece" entry would silently corrupt that food's numbers. The only
+    thing borrowed onto a matched entry is the real, ingredient-derived
+    vegetarian/vegan/eggetarian flags (unit-independent booleans) -- these
+    override the old word-matching guess in _food_diet_ok when present. Every
+    nutri entry (matched or not) is ALSO included in full as its own 100g-unit
+    row, so no graph data is lost or hidden."""
+    nutri_idx = _build_nutri_alias_index(nutri_db)
+    merged = []
+    for food in old_db:
+        f = dict(food)
+        candidates = set(f.get("_aliases", [])) | {_norm(f["key"])}
+        nf = next((nutri_idx[c] for c in candidates if c in nutri_idx), None)
+        if nf:
+            for flag in ("vegetarian", "vegan", "eggetarian"):
+                if nf.get(flag) is not None:
+                    f[flag] = nf[flag]
+            f["_nutri_food_id"] = nf["key"]
+        merged.append(f)
+    merged.extend(nutri_db)
+    return merged
+
+
+ALL_FOOD_DB = _merge_food_dbs(FOOD_DB, NUTRI_FOOD_DB)
+ALL_FOOD_BY_KEY = {f["key"]: f for f in ALL_FOOD_DB}
+
+
 # --- Meal combinations (accompaniment pairings) ------------------------------
 # Indian dishes are rarely eaten alone (idli+sambar+chutney, dal+rice, chole+
 # puri). food_combos.json holds curated dish -> typical sides so the app can
@@ -1124,8 +1176,10 @@ def foods_combos(request: Request, dish: str, limit: int = 6):
             # nutrition/diet flags (ingredient-derived, provenance-tracked)
             # over the older, thinner FOOD_DB -- food_combos.json's keys
             # (e.g. "sambar") still work either way; this just upgrades the
-            # numbers behind them when a nutri_foods match exists.
-            food = NUTRI_FOOD_BY_KEY.get(sk) or match_nutri_food(sk) or FOOD_BY_KEY.get(sk)
+            # numbers behind them when a nutri_foods match exists. Both DBs
+            # are unioned into ALL_FOOD_BY_KEY (see _merge_food_dbs) so this
+            # is now a single lookup instead of a two-DB fallback chain.
+            food = ALL_FOOD_BY_KEY.get(sk) or match_nutri_food(sk)
             if not food:
                 continue  # curated key not in either food DB -> silently skip
             seen.add(sk)
@@ -1267,13 +1321,13 @@ def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
 def _rank_foods(rem: dict, goal: dict, diet: str, limit: int) -> list:
     """Return the top real DB foods for the remaining budget + diet. A serving
     must fit the calorie headroom (with a little slack) so we never suggest a
-    600 kcal thali when only 200 kcal remain. Ranks over the real Food
-    Intelligence Graph (NUTRI_FOOD_DB) now that it carries real macros and
-    ingredient-aware diet flags; falls back to the old FOOD_DB only if the
-    nutri table failed to load."""
+    600 kcal thali when only 200 kcal remain. Ranks over ALL_FOOD_DB, the
+    merged union of the curated FOOD_DB and the real Food Intelligence Graph
+    (NUTRI_FOOD_DB) -- see _merge_food_dbs -- so recommendations draw from one
+    combined source instead of nutri-only with a silent old-DB fallback."""
     remKcal = rem["kcal"]
     ceiling = max(remKcal * 1.2, 150)  # allow small foods even when nearly full
-    source = NUTRI_FOOD_DB or FOOD_DB
+    source = ALL_FOOD_DB or NUTRI_FOOD_DB or FOOD_DB
     scored = []
     for food in source:
         if not _food_diet_ok(food, diet):
