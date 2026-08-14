@@ -46,15 +46,23 @@ const TAB_TO_ROUTE: Record<TabKey, string> = {
 function AppTabBar({ state, navigation }: BottomTabBarProps) {
   const activeRoute = state.routes[state.index]?.name ?? "Home";
   const active = ROUTE_TO_TAB[activeRoute] ?? "home";
+  const { triggerScan } = useApp();
   return (
     <TabBar
       active={active}
       onChange={(t) => navigation.navigate(TAB_TO_ROUTE[t])}
       onScanPress={() => {
-        // Scan lives one level up, as a sibling of the Tabs screen in the root
-        // stack -- not inside this Tab.Navigator -- so it's reached through
-        // the parent navigator, covering the tab bar as a real full screen.
-        navigation.getParent()?.navigate("Scan", { mode: "camera" });
+        // Jump to the Home tab first (in case a modal-covering sheet were to
+        // open on top of a non-Home tab it would still work since Modal
+        // renders above everything, but landing on Home makes the newly
+        // logged meal immediately visible without an extra tab tap).
+        if (activeRoute !== "Home") navigation.navigate("Home");
+        // Same single entry point as Home's own "Add food" button -- bumps
+        // scanTrigger, which HomeScreen is listening on to open the full
+        // AddFoodSheet (camera, search database, gallery, barcode, manual
+        // log, voice, exercise, water, weight). Previously this navigated
+        // straight to the camera, silently skipping every other option.
+        triggerScan();
       }}
     />
   );
