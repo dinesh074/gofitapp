@@ -941,34 +941,34 @@ _NUTRI_NUTRIENT_MAP = {
 }
 
 
-def _nutri_food_suggestion(food_id: str, canonical_name: str) -> dict:
-    """Map a real nutri_foods/nutri_food_nutrients row to the same client
-    shape _food_suggestion returns for the old FOOD_DB, so /foods/search can
-    be switched over to the new Food Intelligence Graph without a client
-    change. Values are per_100g (nutri_* basis) -- unit is reported as
-    '100g' so the client scales it the same way it already scales any
-    other per-100g food. A missing nutrient (value_status not 'measured'/
-    'calculated', or no row at all) is simply omitted, never guessed."""
-    nutrients = nutrition_engine.get_food_nutrients(food_id)
-    out = {
-        "key": food_id,
-        "name": canonical_name,
-        "unit": "100g",
-        "kcal_per_unit": 0,
-        "protein_g_per_unit": 0,
-        "carbs_g_per_unit": 0,
-        "fat_g_per_unit": 0,
-        "_source": "nutri_foods",
-    }
-    for n in nutrients:
-        field = _NUTRI_NUTRIENT_MAP.get(n["nutrient_code"])
-        if field and n["amount"] is not None:
-            out[field] = n["amount"]
-    food = nutrition_engine.get_food(food_id)
-    if food:
-        for flag in ("vegetarian", "vegan", "eggetarian", "jain"):
-            if food.get(flag) is not None:
-                out[flag] = food[flag]
+def _nutri_food_suggestions_batch(scored_ids: list[tuple[str, str]]) -> list[dict]:
+    """Batched version of _nutri_food_suggestion() for the whole result page
+    in TWO queries total (nutrients + food flags), not two queries PER
+    result. See nutrition_engine.get_foods_nutrients_bulk/get_foods_bulk."""
+    food_ids = [fid for fid, _ in scored_ids]
+    foods_by_id, nutrients_by_food = nutrition_engine.get_foods_with_nutrients_bulk(food_ids)
+    out = []
+    for food_id, canonical_name in scored_ids:
+        entry = {
+            "key": food_id,
+            "name": canonical_name,
+            "unit": "100g",
+            "kcal_per_unit": 0,
+            "protein_g_per_unit": 0,
+            "carbs_g_per_unit": 0,
+            "fat_g_per_unit": 0,
+            "_source": "nutri_foods",
+        }
+        for n in nutrients_by_food.get(food_id, []):
+            field = _NUTRI_NUTRIENT_MAP.get(n["nutrient_code"])
+            if field and n["amount"] is not None:
+                entry[field] = n["amount"]
+        food = foods_by_id.get(food_id)
+        if food:
+            for flag in ("vegetarian", "vegan", "eggetarian", "jain"):
+                if food.get(flag) is not None:
+                    entry[flag] = food[flag]
+        out.append(entry)
     return out
 
 
@@ -1001,7 +1001,14 @@ def foods_search(q: str, request: Request, limit: int = 20):
     the new /api/nutrition/* surface, instead of the old, thinner `foods`
     table. This is a plain local lookup -- NOT a Gemini call -- so, like
     barcode, it requires a signed-in account but never reserves or consumes
-    a free-scan credit."""
+    a free-scan credit.
+
+    Batched to a small, FIXED number of DB round-trips regardless of result
+    count (one match query, one all-aliases-for-matches query, then two more
+    for the final page's nutrients/flags) -- a previous version issued one
+    extra query PER matched row before scoring, which measured ~50ms/row
+    against the remote pooler and made the endpoint feel "slow" under any
+    query returning more than a handful of matches."""
     auth.require_account(request)
     query = _norm(q)
     if not query:
@@ -1018,19 +1025,26 @@ def foods_search(q: str, request: Request, limit: int = 20):
             """,
             (like, like),
         ).fetchall()
-    scored = []
-    for r in rows:
-        food = {"key": r["food_id"], "aliases": []}
+    matched_ids = [r["food_id"] for r in rows]
+    alias_map: dict[str, list[str]] = {}
+    if matched_ids:
+        placeholders = ",".join(["?"] * len(matched_ids))
         with db.connect() as c:
             alias_rows = c.execute(
-                "SELECT alias FROM nutri_food_aliases WHERE food_id=?", (r["food_id"],)
+                f"SELECT food_id, alias FROM nutri_food_aliases WHERE food_id IN ({placeholders})",
+                tuple(matched_ids),
             ).fetchall()
-        food["aliases"] = [a["alias"] for a in alias_rows] + [r["canonical_name"]]
+        for a in alias_rows:
+            alias_map.setdefault(a["food_id"], []).append(a["alias"])
+    scored = []
+    for r in rows:
+        food = {"key": r["food_id"], "aliases": alias_map.get(r["food_id"], []) + [r["canonical_name"]]}
         s = _search_score(query, food)
         if s > 0:
             scored.append((s, -len(r["canonical_name"]), r["food_id"], r["canonical_name"]))
     scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    results = [_nutri_food_suggestion(fid, name) for _, _, fid, name in scored[:limit]]
+    top = scored[:limit]
+    results = _nutri_food_suggestions_batch([(fid, name) for _, _, fid, name in top])
     if results:
         return {"results": results}
     # Fall back to the old FOOD_DB only if the new graph has zero matches

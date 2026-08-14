@@ -80,6 +80,119 @@ def get_food_nutrients(food_id: str) -> list[dict]:
     return _rows_to_nutrients(rows)
 
 
+def get_foods_bulk(food_ids: list[str]) -> dict[str, dict]:
+    """Batched version of get_food() for N foods in ONE query instead of N --
+    callers that need multiple foods (e.g. /foods/search's result page)
+    must use this, not a per-food loop, to avoid an N+1 round-trip pattern
+    against the remote Postgres pooler (each round trip measured ~200ms+)."""
+    if not food_ids:
+        return {}
+    placeholders = ",".join(["?"] * len(food_ids))
+    with db.connect() as c:
+        rows = c.execute(
+            f"SELECT * FROM nutri_foods WHERE food_id IN ({placeholders})",
+            tuple(food_ids),
+        ).fetchall()
+    out = {}
+    for row in rows:
+        out[row["food_id"]] = {
+            "food_id": row["food_id"],
+            "canonical_name": row["canonical_name"],
+            "entity_type": row["entity_type"],
+            "category": row["category"],
+            "subcategory": row["subcategory"],
+            "region": row["region"],
+            "cuisine": row["cuisine"],
+            "vegetarian": row["vegetarian"],
+            "vegan": row["vegan"],
+            "eggetarian": row["eggetarian"],
+            "jain": row["jain"],
+            "source_id": row["source_id"],
+            "status": row["status"],
+        }
+    return out
+
+
+def get_foods_nutrients_bulk(food_ids: list[str]) -> dict[str, list[dict]]:
+    """Batched version of get_food_nutrients() for N foods in ONE query."""
+    if not food_ids:
+        return {}
+    placeholders = ",".join(["?"] * len(food_ids))
+    with db.connect() as c:
+        rows = c.execute(
+            f"SELECT food_id, nutrient_code, amount, unit, basis, value_status, source_id, confidence "
+            f"FROM nutri_food_nutrients WHERE food_id IN ({placeholders}) ORDER BY food_id, nutrient_code",
+            tuple(food_ids),
+        ).fetchall()
+    out: dict[str, list[dict]] = {}
+    for r in rows:
+        out.setdefault(r["food_id"], []).append({
+            "nutrient_code": r["nutrient_code"],
+            "amount": float(r["amount"]) if r["amount"] is not None else None,
+            "unit": r["unit"],
+            "basis": r["basis"],
+            "value_status": r["value_status"],
+            "source_id": r["source_id"],
+            "confidence": r["confidence"],
+        })
+    return out
+
+
+def get_foods_with_nutrients_bulk(food_ids: list[str]) -> tuple[dict[str, dict], dict[str, list[dict]]]:
+    """Single-round-trip version of get_foods_bulk() + get_foods_nutrients_bulk()
+    combined via one JOIN query, for callers (like /foods/search's result
+    page) that need both a food's diet flags AND its nutrients -- halves the
+    round-trips of calling the two bulk functions separately."""
+    if not food_ids:
+        return {}, {}
+    placeholders = ",".join(["?"] * len(food_ids))
+    with db.connect() as c:
+        rows = c.execute(
+            f"""
+            SELECT f.food_id, f.canonical_name, f.entity_type, f.category, f.subcategory,
+                   f.region, f.cuisine, f.vegetarian, f.vegan, f.eggetarian, f.jain,
+                   f.source_id AS food_source_id, f.status,
+                   n.nutrient_code, n.amount, n.unit, n.basis, n.value_status,
+                   n.source_id AS nutrient_source_id, n.confidence
+            FROM nutri_foods f
+            LEFT JOIN nutri_food_nutrients n ON n.food_id = f.food_id
+            WHERE f.food_id IN ({placeholders})
+            """,
+            tuple(food_ids),
+        ).fetchall()
+    foods_by_id: dict[str, dict] = {}
+    nutrients_by_food: dict[str, list[dict]] = {}
+    for r in rows:
+        fid = r["food_id"]
+        if fid not in foods_by_id:
+            foods_by_id[fid] = {
+                "food_id": fid,
+                "canonical_name": r["canonical_name"],
+                "entity_type": r["entity_type"],
+                "category": r["category"],
+                "subcategory": r["subcategory"],
+                "region": r["region"],
+                "cuisine": r["cuisine"],
+                "vegetarian": r["vegetarian"],
+                "vegan": r["vegan"],
+                "eggetarian": r["eggetarian"],
+                "jain": r["jain"],
+                "source_id": r["food_source_id"],
+                "status": r["status"],
+            }
+        if r["nutrient_code"] is not None:
+            nutrients_by_food.setdefault(fid, []).append({
+                "nutrient_code": r["nutrient_code"],
+                "amount": float(r["amount"]) if r["amount"] is not None else None,
+                "unit": r["unit"],
+                "basis": r["basis"],
+                "value_status": r["value_status"],
+                "source_id": r["nutrient_source_id"],
+                "confidence": r["confidence"],
+            })
+    return foods_by_id, nutrients_by_food
+
+
 def get_portions(food_id: str) -> list[dict]:
     with db.connect() as c:
         rows = c.execute(
@@ -185,9 +298,16 @@ def calculate_recipe_nutrition(recipe_id: str) -> dict:
     missing_ingredients = []
     unconverted_ingredients = []
     generic_grams_per_unit = _generic_conversion_to_grams()
+    # ONE batched nutrient fetch for every ingredient in this recipe instead
+    # of one query per ingredient -- a recipe with 10 ingredients previously
+    # cost 10 extra round-trips to the remote Postgres pooler (~50-200ms
+    # each), which is why bulk callers (e.g. an audit over many recipes)
+    # were measured taking minutes instead of seconds.
+    ingredient_ids = [ing["ingredient_food_id"] for ing in ingredients]
+    nutrients_by_food = get_foods_nutrients_bulk(ingredient_ids)
     for ing in ingredients:
         fid = ing["ingredient_food_id"]
-        nutrients = get_food_nutrients(fid)
+        nutrients = nutrients_by_food.get(fid, [])
         if not nutrients:
             missing_ingredients.append(fid)
             continue
