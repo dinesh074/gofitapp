@@ -55,6 +55,7 @@ import prefs
 import entitlements
 import ai_provider
 import nutrition_api
+import nutrition_engine
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
@@ -662,6 +663,66 @@ FOOD_DB = _load_db()
 FOOD_BY_KEY = {f["key"]: f for f in FOOD_DB}
 
 
+def _load_nutri_food_db() -> list:
+    """Real Food Intelligence Graph foods, shaped like a FOOD_DB record so
+    /foods/recommend can rank over the same real, ingredient-aware,
+    provenance-tracked data /foods/search now uses -- instead of the old
+    `foods` table. vegetarian/vegan/eggetarian come straight from the
+    backfilled nutri_foods columns (real recipe-ingredient classification,
+    see dietary_rules.py), NOT re-derived from name-word matching here.
+    Loaded once at startup (same pattern as FOOD_DB) since it backs every
+    /foods/recommend call and a per-request N+1 nutrient fetch over ~1,347
+    foods would be too slow."""
+    try:
+        with db.connect() as c:
+            foods = c.execute(
+                "SELECT food_id, canonical_name, vegetarian, vegan, eggetarian FROM nutri_foods"
+            ).fetchall()
+            nutrients = c.execute(
+                """
+                SELECT food_id, nutrient_code, amount FROM nutri_food_nutrients
+                WHERE nutrient_code IN ('energy_kcal','protein_g','carb_g','fat_g')
+                """
+            ).fetchall()
+            aliases = c.execute("SELECT food_id, alias FROM nutri_food_aliases").fetchall()
+    except Exception as ex:
+        log.warning("Could not load nutri_foods for /foods/recommend (%s) -- falling back to FOOD_DB only.", ex)
+        return []
+    nutrient_map: dict = {}
+    for n in nutrients:
+        nutrient_map.setdefault(n["food_id"], {})[n["nutrient_code"]] = n["amount"]
+    alias_map: dict = {}
+    for a in aliases:
+        alias_map.setdefault(a["food_id"], []).append(a["alias"])
+    out = []
+    for f in foods:
+        nm = nutrient_map.get(f["food_id"], {})
+        kcal = nm.get("energy_kcal")
+        if kcal is None:
+            continue  # no real energy value -- never guess a serving's calories
+        entry = {
+            "key": f["food_id"],
+            "name": f["canonical_name"],
+            "unit": "100g",
+            "kcal_per_unit": float(kcal),
+            "protein_g": float(nm["protein_g"]) if nm.get("protein_g") is not None else 0.0,
+            "carbs_g": float(nm["carb_g"]) if nm.get("carb_g") is not None else 0.0,
+            "fat_g": float(nm["fat_g"]) if nm.get("fat_g") is not None else 0.0,
+            "vegetarian": f["vegetarian"],
+            "vegan": f["vegan"],
+            "eggetarian": f["eggetarian"],
+            "aliases": alias_map.get(f["food_id"], []),
+            "_source": "nutri_foods",
+            "_source_name": f["canonical_name"],
+        }
+        entry["_aliases"] = [a.lower().strip() for a in entry["aliases"]]
+        out.append(entry)
+    return out
+
+
+NUTRI_FOOD_DB = _load_nutri_food_db()
+
+
 # --- Meal combinations (accompaniment pairings) ------------------------------
 # Indian dishes are rarely eaten alone (idli+sambar+chutney, dal+rice, chole+
 # puri). food_combos.json holds curated dish -> typical sides so the app can
@@ -841,23 +902,73 @@ def anchor_items(data: dict) -> dict:
     return data
 
 def _food_suggestion(food: dict) -> dict:
-    """Map a FOOD_DB record to the shape the client turns into a FoodItem when
-    a user swaps a mis-identified ingredient. DB macros are already per-unit."""
+    """Map a FOOD_DB (or NUTRI_FOOD_DB) record to the shape the client turns
+    into a FoodItem. DB macros are already per-unit. Prefers the food's real
+    name field (NUTRI_FOOD_DB) over mangling the key, which is only a
+    readable fallback for the old FOOD_DB's underscored keys."""
     out = {
         "key": food["key"],
-        "name": food["key"].replace("_", " ").title(),
+        "name": food.get("name") or food["key"].replace("_", " ").title(),
         "unit": food["unit"],
         "kcal_per_unit": food["kcal_per_unit"],
         "protein_g_per_unit": food.get("protein_g", 0),
         "carbs_g_per_unit": food.get("carbs_g", 0),
         "fat_g_per_unit": food.get("fat_g", 0),
     }
+    for k in ("vegetarian", "vegan", "eggetarian"):
+        if food.get(k) is not None:
+            out[k] = food[k]
     for k in ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg", "health_score"):
         if food.get(k) is not None:
             out[k] = food[k]
     for k in ("benefits", "watch_outs", "micros"):
         if food.get(k):
             out[k] = food[k]
+    return out
+
+
+_NUTRI_NUTRIENT_MAP = {
+    "energy_kcal": "kcal_per_unit",
+    "protein_g": "protein_g_per_unit",
+    "carb_g": "carbs_g_per_unit",
+    "fat_g": "fat_g_per_unit",
+    "fibre_g": "fiber_g",
+    "freesugar_g": "sugar_g",
+    "sodium_mg": "sodium_mg",
+    "potassium_mg": "potassium_mg",
+    "calcium_mg": "calcium_mg",
+    "iron_mg": "iron_mg",
+}
+
+
+def _nutri_food_suggestion(food_id: str, canonical_name: str) -> dict:
+    """Map a real nutri_foods/nutri_food_nutrients row to the same client
+    shape _food_suggestion returns for the old FOOD_DB, so /foods/search can
+    be switched over to the new Food Intelligence Graph without a client
+    change. Values are per_100g (nutri_* basis) -- unit is reported as
+    '100g' so the client scales it the same way it already scales any
+    other per-100g food. A missing nutrient (value_status not 'measured'/
+    'calculated', or no row at all) is simply omitted, never guessed."""
+    nutrients = nutrition_engine.get_food_nutrients(food_id)
+    out = {
+        "key": food_id,
+        "name": canonical_name,
+        "unit": "100g",
+        "kcal_per_unit": 0,
+        "protein_g_per_unit": 0,
+        "carbs_g_per_unit": 0,
+        "fat_g_per_unit": 0,
+        "_source": "nutri_foods",
+    }
+    for n in nutrients:
+        field = _NUTRI_NUTRIENT_MAP.get(n["nutrient_code"])
+        if field and n["amount"] is not None:
+            out[field] = n["amount"]
+    food = nutrition_engine.get_food(food_id)
+    if food:
+        for flag in ("vegetarian", "vegan", "eggetarian", "jain"):
+            if food.get(flag) is not None:
+                out[flag] = food[flag]
     return out
 
 
@@ -885,23 +996,53 @@ def _search_score(query: str, food: dict) -> int:
 
 @app.get("/foods/search")
 def foods_search(q: str, request: Request, limit: int = 20):
-    """Free, in-memory search over the food DB so users can swap a
-    mis-identified ingredient for the right one. This is a plain local lookup
-    -- NOT a Gemini call -- so, like barcode, it requires a signed-in account
-    but never reserves or consumes a free-scan credit."""
+    """Search the real Food Intelligence Graph (nutri_foods/nutri_food_aliases)
+    so a swapped ingredient is backed by the same provenance-tracked data as
+    the new /api/nutrition/* surface, instead of the old, thinner `foods`
+    table. This is a plain local lookup -- NOT a Gemini call -- so, like
+    barcode, it requires a signed-in account but never reserves or consumes
+    a free-scan credit."""
     auth.require_account(request)
     query = _norm(q)
     if not query:
         return {"results": []}
+    limit = max(1, min(50, limit))
+    like = f"%{query}%"
+    with db.connect() as c:
+        rows = c.execute(
+            """
+            SELECT DISTINCT f.food_id, f.canonical_name
+            FROM nutri_foods f
+            LEFT JOIN nutri_food_aliases a ON a.food_id = f.food_id
+            WHERE LOWER(f.canonical_name) LIKE ? OR LOWER(a.alias) LIKE ?
+            """,
+            (like, like),
+        ).fetchall()
     scored = []
+    for r in rows:
+        food = {"key": r["food_id"], "aliases": []}
+        with db.connect() as c:
+            alias_rows = c.execute(
+                "SELECT alias FROM nutri_food_aliases WHERE food_id=?", (r["food_id"],)
+            ).fetchall()
+        food["aliases"] = [a["alias"] for a in alias_rows] + [r["canonical_name"]]
+        s = _search_score(query, food)
+        if s > 0:
+            scored.append((s, -len(r["canonical_name"]), r["food_id"], r["canonical_name"]))
+    scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+    results = [_nutri_food_suggestion(fid, name) for _, _, fid, name in scored[:limit]]
+    if results:
+        return {"results": results}
+    # Fall back to the old FOOD_DB only if the new graph has zero matches
+    # (e.g. a dish only ever existed in the old curated set) -- never silently
+    # hides a real nutri_foods result behind an old one.
+    scored_old = []
     for food in FOOD_DB:
         s = _search_score(query, food)
         if s > 0:
-            # Tie-break shorter (more specific) names ahead of long ones.
-            scored.append((s, -len(food["key"]), food))
-    scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    limit = max(1, min(50, limit))
-    return {"results": [_food_suggestion(f) for _, _, f in scored[:limit]]}
+            scored_old.append((s, -len(food["key"]), food))
+    scored_old.sort(key=lambda x: (x[0], x[1]), reverse=True)
+    return {"results": [_food_suggestion(f) for _, _, f in scored_old[:limit]]}
 
 
 @app.get("/foods/combos")
@@ -981,13 +1122,20 @@ def _food_text(food: dict) -> str:
 
 
 def _food_diet_ok(food: dict, diet: str) -> bool:
-    """Whether a DB food is allowed for the user's diet. Uses the same word
-    lists that drive jain/sattvic classification, so it's consistent with the
-    rest of the app. Non-veg sees everything; eggetarian sees veg + egg; vegan
-    sees vegetarian foods with dairy/animal-derived items also excluded;
-    veg/jain/sattvic see vegetarian foods (dairy allowed)."""
+    """Whether a DB food is allowed for the user's diet. For NUTRI_FOOD_DB
+    entries, uses the real ingredient-aware vegetarian/vegan/eggetarian
+    columns backfilled by dietary_rules.py (more accurate than name-word
+    matching -- see checkpoint notes on the "Hot Tea" fix). Falls back to
+    the word-list heuristic only for old-FOOD_DB entries with no real flags."""
     if diet == "nonveg":
         return True
+    if food.get("vegetarian") is not None:
+        if diet == "eggetarian":
+            return bool(food.get("eggetarian"))
+        if diet == "vegan":
+            return bool(food.get("vegan"))
+        # veg, jain, sattvic -> vegetarian only (dairy allowed)
+        return bool(food.get("vegetarian"))
     text = _food_text(food)
     if diet == "eggetarian":
         return not _word_in(_MEAT_FISH_WORDS, text)
@@ -1072,11 +1220,15 @@ def _recommend_score(food: dict, rem: dict, goal: dict) -> float:
 def _rank_foods(rem: dict, goal: dict, diet: str, limit: int) -> list:
     """Return the top real DB foods for the remaining budget + diet. A serving
     must fit the calorie headroom (with a little slack) so we never suggest a
-    600 kcal thali when only 200 kcal remain."""
+    600 kcal thali when only 200 kcal remain. Ranks over the real Food
+    Intelligence Graph (NUTRI_FOOD_DB) now that it carries real macros and
+    ingredient-aware diet flags; falls back to the old FOOD_DB only if the
+    nutri table failed to load."""
     remKcal = rem["kcal"]
     ceiling = max(remKcal * 1.2, 150)  # allow small foods even when nearly full
+    source = NUTRI_FOOD_DB or FOOD_DB
     scored = []
-    for food in FOOD_DB:
+    for food in source:
         if not _food_diet_ok(food, diet):
             continue
         kcal = food.get("kcal_per_unit", 0) or 0
@@ -1113,7 +1265,7 @@ def _phrase_key(diet, goal, slot, rem, top_key) -> tuple:
 def _deterministic_phrase(top: list, rem: dict) -> str:
     if not top:
         return "A balanced plate — dal, a roti and some sabzi."
-    name = top[0]["key"].replace("_", " ").title()
+    name = top[0].get("name") or top[0]["key"].replace("_", " ").title()
     p = int(round(rem["protein_g"]))
     if rem["protein_g"] >= 15:
         return f"Try {name} — it helps close your ~{p}g protein gap for the day."
@@ -1133,7 +1285,7 @@ def _ai_phrase(diet: str, goal: dict, slot: str, rem: dict, top: list) -> str:
         if hit and (now - hit[0]) < _PHRASE_TTL:
             return hit[1]
 
-    names = [t["key"].replace("_", " ") for t in top[:5]]
+    names = [t.get("name") or t["key"].replace("_", " ") for t in top[:5]]
     prompt = (
         "You are a concise Indian nutrition assistant. Recommend ONE next thing to "
         "eat, choosing ONLY from this list of real foods (do not invent others):\n"
@@ -1154,7 +1306,7 @@ def _ai_phrase(diet: str, goal: dict, slot: str, rem: dict, top: list) -> str:
             raise ValueError("empty suggestion")
         # Keep it grounded: the model must be talking about a food we offered.
         low = text.lower()
-        if not any(n.split()[0] in low for n in names):
+        if not any(n.lower().split()[0] in low for n in names if n.split()):
             raise ValueError("suggestion drifted off the offered foods")
     except Exception as ex:
         log.info("recommend: AI phrasing failed (%s) -- using deterministic text", ex)
@@ -1547,6 +1699,7 @@ def health():
         "model": MODEL,
         "db": db.backend_name(),
         "db_foods": len(FOOD_DB),
+        "db_foods_nutri": len(NUTRI_FOOD_DB),
         "auth": bool(APP_API_KEY),
         "payments": payments.configured(),
         "blob_storage": blob_storage.configured(),
