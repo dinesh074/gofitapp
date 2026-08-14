@@ -1,0 +1,1 @@
+{"ok":true,"env":"development","model":"gemini-3.5-flash-lite","db":"postgres","db_foods":1040,"auth":true,"payments":true,"blob_storage":false,"rate_per_min":20,"rate_per_day":200}

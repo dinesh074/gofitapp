@@ -16,17 +16,40 @@ prompt’s **P0–P5 dependency order** but expresses it as a flat checklist.
 **Goal:** design and land the minimum trustworthy graph and service boundaries.
 
 ### Next actions
-- [ ] Freeze the current `FOOD_DB` API contract (`kcal_per_unit`, macro fields,
-      optional micros/metadata) as the compatibility target.
-- [ ] Design the additive canonical schema with explicit mappings from current
-      `foods`, `meal_logs`, `profiles`, `training_logs`, and `user_prefs`.
-- [ ] Define `data_sources` and per-nutrient provenance fields before any import.
+- [x] Freeze the current `FOOD_DB` API contract (`kcal_per_unit`, macro fields,
+      optional micros/metadata) as the compatibility target. See
+      `docs/data-model.md` and `backend/_contract_baseline/` (real captured
+      `/foods/search`, `/foods/combos`, `/foods/recommend`, `/health` responses
+      for idli/mutton/paneer/veg/nonveg -- use these as the regression
+      baseline before any future refactor of this code).
+- [x] Design the additive canonical schema with explicit mappings from current
+      `foods`, `meal_logs`, `profiles`, `training_logs`, and `user_prefs` --
+      see `supabase/migrations/20260815_proposed_food_intelligence_graph.sql`.
+      **PROPOSAL ONLY, NOT APPLIED** to any database. Purely additive (no
+      existing table touched). Needs review before use.
+- [x] Define `data_sources` and per-nutrient provenance fields before any
+      import -- included in the proposal migration above (`data_sources`,
+      `food_nutrients.source_id`/`value_status`/`confidence`).
 - [ ] Extract architecture-level service boundaries:
       `FoodCatalogService`, `NutritionService`, `DietaryRuleService`,
       `PortionService`, `ScanResolutionService`.
-- [ ] Write migration plans for schema additions only after approval.
+      **Deferred deliberately** -- `main.py`'s FOOD_DB loading/matching logic
+      (`_load_db`, `match_food`, `_food_suggestion`, etc.) is entangled with
+      several other inline helpers (`_init_foods_table`, `_seed_foods_if_empty`,
+      `_backfill_diet_tags`, `_row_to_food`) that would need to move together
+      to avoid a half-refactored state. Given `main.py`'s food logic was JUST
+      stabilized after the nutri_* revert, this extraction should happen as
+      its own careful, fully-tested pass rather than being rushed alongside
+      other P0 items -- do this next, in isolation, with before/after response
+      diffs against `backend/_contract_baseline/`.
+- [ ] Write migration plans for schema additions only after approval --
+      the proposal above is written; still needs explicit user sign-off
+      before it's ever run against a real database.
 - [ ] Define a validation harness comparing graph-backed outputs to current
-      curated `FOOD_DB` outputs for a small review set.
+      curated `FOOD_DB` outputs for a small review set. Not yet started --
+      there's no graph data to compare against yet; do this once the service
+      extraction above lands, so the harness can call through the same
+      `FoodCatalogService` interface on both sides.
 
 **Complexity:** medium  
 **Risk:** high, because bad foundation decisions recreate the trust failure.
