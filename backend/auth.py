@@ -11,6 +11,8 @@ device therefore restores the same leaderboard/feed identity.
 
 Endpoints (mounted under /auth):
   POST /auth/google              {id_token}                 -> {token, account}
+  POST /auth/otp/request         {email}                    -> {ok, sent}
+  POST /auth/otp/verify          {email, code}              -> {token, account}
   GET  /auth/me                 (Bearer)                   -> {account}
   POST /auth/logout              (Bearer)                   -> {ok}
   POST /auth/upgrade             (Bearer)                   -> {account}   (Pro stub)
@@ -39,6 +41,7 @@ from pydantic import BaseModel, Field
 
 import db
 import audit
+import email_service
 
 # Serializes writes on SQLite; a no-op on Postgres (which is concurrency-safe).
 # Shared across modules via db so SQLite writers never collide.
@@ -148,6 +151,21 @@ def _migrate(c: sqlite3.Connection) -> None:
             push_comments INTEGER NOT NULL DEFAULT 1,
             push_community INTEGER NOT NULL DEFAULT 1,
             updated_at REAL NOT NULL DEFAULT 0
+        )
+        """
+    )
+
+    # One-time email sign-in codes (an alternative to Google Sign-In). A row is
+    # created per /auth/otp/request call; consumed (attempts incremented, or
+    # deleted on success) by /auth/otp/verify. Short-lived by design.
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS otp_codes (
+            email TEXT PRIMARY KEY,
+            code_hash TEXT NOT NULL,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            created_at REAL NOT NULL DEFAULT 0,
+            expires_at REAL NOT NULL DEFAULT 0
         )
         """
     )
@@ -626,7 +644,116 @@ def google_login(body: GoogleBody, request: Request):
         detail=email or None,
         request=request,
     )
+    if is_new and email:
+        _push_pool.submit(email_service.send_welcome_email, email, name)
     return {"token": token, "account": _account_public(row)}
+
+
+# --- Email one-time-code sign-in --------------------------------------------
+# An alternative to Google Sign-In for anyone who'd rather not use Google (or
+# is testing on a device where Google Sign-In isn't set up). Same outcome as
+# /auth/google: mints/returns a bearer token for an account keyed by email.
+
+_OTP_TTL_SECONDS = 10 * 60
+_OTP_MAX_ATTEMPTS = 5
+_OTP_RESEND_COOLDOWN = 45  # seconds before the same email can request another code
+
+
+class OtpRequestBody(BaseModel):
+    email: str = Field(..., min_length=3, max_length=120)
+
+
+class OtpVerifyBody(BaseModel):
+    email: str = Field(..., min_length=3, max_length=120)
+    code: str = Field(..., min_length=4, max_length=8)
+    platform: str = Field("", max_length=20)
+    app_version: str = Field("", max_length=20)
+
+
+def _norm_email(e: str) -> str:
+    return e.strip().lower()
+
+
+@router.post("/otp/request")
+def otp_request(body: OtpRequestBody, request: Request):
+    email = _norm_email(body.email)
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Enter a valid email address")
+    now = time.time()
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    code_hash = hashlib.sha256(code.encode()).hexdigest()
+    with _lock, _conn() as c:
+        existing = c.execute(
+            "SELECT created_at FROM otp_codes WHERE email=?", (email,)
+        ).fetchone()
+        if existing and now - existing["created_at"] < _OTP_RESEND_COOLDOWN:
+            wait = int(_OTP_RESEND_COOLDOWN - (now - existing["created_at"]))
+            raise HTTPException(status_code=429, detail=f"Please wait {wait}s before requesting another code")
+        c.execute(
+            """
+            INSERT INTO otp_codes (email, code_hash, attempts, created_at, expires_at)
+            VALUES (?,?,0,?,?)
+            ON CONFLICT(email) DO UPDATE SET
+                code_hash=excluded.code_hash, attempts=0,
+                created_at=excluded.created_at, expires_at=excluded.expires_at
+            """,
+            (email, code_hash, now, now + _OTP_TTL_SECONDS),
+        )
+    sent = email_service.send_otp_email(email, code)
+    audit.record("otp_request", status="success" if sent else "email_not_configured", detail=email, request=request)
+    # In dev (no email provider configured yet) surface the code directly so
+    # the flow is still testable end-to-end without Resend set up.
+    resp = {"ok": True, "sent": sent}
+    if not sent and ALLOW_DEV_LOGIN:
+        resp["devCode"] = code
+    return resp
+
+
+@router.post("/otp/verify")
+def otp_verify(body: OtpVerifyBody, request: Request):
+    email = _norm_email(body.email)
+    code = body.code.strip()
+    now = time.time()
+    with _lock, _conn() as c:
+        row = c.execute("SELECT * FROM otp_codes WHERE email=?", (email,)).fetchone()
+        if not row or row["expires_at"] < now:
+            raise HTTPException(status_code=400, detail="Code expired. Request a new one.")
+        if row["attempts"] >= _OTP_MAX_ATTEMPTS:
+            raise HTTPException(status_code=429, detail="Too many attempts. Request a new code.")
+        if hashlib.sha256(code.encode()).hexdigest() != row["code_hash"]:
+            c.execute("UPDATE otp_codes SET attempts=attempts+1 WHERE email=?", (email,))
+            raise HTTPException(status_code=400, detail="Incorrect code")
+        c.execute("DELETE FROM otp_codes WHERE email=?", (email,))
+
+        acct_row = c.execute("SELECT * FROM accounts WHERE email=?", (email,)).fetchone()
+        is_new = False
+        if not acct_row:
+            is_new = True
+            username = _unique_username_c(c, email.split("@")[0])
+            cur = c.execute(
+                """
+                INSERT INTO accounts
+                    (username, name, avatar, pw_hash, pw_salt, google_sub, email, created_at)
+                VALUES (?,?,?,?,?,?,?,?)
+                """,
+                (username, email.split("@")[0], "🫵", "", "", f"otp-{email}", email, now),
+            )
+            account_id = cur.lastrowid
+        else:
+            account_id = acct_row["id"]
+        acct_row = c.execute("SELECT * FROM accounts WHERE id=?", (account_id,)).fetchone()
+
+    token = _issue_token(account_id, platform=body.platform, app_version=body.app_version)
+    audit.record(
+        "account_created" if is_new else "account_signin",
+        status="success",
+        account_id=account_id,
+        detail=f"otp:{email}",
+        request=request,
+    )
+    if is_new:
+        _push_pool.submit(email_service.send_welcome_email, email, acct_row["name"])
+    return {"token": token, "account": _account_public(acct_row)}
 
 
 DEV_SUB = "dev-tester"

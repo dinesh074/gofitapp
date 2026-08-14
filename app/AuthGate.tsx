@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,7 +16,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import Svg, { Path } from "react-native-svg";
-import { googleLogin, devLogin } from "./api";
+import { googleLogin, devLogin, requestOtp, verifyOtp } from "./api";
 import { AuthState } from "./auth";
 import { colors, radius, gradients, elevation } from "./theme";
 import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS } from "./config";
@@ -56,6 +57,58 @@ export default function AuthGate({ onAuthed }: Props) {
   const [error, setError] = useState<string | null>(null);
   const webBtnRef = useRef<View>(null);
   const isWeb = Platform.OS === "web";
+
+  // Email one-time-code sign-in -- shown as a fallback under the Google
+  // button for anyone who'd rather not use Google (or is on a device where
+  // it isn't set up). "closed" -> "email" (enter address) -> "code" (enter
+  // the 6-digit code just emailed).
+  const [otpStage, setOtpStage] = useState<"closed" | "email" | "code">("closed");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpNotice, setOtpNotice] = useState<string | null>(null);
+
+  async function sendOtp() {
+    const email = otpEmail.trim().toLowerCase();
+    if (!email.includes("@")) {
+      setOtpError("Enter a valid email address");
+      return;
+    }
+    setOtpBusy(true);
+    setOtpError(null);
+    try {
+      const res = await requestOtp(email);
+      setOtpStage("code");
+      setOtpNotice(
+        res.devCode
+          ? `Dev mode: code is ${res.devCode} (email isn't configured yet)`
+          : "We emailed you a 6-digit code."
+      );
+    } catch (e: any) {
+      setOtpError(e?.message || "Couldn't send the code. Please try again.");
+    } finally {
+      setOtpBusy(false);
+    }
+  }
+
+  async function confirmOtp() {
+    const code = otpCode.trim();
+    if (code.length < 4) {
+      setOtpError("Enter the code from your email");
+      return;
+    }
+    setOtpBusy(true);
+    setOtpError(null);
+    try {
+      const res = await verifyOtp(otpEmail.trim().toLowerCase(), code);
+      onAuthed({ token: res.token, account: res.account });
+    } catch (e: any) {
+      setOtpError(e?.message || "Incorrect or expired code. Please try again.");
+    } finally {
+      setOtpBusy(false);
+    }
+  }
 
   // Native only: Google's own Sign-In SDK (Play Services / Credential Manager on
   // Android) -- NOT a browser redirect. This replaced an expo-auth-session-based
@@ -223,6 +276,70 @@ export default function AuthGate({ onAuthed }: Props) {
 
         {error && <Text style={styles.error}>{error}</Text>}
 
+        {otpStage === "closed" ? (
+          <Pressable style={styles.otpToggle} onPress={() => setOtpStage("email")} hitSlop={8}>
+            <Text style={styles.otpToggleText}>Or sign in with an email code</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.otpBox}>
+            {otpStage === "email" ? (
+              <>
+                <TextInput
+                  style={styles.otpInput}
+                  placeholder="you@example.com"
+                  placeholderTextColor={colors.faint}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  value={otpEmail}
+                  onChangeText={setOtpEmail}
+                  editable={!otpBusy}
+                />
+                <Pressable
+                  style={[styles.otpBtn, otpBusy && styles.googleBtnBusy]}
+                  onPress={sendOtp}
+                  disabled={otpBusy}
+                >
+                  {otpBusy ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.otpBtnText}>Send code</Text>
+                  )}
+                </Pressable>
+              </>
+            ) : (
+              <>
+                {otpNotice && <Text style={styles.otpNotice}>{otpNotice}</Text>}
+                <TextInput
+                  style={styles.otpInput}
+                  placeholder="6-digit code"
+                  placeholderTextColor={colors.faint}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={otpCode}
+                  onChangeText={setOtpCode}
+                  editable={!otpBusy}
+                />
+                <Pressable
+                  style={[styles.otpBtn, otpBusy && styles.googleBtnBusy]}
+                  onPress={confirmOtp}
+                  disabled={otpBusy}
+                >
+                  {otpBusy ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.otpBtnText}>Verify & sign in</Text>
+                  )}
+                </Pressable>
+                <Pressable onPress={() => setOtpStage("email")} hitSlop={8}>
+                  <Text style={styles.otpToggleText}>Use a different email / resend</Text>
+                </Pressable>
+              </>
+            )}
+            {otpError && <Text style={styles.error}>{otpError}</Text>}
+          </View>
+        )}
+
         {isWeb && __DEV__ && (
           <Text style={styles.originHint}>
             Dev only — If Google says “origin not allowed”, add this to your Web OAuth
@@ -314,4 +431,26 @@ const styles = StyleSheet.create({
   originMono: { color: colors.mute, fontWeight: "800" },
   legal: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 18, lineHeight: 16 },
   legalLink: { color: colors.mute, fontWeight: "800", textDecorationLine: "underline" },
+  otpToggle: { alignItems: "center", marginTop: 16, paddingVertical: 4 },
+  otpToggleText: { color: colors.green, fontSize: 13, fontWeight: "800", marginTop: 10 },
+  otpBox: { marginTop: 16, gap: 10 },
+  otpInput: {
+    borderWidth: 1.5,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 15,
+    color: colors.ink,
+    backgroundColor: colors.card,
+  },
+  otpBtn: {
+    backgroundColor: colors.green,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  otpBtnText: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  otpNotice: { color: colors.mute, fontSize: 12, textAlign: "center", lineHeight: 17 },
 });

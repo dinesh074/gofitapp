@@ -15,6 +15,8 @@ environment variables (preferred in production — don't ship the `.env` file):
 | `PG_SCHEMA`        | no       | Table schema, defaults to `gofit`.                           |
 | `GEMINI_API_KEY`   | yes      | Server-side only; never shipped in the app.                  |
 | `GOOGLE_CLIENT_ID` | yes      | Public web OAuth client ID (used to verify Google ID tokens).|
+| `RESEND_API_KEY`   | rec.     | Powers welcome emails + email-code (OTP) sign-in. Without it, sends are silently skipped (OTP codes never reach real users in prod). |
+| `RESEND_FROM`      | no       | Sender header, defaults to `gofit.today <info@build.in>`. Requires the domain verified in Resend. |
 | `APP_ENV`          | prod     | Set to `production` to enable startup security/config warnings. |
 | `ALLOWED_ORIGINS`  | prod     | Comma-separated CORS allow-list, e.g. `https://app.gofit.today`. |
 | `APP_API_KEY`      | rec.     | If set, `/analyze` requires a matching `X-API-Key` header.   |

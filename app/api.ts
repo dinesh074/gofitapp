@@ -654,6 +654,21 @@ export async function googleLogin(idToken: string): Promise<{ token: string; acc
   return postAuth("/auth/google", { id_token: idToken });
 }
 
+// Email one-time-code sign-in -- an alternative to Google for anyone who'd
+// rather not use it. requestOtp() emails a 6-digit code (via the backend's
+// Resend integration); verifyOtp() exchanges the code for the same
+// {token, account} shape googleLogin()/devLogin() return.
+export async function requestOtp(email: string): Promise<{ ok: boolean; sent: boolean; devCode?: string }> {
+  return postAuth("/auth/otp/request", { email });
+}
+
+export async function verifyOtp(
+  email: string,
+  code: string
+): Promise<{ token: string; account: Account }> {
+  return postAuth("/auth/otp/verify", { email, code });
+}
+
 // TEST MODE sign-in: gets a token for the shared Tester account (backend
 // /auth/dev, enabled via ALLOW_DEV_LOGIN). No Google needed.
 export async function devLogin(): Promise<{ token: string; account: Account }> {
