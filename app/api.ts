@@ -19,6 +19,12 @@ export type FoodItem = {
   protein_g_per_unit: number;
   carbs_g_per_unit: number;
   fat_g_per_unit: number;
+  fiber_g_per_unit?: number;
+  sugar_g_per_unit?: number;
+  sodium_mg_per_unit?: number;
+  potassium_mg_per_unit?: number;
+  calcium_mg_per_unit?: number;
+  iron_mg_per_unit?: number;
   protein_g: number;
   carbs_g: number;
   fat_g: number;

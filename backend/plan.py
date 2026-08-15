@@ -794,28 +794,29 @@ def plan_today(body: PlanBody, request: Request):
 
     if body.ai_mode:
         if _ai_full_plan is None:
-            raise HTTPException(status_code=503, detail="AI planner unavailable")
-        try:
-            ai_plan = _ai_full_plan(
-                targets=targets,
-                diet=diet,
-                goal=goal,
-                date_key=date_key,
-                training_context=((body.training or "").strip().lower()),
-                consumed=consumed or {},
-                hour=body.hour,
-                profile=body.profile or {},
-            )
-            if isinstance(ai_plan, dict) and ai_plan.get("slots"):
-                ai_plan["signature"] = sig
-                ai_plan["date"] = date_key
-                _mark_ai_plan("ok", account_id=acct["id"], date=date_key)
-                return _respond(ai_plan, False)
-            raise RuntimeError("AI plan response was empty or invalid")
-        except Exception as ex:
-            log.info("plan: AI full planner failed (%s)", ex)
-            _mark_ai_plan("fail", account_id=acct["id"], date=date_key)
-            raise HTTPException(status_code=503, detail="AI planner unavailable")
+            log.info("plan: AI full planner not configured; using deterministic planner fallback")
+            _mark_ai_plan("fail", account_id=acct["id"], date=date_key, reason="not_configured")
+        else:
+            try:
+                ai_plan = _ai_full_plan(
+                    targets=targets,
+                    diet=diet,
+                    goal=goal,
+                    date_key=date_key,
+                    training_context=((body.training or "").strip().lower()),
+                    consumed=consumed or {},
+                    hour=body.hour,
+                    profile=body.profile or {},
+                )
+                if isinstance(ai_plan, dict) and ai_plan.get("slots"):
+                    ai_plan["signature"] = sig
+                    ai_plan["date"] = date_key
+                    _mark_ai_plan("ok", account_id=acct["id"], date=date_key)
+                    return _respond(ai_plan, False)
+                raise RuntimeError("AI plan response was empty or invalid")
+            except Exception as ex:
+                log.info("plan: AI full planner failed (%s) -- using deterministic planner fallback", ex)
+                _mark_ai_plan("fail", account_id=acct["id"], date=date_key, reason="runtime_error")
 
     best_plan = None
     best_score = 1e18

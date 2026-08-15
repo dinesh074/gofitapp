@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, DayPlan } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, DayPlan, fetchTodayPlan } from "./api";
 import ShareSheet from "./ShareSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
@@ -34,6 +34,7 @@ import {
   HabitMap,
   WATER_GLASS_ML,
   prettyDate,
+  monthStreak,
   SavedMeal,
   loadRecents,
   recordRecentMeal,
@@ -107,6 +108,8 @@ const HOME_ADD_OPTIONS: Array<{ key: AddOptionKey; label: string; icon: IconName
   { key: "water", label: "Water", icon: "water" },
   { key: "weight", label: "Weight", icon: "scale" },
 ];
+const HOME_ADD_QUICK: AddOptionKey[] = ["camera", "gallery", "voice", "weight"];
+const HOME_ADD_ALL: AddOptionKey[] = ["camera", "gallery", "voice", "barcode", "template", "manual", "exercise", "water", "weight"];
 
 function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
@@ -247,6 +250,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }[];
   } | null>(null);
   const [nextMoveChoice, setNextMoveChoice] = useState(0);
+  const [addHubExpanded, setAddHubExpanded] = useState(false);
   const [planNextMealName, setPlanNextMealName] = useState("");
   const [nextMealExpanded, setNextMealExpanded] = useState(true);
   const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
@@ -386,6 +390,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const remP = Math.max(0, goal.protein_g - dm.protein_g);
   const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
   const remF = Math.max(0, goal.fat_g - dm.fat_g);
+  const streakWindow = useMemo(() => monthStreak(logs, goal.kcal, new Date(), 30), [logs, goal.kcal]);
   const plannerProfile = {
     age: profile.age,
     gender: profile.gender || undefined,
@@ -475,6 +480,39 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     training,
     today,
   ]);
+
+  useEffect(() => {
+    if (!previewDateKey || !account) {
+      setPreviewPlan(null);
+      setPreviewPlanLoading(false);
+      return;
+    }
+    let alive = true;
+    setPreviewPlanLoading(true);
+    const day = dayMacros(logs, previewDateKey);
+    fetchTodayPlan({
+      targets: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
+      diet: profile.diet,
+      goal: profile.goal,
+      date: previewDateKey,
+      consumed: { kcal: dayTotal(logs, previewDateKey), protein_g: day.protein_g, carbs_g: day.carbs_g, fat_g: day.fat_g },
+      hour: new Date().getHours(),
+      aiMode: AI_PLANNER_FULL_MODE,
+      profile: plannerProfile,
+    })
+      .then((p) => {
+        if (alive) setPreviewPlan(p);
+      })
+      .catch(() => {
+        if (alive) setPreviewPlan(null);
+      })
+      .finally(() => {
+        if (alive) setPreviewPlanLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [previewDateKey, account?.id, logs, goal.kcal, goal.protein_g, goal.carbs_g, goal.fat_g, profile.diet, profile.goal, plannerProfile]);
 
   // Water + habit (steps) load from local cache instantly, then reconcile with
   // the server. Pure data entry -- no AI, no scan credit touched here.
@@ -713,7 +751,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       return;
     }
     if (option === "template") {
-      navigation.navigate("ManualSearch", { mode: "template" });
+      navigation.navigate("TemplateMeals");
       return;
     }
     // Non-meal trackers -- each routes to a real, already-implemented flow.
@@ -931,11 +969,19 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         protein_g_per_unit: it.protein_g_per_unit,
         carbs_g_per_unit: it.carbs_g_per_unit,
         fat_g_per_unit: it.fat_g_per_unit,
+        fiber_g_per_unit: it.fiber_g_per_unit,
+        sugar_g_per_unit: it.sugar_g_per_unit,
+        sodium_mg_per_unit: it.sodium_mg_per_unit,
+        potassium_mg_per_unit: it.potassium_mg_per_unit,
+        calcium_mg_per_unit: it.calcium_mg_per_unit,
+        iron_mg_per_unit: it.iron_mg_per_unit,
         kcal_total: it.kcal_total,
         protein_g: it.protein_g,
         carbs_g: it.carbs_g,
         fat_g: it.fat_g,
         micros: it.micros,
+        micros_source: it.micros_source,
+        micros_per_unit: it.micros_per_unit,
       })),
     };
     logMeal(meal);
@@ -1271,55 +1317,77 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         );
       case "addHub":
+        const chipKeys = addHubExpanded ? HOME_ADD_ALL : HOME_ADD_QUICK;
+        const addMeta = Object.fromEntries(HOME_ADD_OPTIONS.map((o) => [o.key, o]));
         return (
           <View style={styles.addHubCard}>
             <View style={styles.addHubHead}>
               <Icon name="plus" size={15} color={colors.green} />
               <Text style={styles.addHubTitle}>Add / Track</Text>
             </View>
-            <Text style={styles.addHubSub}>All scan and logging options in one place.</Text>
+            <Text style={styles.addHubSub}>
+              {addHubExpanded ? "All add and tracking options." : "Quick actions: scan, gallery, voice, weight."}
+            </Text>
             <View style={styles.addHubChipWrap}>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("camera")}>
-                <Icon name="camera" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Scan meal</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("voice")}>
-                <Icon name="mic" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Voice log</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("gallery")}>
-                <Icon name="gallery" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Gallery</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("barcode")}>
-                <Icon name="barcode" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Barcode</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("manual")}>
-                <Icon name="edit" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Manual search</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("template")}>
-                <Icon name="nutrition" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Add from template</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("exercise")}>
-                <Icon name="dumbbell" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Workout</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("water")}>
-                <Icon name="water" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Water</Text>
-              </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("weight")}>
-                <Icon name="scale" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Weight</Text>
-              </Pressable>
+              {chipKeys.map((k) => {
+                const m = addMeta[k];
+                if (!m) return null;
+                return (
+                  <Pressable key={k} style={styles.addHubChip} onPress={() => handleAddOption(k)}>
+                    <Icon name={m.icon} size={14} color={colors.green} />
+                    <Text style={styles.addHubChipText}>{m.label}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
+            <Pressable style={styles.addHubSwitchBtn} onPress={() => setAddHubExpanded((v) => !v)}>
+              <Icon name="swap" size={13} color={colors.green} />
+              <Text style={styles.addHubSwitchText}>{addHubExpanded ? "Switch to quick" : "Switch to all options"}</Text>
+            </Pressable>
             <Pressable style={styles.addHubOpenBtn} onPress={() => navigation.navigate("ScanHub")}>
               <Icon name="chevronRight" size={14} color={colors.green} />
               <Text style={styles.addHubOpenText}>Open full Add / Track page</Text>
             </Pressable>
+          </View>
+        );
+      case "calendar":
+        return (
+          <View style={styles.calendarCard}>
+            <View style={styles.calendarHead}>
+              <Icon name="time" size={15} color={colors.green} />
+              <Text style={styles.calendarTitle}>Consistency calendar</Text>
+            </View>
+            <Text style={styles.calendarSub}>
+              {streakWindow.hits} on target · {streakWindow.logged} logged · tap a day to view
+            </Text>
+            <View style={styles.calendarWeekRow}>
+              {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                <Text key={`${d}-${i}`} style={styles.calendarWeekText}>{d}</Text>
+              ))}
+            </View>
+            <View style={styles.calendarGrid}>
+              {Array.from({ length: streakWindow.leading }).map((_, i) => (
+                <View key={`lead-${i}`} style={styles.calendarCellBlank} />
+              ))}
+              {streakWindow.cells.map((c) => (
+                <Pressable
+                  key={c.date}
+                  style={[
+                    styles.calendarCell,
+                    c.state === "hit"
+                      ? styles.calendarCellHit
+                      : c.state === "over"
+                        ? styles.calendarCellOver
+                        : c.state === "under"
+                          ? styles.calendarCellUnder
+                          : styles.calendarCellEmpty,
+                  ]}
+                  onPress={() => setPreviewDateKey(c.date)}
+                >
+                  <Text style={styles.calendarCellDay}>{c.day}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         );
       case "streak":
@@ -1927,6 +1995,39 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addHubOpenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  addHubSwitchBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    backgroundColor: colors.greenTint,
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+  },
+  addHubSwitchText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  calendarCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8, ...elevation.sm },
+  calendarHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  calendarTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  calendarSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  calendarWeekRow: { flexDirection: "row", marginTop: 2 },
+  calendarWeekText: { flex: 1, textAlign: "center", color: colors.faint, fontSize: 11, fontWeight: "700" },
+  calendarGrid: { flexDirection: "row", flexWrap: "wrap", marginTop: 2 },
+  calendarCellBlank: { width: "14.2857%", height: 34 },
+  calendarCell: {
+    width: "14.2857%",
+    height: 34,
+    borderRadius: 10,
+    marginBottom: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  calendarCellDay: { color: colors.ink, fontSize: 12, fontWeight: "700" },
+  calendarCellHit: { backgroundColor: colors.greenTint, borderColor: colors.green },
+  calendarCellOver: { backgroundColor: colors.cardMuted, borderColor: colors.orange },
+  calendarCellUnder: { backgroundColor: colors.redTint, borderColor: colors.red },
+  calendarCellEmpty: { backgroundColor: colors.bg, borderColor: colors.line },
   streakSummaryCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8, ...elevation.sm },
   streakSummaryHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   streakSummaryTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },

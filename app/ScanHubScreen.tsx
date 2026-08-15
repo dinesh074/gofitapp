@@ -58,13 +58,24 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("ManualSearch", { mode: "template" })}>
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("TemplateMeals")}>
           <View style={styles.actionIcon}>
             <Icon name="nutrition" size={18} color={colors.green} />
           </View>
           <View style={styles.actionBody}>
             <Text style={styles.actionTitle}>Add from template</Text>
             <Text style={styles.actionSub}>Load a saved dish template and log it quickly.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("ManualSearch")}>
+          <View style={styles.actionIcon}>
+            <Icon name="edit" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Manual search</Text>
+            <Text style={styles.actionSub}>Search foods directly and build a planned dish.</Text>
           </View>
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>

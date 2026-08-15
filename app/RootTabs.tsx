@@ -109,7 +109,7 @@ function ProgressTab() {
         setLogs={setLogs}
         onWeightLogged={onWeightLogged}
         onRequireAuth={requireAuth}
-        accountId={account.id}
+        accountId={account?.id ?? null}
         streak={streak}
         bestStreak={bestStreak}
       />
@@ -193,6 +193,12 @@ export function RootNavigator() {
       <Stack.Screen
         name="ManualSearch"
         component={FoodSelectorScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="TemplateMeals"
+        component={FoodSelectorScreen}
+        initialParams={{ mode: "template" }}
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
       <Stack.Screen

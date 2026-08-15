@@ -422,38 +422,40 @@ export default function FoodSelectorScreen() {
         </View>
       )}
 
-      <View style={styles.templateCard}>
-        <View style={styles.templateHead}>
-          <Icon name="nutrition" size={14} color={colors.green} />
-          <Text style={styles.templateHeadText}>Add from template</Text>
-        </View>
-        <TextInput
-          style={styles.templateInput}
-          value={templateQ}
-          onChangeText={setTemplateQ}
-          placeholder="Search saved templates"
-          placeholderTextColor={colors.faint}
-          autoFocus={openTemplateMode}
-        />
-        {templateLoading ? (
-          <View style={styles.templateLoadingRow}>
-            <ActivityIndicator size="small" color={colors.green} />
-            <Text style={styles.templateHint}>Loading templates…</Text>
+      {openTemplateMode && (
+        <View style={styles.templateCard}>
+          <View style={styles.templateHead}>
+            <Icon name="nutrition" size={14} color={colors.green} />
+            <Text style={styles.templateHeadText}>Add from template</Text>
           </View>
-        ) : templateQ.trim().length >= 2 && templateResults.length === 0 ? (
-          <Text style={styles.templateHint}>No template matches yet.</Text>
-        ) : null}
-        {templateResults.map((row) => (
-          <Pressable key={row.id} style={styles.templateRow} onPress={() => void applyTemplate(row)}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.templateRowTitle}>{row.name}</Text>
-              <Text style={styles.templateRowSub}>{row.recipe_code}</Text>
+          <TextInput
+            style={styles.templateInput}
+            value={templateQ}
+            onChangeText={setTemplateQ}
+            placeholder="Search saved templates"
+            placeholderTextColor={colors.faint}
+            autoFocus={openTemplateMode}
+          />
+          {templateLoading ? (
+            <View style={styles.templateLoadingRow}>
+              <ActivityIndicator size="small" color={colors.green} />
+              <Text style={styles.templateHint}>Loading templates…</Text>
             </View>
-            <Icon name="chevronRight" size={14} color={colors.mute} />
-          </Pressable>
-        ))}
-        {!!templateError && <Text style={styles.templateErr}>{templateError}</Text>}
-      </View>
+          ) : templateQ.trim().length >= 2 && templateResults.length === 0 ? (
+            <Text style={styles.templateHint}>No template matches yet.</Text>
+          ) : null}
+          {templateResults.map((row) => (
+            <Pressable key={row.id} style={styles.templateRow} onPress={() => void applyTemplate(row)}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.templateRowTitle}>{row.name}</Text>
+                <Text style={styles.templateRowSub}>{row.recipe_code}</Text>
+              </View>
+              <Icon name="chevronRight" size={14} color={colors.mute} />
+            </Pressable>
+          ))}
+          {!!templateError && <Text style={styles.templateErr}>{templateError}</Text>}
+        </View>
+      )}
 
       <View style={styles.planCard}>
         <View style={styles.planHead}>

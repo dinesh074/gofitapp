@@ -135,6 +135,10 @@ def init_db() -> None:
         # client show an honest "Estimated" note instead of presenting a
         # guess as verified lab data.
         _ensure_column(c, "meal_logs", "micros_estimated", "INTEGER")
+        # Optional full itemized payload from scan/manual logging. Keeps the
+        # per-item unit metrics (kcal/macros per unit, micros source/panel, etc.)
+        # alongside the high-level meal totals for exact replay/audit.
+        _ensure_column(c, "meal_logs", "food_items_json", "TEXT")
         c.execute("CREATE INDEX IF NOT EXISTS idx_meal_logs_account_date ON meal_logs(account_id, date)")
         c.execute(
             """
@@ -631,6 +635,14 @@ def get_logs(request: Request):
                 micros = json.loads(micros_raw)
             except (TypeError, ValueError):
                 micros = None
+        food_items_raw = r["food_items_json"] if "food_items_json" in r.keys() else None
+        food_items = None
+        if food_items_raw:
+            try:
+                loaded = json.loads(food_items_raw)
+                food_items = loaded if isinstance(loaded, list) else None
+            except (TypeError, ValueError):
+                food_items = None
         logs[d]["meals"].append(
             {
                 "id": r["id"],
@@ -644,6 +656,7 @@ def get_logs(request: Request):
                 "photoUrl": photo_url,
                 "micros": micros,
                 "microsEstimated": bool(r["micros_estimated"]) if "micros_estimated" in r.keys() and r["micros_estimated"] is not None else False,
+                "foodItems": food_items,
             }
         )
     return {"logs": logs}
@@ -655,13 +668,14 @@ def add_log(body: MealBody, request: Request):
     at = time.time()
     meal_type = body.meal_type if body.meal_type in _MEAL_TYPES else _infer_meal_type(at)
     micros_json = json.dumps(body.micros) if body.micros else None
+    food_items_json = json.dumps(body.food_items) if body.food_items else None
     with db.write_lock(), db.connect() as c:
         cur = c.execute(
-            "INSERT INTO meal_logs (account_id, date, dish, kcal, protein_g, carbs_g, fat_g, at, meal_type, photo_path, micros, micros_estimated) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO meal_logs (account_id, date, dish, kcal, protein_g, carbs_g, fat_g, at, meal_type, photo_path, micros, micros_estimated, food_items_json) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 acct["id"], body.date, body.dish, body.kcal, body.protein_g, body.carbs_g, body.fat_g, at,
-                meal_type, body.photo_path, micros_json, int(bool(body.micros_estimated)),
+                meal_type, body.photo_path, micros_json, int(bool(body.micros_estimated)), food_items_json,
             ),
         )
         new_id = cur.lastrowid

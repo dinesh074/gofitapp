@@ -41,7 +41,6 @@ export const DEFAULT_ORDER: HomeModuleKey[] = [
   "summary",
   "exercise",
   "wellness",
-  "streak",
   "micros",
 ];
 

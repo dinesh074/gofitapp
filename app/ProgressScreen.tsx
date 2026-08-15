@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,20 +11,24 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import { useNavigation } from "@react-navigation/native";
 import Screen from "./Screen";
 import WeightSheet from "./WeightSheet";
 import Icon, { IconName } from "./Icon";
 import { GoalTargets, Profile } from "./nutrition";
 import {
   AuthRequiredError,
+  DayPlan,
   DaySummary,
   ExerciseSummary,
+  fetchTodayPlan,
   getExerciseSummary,
   getLogDays,
   getServerWeights,
   getSummary,
 } from "./api";
-import { LogMap, WeightEntry, bestStreak as computeBestStreak } from "./storage";
+import { LogMap, WeightEntry, bestStreak as computeBestStreak, dayMacros, dayTotal, monthStreak, prettyDate } from "./storage";
+import { AI_PLANNER_FULL_MODE } from "./config";
 import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
 
 type Props = {
@@ -66,9 +71,11 @@ export default function ProgressScreen({
   logs,
   onWeightLogged,
   onRequireAuth,
+  accountId,
   streak,
   bestStreak,
 }: Props) {
+  const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
   const [range, setRange] = useState<RangeKey>(30);
   const [weights, setWeights] = useState<WeightEntry[]>([]);
@@ -79,12 +86,28 @@ export default function ProgressScreen({
   const [loadingRangeData, setLoadingRangeData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWeightSheet, setShowWeightSheet] = useState(false);
+  const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
+  const [previewPlan, setPreviewPlan] = useState<DayPlan | null>(null);
+  const [previewPlanLoading, setPreviewPlanLoading] = useState(false);
 
   const chartWidth = Math.max(260, Math.round(width - sp(16)));
   const weightChartWidth = Math.max(240, chartWidth - sp(6));
   const macroChartWidth = Math.max(240, chartWidth - sp(6));
   const today = useMemo(() => startOfDay(new Date()), []);
   const best = bestStreak ?? computeBestStreak(logs);
+  const plannerProfile = {
+    age: profile.age,
+    gender: profile.gender || undefined,
+    height_cm: profile.heightCm,
+    weight_kg: profile.weightKg,
+    target_weight_kg: profile.targetWeightKg,
+    activity: profile.activity,
+    goal_pace: profile.goalPace,
+    goal_kind: profile.goalKind,
+    diet: profile.diet,
+    goal: profile.goal,
+  };
+  const streakWindow = useMemo(() => monthStreak(logs, goal.kcal, new Date(), 30), [logs, goal.kcal]);
 
   const refreshWeights = useCallback(async () => {
     setLoadingWeights(true);
@@ -219,25 +242,45 @@ export default function ProgressScreen({
   const weightTrend = useMemo(() => buildWeightTrend(filteredWeights, weightChartWidth), [filteredWeights, weightChartWidth]);
   const projection = useMemo(() => buildProjection(weights, profile), [profile, weights]);
 
-  const heatmapCells = useMemo(() => buildHeatmapCells(selectedStart, today, loggedDaySet), [loggedDaySet, selectedStart, today]);
-
   const rangeLabel =
     range === "all"
       ? `All available history${displayWindowDays >= ALL_TIME_CHART_DAYS ? ` (last ${ALL_TIME_CHART_DAYS} days for macro charts)` : ""}`
       : `Last ${range} days`;
 
   const loggedCount = selectedDates.filter((date) => loggedDaySet.has(date)).length;
-  const calendarStats = useMemo(() => {
-    let onTarget = 0;
-    let over = 0;
-    for (const date of selectedDates) {
-      const day = summaryByDate.get(date);
-      if (!day || day.mealsCount <= 0) continue;
-      if (adherenceState(day, goal) === "full") onTarget += 1;
-      if (goal.kcal > 0 && day.kcal > goal.kcal * CALORIE_HIT_MAX) over += 1;
+
+  useEffect(() => {
+    if (!previewDateKey || !accountId) {
+      setPreviewPlan(null);
+      setPreviewPlanLoading(false);
+      return;
     }
-    return { logged: loggedCount, onTarget, over };
-  }, [goal, loggedCount, selectedDates, summaryByDate]);
+    let alive = true;
+    setPreviewPlanLoading(true);
+    const day = dayMacros(logs, previewDateKey);
+    fetchTodayPlan({
+      targets: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
+      diet: profile.diet,
+      goal: profile.goal,
+      date: previewDateKey,
+      consumed: { kcal: dayTotal(logs, previewDateKey), protein_g: day.protein_g, carbs_g: day.carbs_g, fat_g: day.fat_g },
+      hour: new Date().getHours(),
+      aiMode: AI_PLANNER_FULL_MODE,
+      profile: plannerProfile,
+    })
+      .then((p) => {
+        if (alive) setPreviewPlan(p);
+      })
+      .catch(() => {
+        if (alive) setPreviewPlan(null);
+      })
+      .finally(() => {
+        if (alive) setPreviewPlanLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [previewDateKey, accountId, logs, goal.kcal, goal.protein_g, goal.carbs_g, goal.fat_g, profile.diet, profile.goal, plannerProfile]);
 
   return (
     <Screen edgeTop background={colors.bg}>
@@ -464,55 +507,60 @@ export default function ProgressScreen({
           </SectionCard>
 
           <SectionCard
-            icon="check"
-            title="Logging Consistency Calendar"
-            subtitle={range === "all" ? "Last 365 days of durable logged-day history" : `${rangeLabel} logging heatmap`}
+            icon="time"
+            title="Calendar consistency"
+            subtitle="Last 30 days with tap-to-open day plan"
           >
             {loadingRangeData ? (
               <LoadingBlock />
             ) : (
               <>
-                <View style={styles.heatmapHeader}>
-                  <Text style={styles.heatmapSummary}>
-                    {loggedCount} of {displayWindowDays} days logged
-                  </Text>
-                  <View style={styles.legendRow}>
-                    <LegendItem color={colors.track} text="Missed" compact />
-                    <LegendItem color={colors.green} text="Logged" compact />
+                <Text style={styles.progressCalendarSub}>
+                  {streakWindow.hits} on target · {streakWindow.logged} logged · tap a day to view
+                </Text>
+                <View style={styles.progressCalendarWeekRow}>
+                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                    <Text key={`${d}-${i}`} style={styles.progressCalendarWeekText}>
+                      {d}
+                    </Text>
+                  ))}
+                </View>
+                <View style={styles.progressCalendarGrid}>
+                  {Array.from({ length: streakWindow.leading }).map((_, i) => (
+                    <View key={`lead-${i}`} style={styles.progressCalendarCellBlank} />
+                  ))}
+                  {streakWindow.cells.map((c) => (
+                    <Pressable
+                      key={c.date}
+                      style={[
+                        styles.progressCalendarCell,
+                        c.state === "hit"
+                          ? styles.progressCalendarCellHit
+                          : c.state === "over"
+                            ? styles.progressCalendarCellOver
+                            : c.state === "under"
+                              ? styles.progressCalendarCellUnder
+                              : styles.progressCalendarCellEmpty,
+                      ]}
+                      onPress={() => setPreviewDateKey(c.date)}
+                    >
+                      <Text style={styles.progressCalendarCellDay}>{c.day}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View style={styles.legendRow}>
+                  <LegendItem color={colors.green} text="On target" compact />
+                  <LegendItem color={colors.orange} text="Over" compact />
+                  <LegendItem color={colors.red} text="Under" compact />
+                  <LegendItem color={colors.track} text="No log" compact />
+                </View>
+                {!!previewDateKey && (
+                  <View style={styles.progressCalendarHintRow}>
+                    <Icon name="time" size={12} color={colors.mute} />
+                    <Text style={styles.progressCalendarHint}>Selected: {prettyDate(previewDateKey)}</Text>
                   </View>
                 </View>
-                <View style={styles.calendarStatsRow}>
-                  <MetricTile label="Days logged" value={`${calendarStats.logged}`} accent={colors.green} />
-                  <MetricTile label="Days on target" value={`${calendarStats.onTarget}`} accent={colors.protein} />
-                  <MetricTile label="Days over" value={`${calendarStats.over}`} accent={colors.orange} />
-                </View>
-
-                <View style={styles.heatmapFrame}>
-                  <View style={styles.heatmapWeekdayCol}>
-                    <Text style={styles.heatmapWeekday}>S</Text>
-                    <Text style={styles.heatmapWeekday}>T</Text>
-                    <Text style={styles.heatmapWeekday}>T</Text>
-                    <Text style={styles.heatmapWeekday}>S</Text>
-                  </View>
-                  <View style={styles.heatmapGrid}>
-                    {heatmapCells.map((column) => (
-                      <View key={column.key} style={styles.heatmapColumn}>
-                        {column.days.map((cell) => (
-                          <View
-                            key={cell.date}
-                            style={[
-                              styles.heatmapCell,
-                              cell.inRange ? styles.heatmapCellActive : styles.heatmapCellMuted,
-                              cell.logged && cell.inRange ? styles.heatmapCellLogged : null,
-                              cell.isToday && cell.inRange ? styles.heatmapCellToday : null,
-                            ]}
-                          />
-                        ))}
-                      </View>
-                    ))}
-                  </View>
-                </View>
-                <Text style={styles.footnote}>Built from the real /log-days history, so logged days survive the 30-day meal-detail retention window.</Text>
+                <Text style={styles.footnote}>Tap any day to load its plan preview with your current targets and logged meals.</Text>
               </>
             )}
           </SectionCard>
@@ -537,6 +585,71 @@ export default function ProgressScreen({
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
+
+        {previewDateKey && (
+          <Modal
+            visible={!!previewDateKey}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setPreviewDateKey(null)}
+          >
+            <View style={styles.previewOverlay}>
+              <Pressable style={styles.previewBackdrop} onPress={() => setPreviewDateKey(null)} />
+              <View style={styles.previewSheet}>
+                <View style={styles.previewHeadRow}>
+                  <View>
+                    <Text style={styles.previewHead}>Day plan preview</Text>
+                    <Text style={styles.previewSub}>{prettyDate(previewDateKey)}</Text>
+                  </View>
+                  <Pressable onPress={() => setPreviewDateKey(null)} style={styles.previewCloseBtn}>
+                    <Icon name="close" size={15} color={colors.mute} />
+                  </Pressable>
+                </View>
+                {previewPlanLoading ? (
+                  <View style={styles.previewLoadingRow}>
+                    <ActivityIndicator size="small" color={colors.green} />
+                    <Text style={styles.previewLoadingText}>Loading plan…</Text>
+                  </View>
+                ) : previewPlan ? (
+                  <>
+                    {!!previewPlan.next_meal && (
+                      <View style={styles.previewNextPill}>
+                        <Icon name="time" size={12} color={colors.green} />
+                        <Text style={styles.previewNextText}>Next meal: {previewPlan.next_meal}</Text>
+                      </View>
+                    )}
+                    <View style={styles.previewSlotsWrap}>
+                      {previewPlan.slots.map((slot) => (
+                        <View key={slot.slot} style={styles.previewSlotRow}>
+                          <Text style={styles.previewSlotName}>{slot.label}</Text>
+                          <Text style={styles.previewSlotMeal} numberOfLines={1}>
+                            {slot.items[0]?.name ?? "No items"}
+                          </Text>
+                          <Text style={styles.previewSlotKcal}>{slot.kcal} kcal</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <Pressable
+                      style={styles.previewOpenBtn}
+                      onPress={() => {
+                        const dateKey = previewDateKey;
+                        setPreviewDateKey(null);
+                        if (dateKey) navigation.navigate("DayLog", { dateKey });
+                      }}
+                    >
+                      <Icon name="time" size={15} color="#fff" />
+                      <Text style={styles.previewOpenBtnText}>Open day details</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Text style={styles.previewEmpty}>
+                    Couldn&apos;t load a plan for this date right now.
+                  </Text>
+                )}
+              </View>
+            </View>
+          </Modal>
+        )}
 
         <WeightSheet
           visible={showWeightSheet}
@@ -808,28 +921,6 @@ function linearRegression(weights: WeightEntry[]) {
   return { slopeKgPerDay, intercept, nowDay: (Date.now() - firstAt) / DAY_MS };
 }
 
-function buildHeatmapCells(start: Date, end: Date, loggedDaySet: Set<string>) {
-  const alignedStart = addDays(start, -start.getDay());
-  const columns: { key: string; days: { date: string; logged: boolean; inRange: boolean; isToday: boolean }[] }[] = [];
-  let cursor = alignedStart;
-  while (cursor <= end) {
-    const days = [];
-    for (let index = 0; index < 7; index += 1) {
-      const cellDate = addDays(cursor, index);
-      const key = formatDateKey(cellDate);
-      days.push({
-        date: key,
-        logged: loggedDaySet.has(key),
-        inRange: cellDate >= start && cellDate <= end,
-        isToday: key === formatDateKey(end),
-      });
-    }
-    columns.push({ key: formatDateKey(cursor), days });
-    cursor = addDays(cursor, 7);
-  }
-  return columns;
-}
-
 function movingAverage(weights: WeightEntry[], index: number, window: number) {
   const from = Math.max(0, index - window + 1);
   const slice = weights.slice(from, index + 1);
@@ -1026,19 +1117,89 @@ const styles = StyleSheet.create({
   legendText: { ...T.tiny, color: colors.mute },
   projectionHeadline: { ...T.h2, color: colors.ink, lineHeight: 28 },
   projectionSub: { ...T.body, color: colors.mute, lineHeight: 22 },
-  heatmapHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: sp(3), flexWrap: "wrap" },
-  heatmapSummary: { ...T.bodyStrong, color: colors.ink },
-  calendarStatsRow: { flexDirection: "row", gap: sp(2) },
-  heatmapFrame: { flexDirection: "row", gap: sp(2), alignItems: "flex-start" },
-  heatmapWeekdayCol: { gap: sp(1), paddingTop: sp(0.5) },
-  heatmapWeekday: { ...T.tiny, color: colors.faint, height: sp(3.5) },
-  heatmapGrid: { flexDirection: "row", gap: sp(1), flexShrink: 1 },
-  heatmapColumn: { gap: sp(1) },
-  heatmapCell: { width: sp(3.5), height: sp(3.5), borderRadius: radius.xs, borderWidth: 1 },
-  heatmapCellActive: { backgroundColor: colors.track, borderColor: colors.line },
-  heatmapCellMuted: { backgroundColor: colors.bg, borderColor: colors.bg },
-  heatmapCellLogged: { backgroundColor: colors.green, borderColor: colors.green },
-  heatmapCellToday: { borderColor: colors.inkSoft, borderWidth: 1.5 },
+  progressCalendarSub: { ...T.caption, color: colors.mute },
+  progressCalendarWeekRow: { flexDirection: "row", marginTop: sp(0.5) },
+  progressCalendarWeekText: { flex: 1, textAlign: "center", ...T.tiny, color: colors.faint },
+  progressCalendarGrid: { flexDirection: "row", flexWrap: "wrap", marginTop: sp(0.5) },
+  progressCalendarCellBlank: { width: "14.2857%", height: 34 },
+  progressCalendarCell: {
+    width: "14.2857%",
+    height: 34,
+    borderRadius: radius.sm,
+    marginBottom: sp(1.5),
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  progressCalendarCellDay: { ...T.caption, color: colors.ink },
+  progressCalendarCellHit: { backgroundColor: colors.greenTint, borderColor: colors.green },
+  progressCalendarCellOver: { backgroundColor: colors.cardMuted, borderColor: colors.orange },
+  progressCalendarCellUnder: { backgroundColor: colors.redTint, borderColor: colors.red },
+  progressCalendarCellEmpty: { backgroundColor: colors.bg, borderColor: colors.line },
+  progressCalendarHintRow: { flexDirection: "row", alignItems: "center", gap: sp(1.5) },
+  progressCalendarHint: { ...T.tiny, color: colors.mute },
+  previewOverlay: { flex: 1, justifyContent: "flex-end" },
+  previewBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
+  previewSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: sp(4),
+    paddingBottom: sp(5),
+    gap: sp(2.5),
+    maxHeight: "70%",
+    ...elevation.md,
+  },
+  previewHeadRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: sp(2) },
+  previewHead: { ...T.title, color: colors.ink },
+  previewSub: { ...T.caption, color: colors.mute, marginTop: sp(0.5) },
+  previewCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.pill,
+    backgroundColor: colors.cardMuted,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  previewLoadingRow: { flexDirection: "row", alignItems: "center", gap: sp(2), paddingVertical: sp(2) },
+  previewLoadingText: { ...T.caption, color: colors.mute },
+  previewNextPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: sp(1.5),
+    alignSelf: "flex-start",
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.pill,
+    paddingVertical: sp(1.25),
+    paddingHorizontal: sp(2.5),
+  },
+  previewNextText: { ...T.caption, color: colors.green },
+  previewSlotsWrap: { gap: sp(2) },
+  previewSlotRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: sp(2),
+    backgroundColor: colors.cardMuted,
+    borderRadius: radius.md,
+    paddingVertical: sp(2),
+    paddingHorizontal: sp(2.5),
+  },
+  previewSlotName: { ...T.caption, color: colors.green, minWidth: 76, fontWeight: "800" },
+  previewSlotMeal: { flex: 1, ...T.caption, color: colors.ink },
+  previewSlotKcal: { ...T.tiny, color: colors.mute },
+  previewOpenBtn: {
+    marginTop: sp(1),
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: sp(1.5),
+    backgroundColor: colors.green,
+    borderRadius: radius.pill,
+    paddingVertical: sp(2.25),
+    paddingHorizontal: sp(3.5),
+  },
+  previewOpenBtnText: { ...T.bodyStrong, color: colors.white },
+  previewEmpty: { ...T.caption, color: colors.mute, lineHeight: 18 },
   exerciseGrid: { flexDirection: "row", gap: sp(2) },
   metricTile: { flex: 1, backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: sp(3) },
   metricDot: { width: sp(2), height: sp(2), borderRadius: radius.pill, marginBottom: sp(2) },

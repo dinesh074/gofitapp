@@ -18,6 +18,11 @@ def _norm(value: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", (value or "").lower())).strip()
 
 
+def _ensure_column(c, table: str, column: str, decl: str) -> None:
+    if column not in db.table_columns(c, table):
+        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def init_db() -> None:
     with db.write_lock(), db.connect() as c:
         c.execute(
@@ -120,6 +125,15 @@ def init_db() -> None:
             )
             """
         )
+        # Unit-level scan metrics persistence: keep the exact per-unit values
+        # shown in the scan UI, not only scaled totals.
+        _ensure_column(c, "gofit_food_log_items", "kcal_per_unit", "REAL")
+        _ensure_column(c, "gofit_food_log_items", "protein_g_per_unit", "REAL")
+        _ensure_column(c, "gofit_food_log_items", "carbs_g_per_unit", "REAL")
+        _ensure_column(c, "gofit_food_log_items", "fat_g_per_unit", "REAL")
+        _ensure_column(c, "gofit_food_log_items", "micros_per_unit_json", "TEXT")
+        _ensure_column(c, "gofit_food_log_items", "micros_source", "TEXT")
+        _ensure_column(c, "gofit_food_log_items", "raw_item_json", "TEXT")
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS gofit_ai_scan_results (
@@ -431,13 +445,17 @@ def record_food_log(
                 count = float(it.get("count") or 1)
                 unit = str(it.get("unit") or "serving")
                 micros = it.get("micros")
+                micros_per_unit = it.get("micros_per_unit")
                 micros_json = json.dumps(micros) if isinstance(micros, dict) else None
+                micros_per_unit_json = json.dumps(micros_per_unit) if isinstance(micros_per_unit, dict) else None
+                raw_item_json = json.dumps(it) if isinstance(it, dict) else None
                 match = resolve_food_by_name(name)
                 c.execute(
                     """
                     INSERT INTO gofit_food_log_items
-                    (food_log_id, food_id, item_name, count, unit, kcal, protein_g, carbs_g, fat_g, micros_json, source, created_at)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                    (food_log_id, food_id, item_name, count, unit, kcal, protein_g, carbs_g, fat_g, micros_json, source, created_at,
+                     kcal_per_unit, protein_g_per_unit, carbs_g_per_unit, fat_g_per_unit, micros_per_unit_json, micros_source, raw_item_json)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
                         food_log_id,
@@ -452,6 +470,13 @@ def record_food_log(
                         micros_json,
                         str(it.get("source") or ("db" if match else "legacy")),
                         now,
+                        float(it.get("kcal_per_unit") or 0),
+                        float(it.get("protein_g_per_unit") or 0),
+                        float(it.get("carbs_g_per_unit") or 0),
+                        float(it.get("fat_g_per_unit") or 0),
+                        micros_per_unit_json,
+                        str(it.get("micros_source") or "") or None,
+                        raw_item_json,
                     ),
                 )
         return food_log_id
