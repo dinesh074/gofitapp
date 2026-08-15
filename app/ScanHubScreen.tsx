@@ -8,10 +8,6 @@ import { colors, elevation } from "./theme";
 export default function ScanHubScreen() {
   const navigation = useNavigation<any>();
 
-  function openHomeOption(option: "barcode" | "describe" | "voice" | "water" | "weight") {
-    navigation.navigate("Home", { openAddOption: option });
-  }
-
   return (
     <Screen edgeTop>
       <ScrollView style={styles.root} contentContainerStyle={styles.body}>
@@ -40,7 +36,7 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable style={styles.actionCard} onPress={() => openHomeOption("barcode")}>
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("BarcodeLookup")}>
           <View style={styles.actionIcon}>
             <Icon name="barcode" size={18} color={colors.green} />
           </View>
@@ -62,7 +58,7 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable style={styles.actionCard} onPress={() => openHomeOption("voice")}>
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("DescribeMeal")}>
           <View style={styles.actionIcon}>
             <Icon name="mic" size={18} color={colors.green} />
           </View>
@@ -84,7 +80,7 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable style={styles.actionCard} onPress={() => openHomeOption("water")}>
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("WaterLog")}>
           <View style={styles.actionIcon}>
             <Icon name="water" size={18} color={colors.green} />
           </View>
@@ -95,7 +91,7 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable style={styles.actionCard} onPress={() => openHomeOption("weight")}>
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("WeightLog")}>
           <View style={styles.actionIcon}>
             <Icon name="scale" size={18} color={colors.green} />
           </View>

@@ -11,14 +11,10 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, DayPlan } from "./api";
-import DescribeMeal from "./DescribeMeal";
-import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
-import AddFoodSheet from "./AddFoodSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
-import WeightSheet from "./WeightSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
 import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
 import { APP_NAME, APP_SUBTAGLINE, APP_TAGLINE } from "./config";
@@ -41,7 +37,6 @@ import {
   SavedMeal,
   loadRecents,
   recordRecentMeal,
-  toggleFavoriteMeal,
 } from "./storage";
 import { colors, radius, shadow, type as T, gradients, elevation } from "./theme";
 import { LinearGradient } from "expo-linear-gradient";
@@ -65,7 +60,6 @@ import {
 } from "./training";
 import { dayMicros, sumMealMicros } from "./micros";
 import NutritionDetails from "./NutritionDetails";
-import Paywall from "./Paywall";
 import PressableScale from "./PressableScale";
 import TodayPlanCard from "./TodayPlanCard";
 import { Account } from "./auth";
@@ -193,22 +187,16 @@ function MacroProgress({ label, have, goalV, color }: { label: string; have: num
   );
 }
 
-export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger, onWeightLogged }: Props) {
+export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger }: Props) {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [showDescribe, setShowDescribe] = useState(false);
-  const [showBarcode, setShowBarcode] = useState(false);
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
   const [exerciseKcal, setExerciseKcal] = useState(0);
-  const [showWeight, setShowWeight] = useState(false);
   const [layoutOrder, setLayoutOrder] = useState<HomeModuleKey[]>(DEFAULT_ORDER);
   const [hiddenSet, setHiddenSet] = useState<Set<HomeModuleKey>>(new Set());
   const [showCustomize, setShowCustomize] = useState(false);
@@ -277,15 +265,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     if (scanTrigger === undefined) return;
     if (scanTrigger === lastScanTrigger.current) return;
     lastScanTrigger.current = scanTrigger;
-    setShowAddSheet(true);
+    navigation.navigate("ScanHub");
   }, [scanTrigger]);
-
-  useEffect(() => {
-    const option = route.params?.openAddOption as AddOptionKey | undefined;
-    if (!option) return;
-    handleAddOption(option);
-    navigation.setParams({ openAddOption: undefined });
-  }, [route.params?.openAddOption]);
 
   // Quick re-log list (recent + favorite meals) loads from local storage.
   useEffect(() => {
@@ -664,7 +645,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       return;
     }
     if (!isPro && (account.scansLeft ?? 0) <= 0) {
-      setShowPaywall(true);
+      navigation.navigate("Payment");
       return;
     }
     // On web there is no OS media/camera permission to request up front -- the
@@ -691,11 +672,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     runAnalyze(uri);
   }
 
-  // Single dispatcher for every option in AddFoodSheet -- one gate (auth +
-  // paywall) shared across all four entry points instead of each button
-  // repeating its own copy of the same two checks.
+  // Single dispatcher for every Add / Track option so auth/paywall/navigation
+  // checks stay consistent across Home and the dedicated Scan hub.
   function handleAddOption(option: AddOptionKey) {
-    setShowAddSheet(false);
     if (!account) {
       onRequireAuth();
       return;
@@ -709,7 +688,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       return;
     }
     if (option === "barcode") {
-      setShowBarcode(true);
+      navigation.navigate("BarcodeLookup");
       return;
     }
     // Non-meal trackers -- each routes to a real, already-implemented flow.
@@ -718,19 +697,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       return;
     }
     if (option === "water") {
-      void changeWater(WATER_GLASS_ML);
+      navigation.navigate("WaterLog");
       return;
     }
     if (option === "weight") {
-      setShowWeight(true);
+      navigation.navigate("WeightLog");
       return;
     }
-    // describe / voice -- both open the same manual-entry sheet (it has a mic).
-    if (!isPro && (scansLeft ?? 0) <= 0) {
-      setShowPaywall(true);
-      return;
-    }
-    setShowDescribe(true);
+    // describe / voice -- shared full-screen flow.
+    navigation.navigate("DescribeMeal");
   }
 
   // Shared between the photo path and the text-description path (and, once
@@ -772,7 +747,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       applyResult(data);
     } catch (e: any) {
       if (e instanceof PaywallError) {
-        setShowPaywall(true);
+        navigation.navigate("Payment");
       } else if (e instanceof AuthRequiredError) {
         onRequireAuth();
       } else {
@@ -979,27 +954,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       delete next[index];
       return next;
     });
-  }
-
-  // One-tap re-add of a recent/favorite meal (no re-scan).
-  function quickLog(saved: SavedMeal) {
-    setShowAddSheet(false);
-    if (!account) {
-      onRequireAuth();
-      return;
-    }
-    logMeal({
-      dish: saved.dish,
-      kcal: saved.kcal,
-      protein_g: saved.protein_g,
-      carbs_g: saved.carbs_g,
-      fat_g: saved.fat_g,
-      at: Date.now(),
-    });
-  }
-
-  function toggleFav(dish: string) {
-    void toggleFavoriteMeal(dish).then(setRecents);
   }
 
   const shareDateLabel = useMemo(() => prettyDate(today), [today]);
@@ -1250,7 +1204,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                   </View>
                 )}
                 <View style={styles.nextActions}>
-                  <PressableScale style={[styles.btn, styles.btnPrimary, styles.nextActionBtn]} onPress={() => setShowAddSheet(true)}>
+                  <PressableScale style={[styles.btn, styles.btnPrimary, styles.nextActionBtn]} onPress={() => navigation.navigate("ScanHub")}>
                     <Icon name="plus" size={15} color="#fff" />
                     <Text style={styles.btnPrimaryText}>Log this now</Text>
                   </PressableScale>
@@ -1508,7 +1462,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         })}
 
         {account && !isPro && (
-          <Pressable style={styles.trialChip} onPress={() => (scansLeft && scansLeft > 0 ? null : setShowPaywall(true))}>
+          <Pressable style={styles.trialChip} onPress={() => (scansLeft && scansLeft > 0 ? null : navigation.navigate("Payment"))}>
             <Icon name="flame" size={13} color={colors.orange} />
             <Text style={styles.trialText}>
               {typeof scansLeft === "number" && scansLeft > 0
@@ -1815,17 +1769,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           way to scroll to it (that's what made the Budget sheet unreachable —
           its content rendered ~720px below the fold). Unmounting when closed
           removes that phantom offset entirely. */}
-      {showAddSheet && (
-        <AddFoodSheet
-          visible={showAddSheet}
-          onClose={() => setShowAddSheet(false)}
-          onPick={handleAddOption}
-          recents={recents}
-          onQuickLog={quickLog}
-          onToggleFav={toggleFav}
-        />
-      )}
-
       {swapIndex !== null && (
         <FoodSearchSheet
           visible={swapIndex !== null}
@@ -1836,19 +1779,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
-      {showWeight && (
-        <WeightSheet
-          visible={showWeight}
-          initialKg={profile.weightKg}
-          onClose={() => setShowWeight(false)}
-          onLogged={(kg) => onWeightLogged?.(kg)}
-          onRequireAuth={() => {
-            setShowWeight(false);
-            onRequireAuth();
-          }}
-        />
-      )}
-
       {showCustomize && (
         <CustomizeHomeSheet
           visible={showCustomize}
@@ -1856,59 +1786,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           hidden={hiddenSet}
           onClose={() => setShowCustomize(false)}
           onSave={saveLayout}
-        />
-      )}
-
-      {showPaywall && (
-        <Paywall
-          visible={showPaywall}
-          onClose={() => setShowPaywall(false)}
-          onUpgraded={(a) => {
-            onAccountUpdate(a);
-            setShowPaywall(false);
-          }}
-          onRequireAuth={() => {
-            setShowPaywall(false);
-            onRequireAuth();
-          }}
-        />
-      )}
-
-      {showDescribe && (
-        <DescribeMeal
-          visible={showDescribe}
-          onClose={() => setShowDescribe(false)}
-          onResult={(data) => {
-            setPhoto(null);
-            applyResult(data);
-          }}
-          onRequireAuth={() => {
-            setShowDescribe(false);
-            onRequireAuth();
-          }}
-          onPaywall={() => {
-            setShowDescribe(false);
-            setShowPaywall(true);
-          }}
-        />
-      )}
-
-      {showBarcode && (
-        <BarcodeScanner
-          visible={showBarcode}
-          onClose={() => setShowBarcode(false)}
-          onResult={(data) => {
-            setPhoto(null);
-            applyResult(data);
-          }}
-          onRequireAuth={() => {
-            setShowBarcode(false);
-            onRequireAuth();
-          }}
-          onFallbackToPhoto={() => {
-            setShowBarcode(false);
-            void pick(true);
-          }}
         />
       )}
 

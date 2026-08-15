@@ -276,17 +276,19 @@ def analyze_barcode(body: BarcodeBody, request: Request):
     free-scan credit -- barcode lookups are free and uncounted."""
     auth.require_account(request)
     code = _digits(body.code)
-    if len(code) < 8:
+    if len(code) < 8 or len(code) > 14:
         raise HTTPException(status_code=400, detail="That doesn't look like a valid barcode.")
 
     product = _fetch_off(code)
     if product is None:
+        log.info("Barcode not found in OFF: %s", code)
         # 404 => client falls back to a photo/text scan for this item.
         raise HTTPException(
             status_code=404,
             detail="We couldn't find that barcode. Try a photo of the label instead.",
         )
 
+    log.info("Barcode lookup hit: %s", code)
     result = _build_result(product)
     if result["calories_kcal"] <= 0:
         # Found the product but it has no usable nutrition on file.

@@ -79,8 +79,8 @@ export default function BarcodeScanner({
 
   async function lookup(code: string) {
     const digits = code.replace(/\D/g, "");
-    if (digits.length < 6) {
-      setError("Enter a valid barcode number (usually 8–13 digits).");
+    if (digits.length < 8 || digits.length > 14) {
+      setError("Enter a valid barcode number (8–14 digits).");
       lockedRef.current = false;
       return;
     }

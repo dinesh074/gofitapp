@@ -30,6 +30,11 @@ import DayLogScreen from "./DayLogScreen";
 import MealDetailScreen from "./MealDetailScreen";
 import NextMoveScreen from "./NextMoveScreen";
 import ExerciseLogScreen from "./ExerciseLogScreen";
+import BarcodeLookupScreen from "./BarcodeLookupScreen";
+import DescribeMealScreen from "./DescribeMealScreen";
+import WaterLogScreen from "./WaterLogScreen";
+import WeightLogScreen from "./WeightLogScreen";
+import PaymentScreen from "./PaymentScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -213,6 +218,31 @@ export function RootNavigator() {
       <Stack.Screen
         name="ExerciseLog"
         component={ExerciseLogScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="BarcodeLookup"
+        component={BarcodeLookupScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="DescribeMeal"
+        component={DescribeMealScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="WaterLog"
+        component={WaterLogScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="WeightLog"
+        component={WeightLogScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="Payment"
+        component={PaymentScreen}
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
     </Stack.Navigator>

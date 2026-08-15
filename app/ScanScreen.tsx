@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -65,7 +65,7 @@ function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
 }
 
-type RouteParams = { mode?: "camera" | "gallery" };
+type RouteParams = { mode?: "camera" | "gallery" | "review"; presetResult?: AnalysisResult };
 
 // Dedicated, full-screen scan flow: capture -> real network analysis -> fully
 // editable itemized result -> add to today. Previously this lived as a card
@@ -75,7 +75,7 @@ type RouteParams = { mode?: "camera" | "gallery" };
 export default function ScanScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { mode } = (route.params as RouteParams) ?? {};
+  const { mode, presetResult } = (route.params as RouteParams) ?? {};
   const { account, requireAuth, logMeal } = useApp();
 
   const [photo, setPhoto] = useState<string | null>(null);
@@ -86,6 +86,7 @@ export default function ScanScreen() {
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
   const [portionIndex, setPortionIndex] = useState<number | null>(null);
   const [added, setAdded] = useState(false);
+  const captureBusy = useRef(false);
   // Auto-guessed from the clock the moment the photo lands, but shown as a
   // row of tappable chips (not silently applied) since "morning snack" vs
   // "lunch" right at the boundary is exactly the kind of guess a real user
@@ -96,9 +97,12 @@ export default function ScanScreen() {
 
   const capture = useCallback(
     async (fromCamera: boolean) => {
+      if (captureBusy.current || loading) return;
+      captureBusy.current = true;
       setError(null);
       if (!isPro && (account?.scansLeft ?? 0) <= 0) {
-        setError("You're out of free scans today. Upgrade to Pro for unlimited scans.");
+        navigation.navigate("Payment");
+        captureBusy.current = false;
         return;
       }
       if (Platform.OS !== "web") {
@@ -107,13 +111,25 @@ export default function ScanScreen() {
           : await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
           setError("Permission denied for " + (fromCamera ? "camera" : "photos"));
+          captureBusy.current = false;
           return;
         }
       }
+      const pickerOptions = {
+        quality: 0.4,
+        allowsEditing: false,
+        exif: false,
+        base64: false,
+      } as const;
       const res = fromCamera
-        ? await ImagePicker.launchCameraAsync({ quality: 0.6 })
-        : await ImagePicker.launchImageLibraryAsync({ quality: 0.6 });
-      if (res.canceled || !res.assets?.length) return;
+        ? Platform.OS === "web"
+          ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
+          : await ImagePicker.launchCameraAsync(pickerOptions)
+        : await ImagePicker.launchImageLibraryAsync(pickerOptions);
+      if (res.canceled || !res.assets?.length) {
+        captureBusy.current = false;
+        return;
+      }
       const uri = res.assets[0].uri;
       setPhoto(uri);
       setResult(null);
@@ -134,7 +150,7 @@ export default function ScanScreen() {
         }
       } catch (e: any) {
         if (e instanceof PaywallError) {
-          setError("You're out of free scans today. Upgrade to Pro for unlimited scans.");
+          navigation.navigate("Payment");
         } else if (e instanceof AuthRequiredError) {
           requireAuth();
         } else {
@@ -142,10 +158,25 @@ export default function ScanScreen() {
         }
       } finally {
         setLoading(false);
+        captureBusy.current = false;
       }
     },
-    [account?.scansLeft, isPro, requireAuth]
+    [account?.scansLeft, isPro, loading, requireAuth]
   );
+
+  useEffect(() => {
+    if (!presetResult) return;
+    setPhoto(null);
+    setResult(presetResult);
+    const names = presetResult.items.map((it) => it.item).filter(Boolean);
+    if (names.length) {
+      getCombos(names)
+        .then(setPairings)
+        .catch(() => setPairings([]));
+    } else {
+      setPairings([]);
+    }
+  }, [presetResult]);
 
   // Auto-launch the requested capture mode the moment this screen opens, so
   // tapping "Scan a meal" goes straight to the camera instead of landing on
@@ -156,6 +187,7 @@ export default function ScanScreen() {
       goBackOrTabs(navigation);
       return;
     }
+    if (presetResult || mode === "review") return;
     void capture(mode !== "gallery");
     // Only ever run this once per screen mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,14 +335,14 @@ export default function ScanScreen() {
         <Pressable style={styles.iconBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={8}>
           <Icon name="chevronLeft" size={22} color={colors.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Scan meal</Text>
+        <Text style={styles.headerTitle}>{mode === "review" ? "Review meal" : "Scan meal"}</Text>
         <Pressable
           style={styles.iconBtn}
           onPress={() => void capture(mode !== "gallery")}
           hitSlop={8}
-          disabled={loading}
+          disabled={loading || mode === "review"}
         >
-          <Icon name="camera" size={20} color={loading ? colors.faint : colors.ink} />
+          <Icon name="camera" size={20} color={loading || mode === "review" ? colors.faint : colors.ink} />
         </Pressable>
       </View>
 
@@ -328,9 +360,11 @@ export default function ScanScreen() {
         {error && (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{error}</Text>
-            <Pressable style={styles.retryBtn} onPress={() => void capture(mode !== "gallery")}>
+            {mode !== "review" && (
+              <Pressable style={styles.retryBtn} onPress={() => void capture(mode !== "gallery")}>
               <Text style={styles.retryText}>Try again</Text>
-            </Pressable>
+              </Pressable>
+            )}
           </View>
         )}
 
