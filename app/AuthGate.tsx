@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -28,6 +29,34 @@ import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
 type Props = {
   onAuthed: (state: AuthState) => void;
 };
+
+const LANDING_SECTIONS: { icon: IconName; title: string; desc: string }[] = [
+  {
+    icon: "camera",
+    title: "Snap any meal in seconds",
+    desc: "Use camera, gallery, or manual add to log Indian meals with calories and macros quickly.",
+  },
+  {
+    icon: "sparkles",
+    title: "Get next-meal guidance",
+    desc: "The app suggests what to eat next based on your target, what you already logged, and your daily plan.",
+  },
+  {
+    icon: "nutrition",
+    title: "Understand nutrition quality",
+    desc: "Track protein, carbs, fats, and nutrients so you can improve balance, not just total calories.",
+  },
+  {
+    icon: "dumbbell",
+    title: "Connect food and activity",
+    desc: "Exercise and food logs stay connected so your progress reflects your full day, not isolated entries.",
+  },
+  {
+    icon: "progress",
+    title: "See consistency trends",
+    desc: "View daily consistency and progress summaries so new users can understand long-term improvement clearly.",
+  },
+];
 
 // Google "G" mark drawn with SVG (official four-colour logo).
 function GoogleG() {
@@ -248,54 +277,74 @@ export default function AuthGate({ onAuthed }: Props) {
         </View>
       ) : !showSignIn ? (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Welcome to {APP_NAME}</Text>
-          <Text style={styles.cardSub}>Get a quick look before you sign in.</Text>
+          <ScrollView contentContainerStyle={styles.landingScroll} showsVerticalScrollIndicator={false}>
+            <Text style={styles.cardTitle}>Welcome to {APP_NAME}</Text>
+            <Text style={styles.cardSub}>A complete nutrition and progress system designed for Indian meals.</Text>
 
-          <View style={styles.previewList}>
-            <View style={styles.previewRow}>
-              <View style={styles.previewIcon}>
-                <Icon name="camera" size={16} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.previewTitle}>Scan or log meals in seconds</Text>
-                <Text style={styles.previewSub}>Photo, gallery, or manual logging with instant calories + macros.</Text>
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>Core idea</Text>
+              <Text style={styles.sectionTitle}>Track food the way you really eat, then get actionable guidance.</Text>
+              <Text style={styles.sectionDesc}>
+                Instead of only showing calories, {APP_NAME} explains what to eat next, what to improve, and how
+                your daily choices connect to progress.
+              </Text>
+            </View>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>How it works</Text>
+              <View style={styles.stepsWrap}>
+                {["Log your meal", "Understand nutrition", "Follow next move", "Stay consistent"].map((step, idx) => (
+                  <View key={step} style={styles.stepRow}>
+                    <View style={styles.stepDot}>
+                      <Text style={styles.stepDotText}>{idx + 1}</Text>
+                    </View>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </View>
+                ))}
               </View>
             </View>
-            <View style={styles.previewRow}>
-              <View style={styles.previewIcon}>
-                <Icon name="sparkles" size={16} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.previewTitle}>Get smart next-meal guidance</Text>
-                <Text style={styles.previewSub}>Daily plan and suggestions based on your goal and progress.</Text>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>What you get</Text>
+              <View style={styles.previewList}>
+                {LANDING_SECTIONS.map((item) => (
+                  <View key={item.title} style={styles.previewRow}>
+                    <View style={styles.previewIcon}>
+                      <Icon name={item.icon} size={16} color={colors.green} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.previewTitle}>{item.title}</Text>
+                      <Text style={styles.previewSub}>{item.desc}</Text>
+                    </View>
+                  </View>
+                ))}
               </View>
             </View>
-            <View style={styles.previewRow}>
-              <View style={styles.previewIcon}>
-                <Icon name="progress" size={16} color={colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.previewTitle}>Track results over time</Text>
-                <Text style={styles.previewSub}>See consistency, exercise, and nutrition trends in one place.</Text>
-              </View>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>Best for new users</Text>
+              <Text style={styles.sectionDesc}>
+                Start with one meal log, check your suggested next meal, and build daily consistency gradually.
+                You do not need to be perfect on day one.
+              </Text>
             </View>
-          </View>
 
-          <Pressable style={styles.startBtn} onPress={() => setShowSignIn(true)}>
-            <Text style={styles.startBtnText}>Continue to sign in</Text>
-          </Pressable>
+            <Pressable style={styles.startBtn} onPress={() => setShowSignIn(true)}>
+              <Text style={styles.startBtnText}>Continue to sign in</Text>
+            </Pressable>
 
-          <Text style={styles.legal}>
-            By continuing you agree to our{" "}
-            <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
-              Terms
-            </Text>{" "}
-            and{" "}
-            <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
-              Privacy Policy
+            <Text style={styles.legal}>
+              By continuing you agree to our{" "}
+              <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
+                Terms
+              </Text>{" "}
+              and{" "}
+              <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
+                Privacy Policy
+              </Text>
+              .
             </Text>
-            .
-          </Text>
+          </ScrollView>
         </View>
       ) : (
         <View style={styles.card}>
@@ -471,6 +520,38 @@ const styles = StyleSheet.create({
   googleBtnBusy: { opacity: 0.7 },
   googleText: { fontSize: 16, fontWeight: "800", color: colors.ink },
   webBtnWrap: { alignItems: "center", justifyContent: "center", minHeight: 44 },
+  landingScroll: { paddingBottom: 8 },
+  sectionCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 10,
+    ...elevation.sm,
+  },
+  sectionLabel: {
+    color: colors.mute,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  sectionTitle: { color: colors.ink, fontSize: 15, fontWeight: "900", lineHeight: 21 },
+  sectionDesc: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "600", lineHeight: 18, marginTop: 6 },
+  stepsWrap: { gap: 7 },
+  stepRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  stepDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.greenTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepDotText: { color: colors.green, fontSize: 11, fontWeight: "900" },
+  stepText: { color: colors.ink, fontSize: 13, fontWeight: "700", flex: 1 },
   previewList: { gap: 10, marginBottom: 18 },
   previewRow: {
     flexDirection: "row",
