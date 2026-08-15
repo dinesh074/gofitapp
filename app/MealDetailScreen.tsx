@@ -131,6 +131,27 @@ export default function MealDetailScreen() {
           </View>
         </View>
 
+        <View style={styles.itemsCard}>
+          <Text style={styles.sectionHead}>Logged items</Text>
+          {meal.foodItems && meal.foodItems.length > 0 ? (
+            <View style={styles.itemsList}>
+              {meal.foodItems.map((it, i) => (
+                <View key={`${it.key || it.item}-${i}`} style={[styles.itemRow, i > 0 && styles.itemDivider]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.itemName}>{it.item}</Text>
+                    <Text style={styles.itemMeta}>
+                      ×{it.count} {it.unit} · {Math.round(it.kcal_total)} kcal · P {Math.round(it.protein_g)}g · C{" "}
+                      {Math.round(it.carbs_g)}g · F {Math.round(it.fat_g)}g
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.microEmpty}>This meal was logged without item-level breakdown.</Text>
+          )}
+        </View>
+
         <View style={styles.microCard}>
           <View style={styles.microHead}>
             <Text style={styles.sectionHead}>Micronutrients</Text>
@@ -212,6 +233,13 @@ const styles = StyleSheet.create({
   macroLabel: { fontSize: 13, color: colors.ink, fontWeight: "700", flex: 1 },
   macroGrams: { fontSize: 13, color: colors.mute, fontWeight: "700", marginRight: 10 },
   macroPct: { fontSize: 12, color: colors.faint, fontWeight: "700", width: 36, textAlign: "right" },
+
+  itemsCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 14, ...elevation.sm },
+  itemsList: { gap: 0 },
+  itemRow: { paddingVertical: 8 },
+  itemDivider: { borderTopWidth: 1, borderTopColor: colors.hairline },
+  itemName: { fontSize: 13.5, color: colors.ink, fontWeight: "800" },
+  itemMeta: { fontSize: 12, color: colors.mute, fontWeight: "600", marginTop: 2, lineHeight: 16 },
 
   microCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 14, ...elevation.sm },
   microHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },

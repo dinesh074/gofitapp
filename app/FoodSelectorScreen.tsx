@@ -34,16 +34,40 @@ function mealFromSuggestion(s: FoodSuggestion, count: number): Meal {
   const micros = s.micros
     ? Object.fromEntries(Object.entries(s.micros).map(([k, v]) => [k, v * c]))
     : undefined;
+  const kcal = Math.round(s.kcal_per_unit * c);
+  const protein = Math.round(s.protein_g_per_unit * c);
+  const carbs = Math.round(s.carbs_g_per_unit * c);
+  const fat = Math.round(s.fat_g_per_unit * c);
   return {
     dish: c > 1 ? `${s.name} ×${c}` : s.name,
-    kcal: Math.round(s.kcal_per_unit * c),
-    protein_g: Math.round(s.protein_g_per_unit * c),
-    carbs_g: Math.round(s.carbs_g_per_unit * c),
-    fat_g: Math.round(s.fat_g_per_unit * c),
+    kcal,
+    protein_g: protein,
+    carbs_g: carbs,
+    fat_g: fat,
     at: Date.now(),
     // Verified DB micros, scaled to the chosen portion count -- this is a
     // direct catalog pick (not a photo estimate), so it's always "db" sourced.
     micros,
+    foodItems: [
+      {
+        key: s.key,
+        item: s.name,
+        count: c,
+        unit: s.unit,
+        source: "db",
+        kcal_per_unit: s.kcal_per_unit,
+        protein_g_per_unit: s.protein_g_per_unit,
+        carbs_g_per_unit: s.carbs_g_per_unit,
+        fat_g_per_unit: s.fat_g_per_unit,
+        kcal_total: kcal,
+        protein_g: protein,
+        carbs_g: carbs,
+        fat_g: fat,
+        micros: micros,
+        micros_source: s.micros ? "db" : undefined,
+        micros_per_unit: s.micros,
+      },
+    ],
   };
 }
 
@@ -67,6 +91,30 @@ function mealFromDishPlan(name: string, rows: PlannedDishItem[]): Meal {
     { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, micros: {} as Record<string, number> }
   );
   const dish = name.trim() || "Planned dish";
+  const foodItems = rows.map((row) => {
+    const count = row.count;
+    const micros = row.food.micros
+      ? Object.fromEntries(Object.entries(row.food.micros).map(([k, v]) => [k, v * count]))
+      : undefined;
+    return {
+      key: row.food.key,
+      item: row.food.name,
+      count,
+      unit: row.food.unit,
+      source: "db",
+      kcal_per_unit: row.food.kcal_per_unit,
+      protein_g_per_unit: row.food.protein_g_per_unit,
+      carbs_g_per_unit: row.food.carbs_g_per_unit,
+      fat_g_per_unit: row.food.fat_g_per_unit,
+      kcal_total: Math.round(row.food.kcal_per_unit * count),
+      protein_g: Math.round(row.food.protein_g_per_unit * count),
+      carbs_g: Math.round(row.food.carbs_g_per_unit * count),
+      fat_g: Math.round(row.food.fat_g_per_unit * count),
+      micros,
+      micros_source: row.food.micros ? ("db" as const) : undefined,
+      micros_per_unit: row.food.micros,
+    };
+  });
   return {
     dish,
     kcal: Math.round(totals.kcal),
@@ -75,6 +123,7 @@ function mealFromDishPlan(name: string, rows: PlannedDishItem[]): Meal {
     fat_g: Math.round(totals.fat_g),
     at: Date.now(),
     micros: Object.keys(totals.micros).length > 0 ? totals.micros : undefined,
+    foodItems,
   };
 }
 

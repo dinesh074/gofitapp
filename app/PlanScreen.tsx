@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import Screen from "./Screen";
 import Icon from "./Icon";
 import PressableScale from "./PressableScale";
@@ -22,8 +21,7 @@ type MoveMeal = {
 };
 
 export default function PlanScreen() {
-  const navigation = useNavigation<any>();
-  const { profile, goal, logs, account, requireAuth } = useApp();
+  const { profile, goal, logs, account, requireAuth, logMeal } = useApp();
   const today = todayKey();
   const dayKcal = dayTotal(logs, today);
   const dm = dayMacros(logs, today);
@@ -154,6 +152,35 @@ export default function PlanScreen() {
     });
   }
 
+  function logSelectedMeal() {
+    if (!selected) return;
+    const at = Date.now();
+    logMeal({
+      dish: selected.name,
+      kcal: Math.round(selected.kcal),
+      protein_g: Math.round(selected.protein_g),
+      carbs_g: Math.round(selected.carbs_g),
+      fat_g: Math.round(selected.fat_g),
+      at,
+      foodItems: [
+        {
+          item: selected.name,
+          count: 1,
+          unit: "serving",
+          source: "plan",
+          kcal_per_unit: Math.round(selected.kcal),
+          protein_g_per_unit: Math.round(selected.protein_g),
+          carbs_g_per_unit: Math.round(selected.carbs_g),
+          fat_g_per_unit: Math.round(selected.fat_g),
+          kcal_total: Math.round(selected.kcal),
+          protein_g: Math.round(selected.protein_g),
+          carbs_g: Math.round(selected.carbs_g),
+          fat_g: Math.round(selected.fat_g),
+        },
+      ],
+    });
+  }
+
   return (
     <Screen edgeTop>
       <View style={styles.root}>
@@ -199,9 +226,7 @@ export default function PlanScreen() {
                 <View style={styles.nextActions}>
                   <PressableScale
                     style={[styles.logBtn]}
-                    onPress={() => {
-                      navigation.navigate("Tabs", { screen: "ScanHub" });
-                    }}
+                    onPress={logSelectedMeal}
                   >
                     <Icon name="plus" size={15} color="#fff" />
                     <Text style={styles.logBtnText}>Log this now</Text>
