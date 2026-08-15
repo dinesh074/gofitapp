@@ -27,51 +27,8 @@ type Props = {
   onPlanResolved?: (plan: DayPlan) => void;
 };
 
-const MACROS: { key: keyof PlanMacros; label: string; color: string; unit: string }[] = [
-  { key: "kcal", label: "kcal", color: colors.green, unit: "" },
-  { key: "protein_g", label: "Protein", color: colors.protein, unit: "g" },
-  { key: "carbs_g", label: "Carbs", color: colors.carbs, unit: "g" },
-  { key: "fat_g", label: "Fat", color: colors.fat, unit: "g" },
-  { key: "fiber_g", label: "Fibre", color: colors.inkSoft, unit: "g" },
-];
-
 function fmtCount(n: number): string {
   return Number.isInteger(n) ? `${n}` : `${n}`;
-}
-
-function hasMetric(v: PlanMacros | undefined, key: keyof PlanMacros): boolean {
-  return !!v && typeof v[key] === "number" && Number.isFinite(v[key] as number);
-}
-
-function statusLabel(s?: string): string {
-  switch (s) {
-    case "on_target":
-      return "On target";
-    case "slightly_below":
-      return "Slightly below";
-    case "slightly_above":
-      return "Slightly above";
-    case "significantly_below":
-      return "Significantly below";
-    case "significantly_above":
-      return "Significantly above";
-    default:
-      return "";
-  }
-}
-
-function projectedTrackLabel(status?: DayPlan["status"]): string {
-  if (!status) return "";
-  const kcal = status.kcal;
-  const protein = status.protein_g;
-  if (kcal === "on_target" && protein === "on_target") return "You're on track for today";
-  if (
-    kcal === "slightly_above" || kcal === "slightly_below" ||
-    protein === "slightly_above" || protein === "slightly_below"
-  ) {
-    return "You're close to target for today";
-  }
-  return "Your plan still needs adjustment today";
 }
 
 export default function TodayPlanCard({
@@ -152,8 +109,6 @@ export default function TodayPlanCard({
     void load(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig, account?.id]);
-  const trackMsg = plan ? projectedTrackLabel(plan.status) : "";
-
   return (
     <View style={styles.card}>
       <View style={styles.headRow}>
@@ -214,50 +169,6 @@ export default function TodayPlanCard({
             </View>
           )}
 
-          {!!plan.consumed && (
-            <>
-              <Text style={styles.sectionHead}>Today's progress</Text>
-              <View style={styles.totalsRow}>
-                {MACROS.filter((m) => hasMetric(plan.targets, m.key) && hasMetric(plan.consumed, m.key)).map((m) => (
-                  <View key={`prog-${m.key}`} style={styles.totalChip}>
-                    <Text style={[styles.totalVal, { color: m.color }]}>
-                      {Math.round((plan.consumed?.[m.key] as number) || 0)}
-                      {m.unit}
-                    </Text>
-                    <Text style={styles.totalLabel}>
-                      {m.label} · {Math.round((plan.targets[m.key] as number) || 0)}
-                      {m.unit}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </>
-          )}
-
-          {(plan.remaining || plan.over_target) && (
-            <>
-              <Text style={styles.sectionHead}>Remaining today</Text>
-              <View style={styles.remainRow}>
-                {MACROS.filter((m) => hasMetric(plan.targets, m.key)).map((m) => {
-                  const left = plan.remaining?.[m.key];
-                  const over = plan.over_target?.[m.key];
-                  const isOver = typeof over === "number" && over > 0;
-                  const value = isOver ? over : left;
-                  if (typeof value !== "number") return null;
-                  return (
-                    <View key={m.key} style={styles.remainChip}>
-                      <Text style={[styles.remainVal, { color: m.color }]}>
-                        {Math.round(value)}
-                        {m.unit}
-                      </Text>
-                      <Text style={styles.remainLabel}>{m.label} {isOver ? "over" : "left"}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </>
-          )}
-
           <Text style={styles.sectionHead}>Your plan for today</Text>
 
           {plan.slots.map((s) => {
@@ -291,44 +202,7 @@ export default function TodayPlanCard({
             );
           })}
 
-          {(plan.projected || plan.planned) && (
-            <>
-              <Text style={styles.sectionHead}>If you follow your plan</Text>
-              <View style={styles.totalsRow}>
-                {MACROS.filter((m) => hasMetric(plan.targets, m.key)).map((m) => {
-                  const p = (plan.projected?.[m.key] ?? plan.planned?.[m.key]) as number | undefined;
-                  if (typeof p !== "number") return null;
-                  return (
-                    <View key={`proj-${m.key}`} style={styles.totalChip}>
-                      <Text style={[styles.totalVal, { color: m.color }]}>
-                        {Math.round(p)}
-                        {m.unit}
-                      </Text>
-                      <Text style={styles.totalLabel}>
-                        {m.label} · {Math.round((plan.targets[m.key] as number) || 0)}
-                        {m.unit}
-                      </Text>
-                      {!!plan.status?.[m.key] && <Text style={styles.statusText}>{statusLabel(plan.status[m.key])}</Text>}
-                    </View>
-                  );
-                })}
-              </View>
-              {!!trackMsg && (
-                <View style={styles.trackRow}>
-                  <Icon
-                    name={trackMsg === "You're on track for today" ? "check" : "info"}
-                    size={12}
-                    color={trackMsg === "You're on track for today" ? colors.green : colors.mute}
-                  />
-                  <Text style={styles.trackText}>{trackMsg}</Text>
-                </View>
-              )}
-            </>
-          )}
-          <Text style={styles.foot}>
-            A starting plan from your food database, tuned to your targets. Log meals as you go —
-            swap anything that doesn&apos;t suit you.
-          </Text>
+          <Text style={styles.foot}>Simple daily plan. Log only what you actually eat.</Text>
         </>
       ) : null}
     </View>

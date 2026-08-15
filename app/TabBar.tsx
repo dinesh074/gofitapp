@@ -47,7 +47,6 @@ function TabButton({
 }
 
 export default function TabBar({ active, onChange }: Props) {
-  const scanOn = active === "scan";
   return (
     <View style={styles.bar}>
       {LEFT_TABS.map((t) => (
@@ -57,7 +56,7 @@ export default function TabBar({ active, onChange }: Props) {
       <View style={styles.centerSlot}>
         <Pressable style={styles.centerBtn} onPress={() => onChange("scan")} hitSlop={8}>
           <LinearGradient
-            colors={scanOn ? gradients.brand : [colors.faint, colors.faint]}
+            colors={gradients.brand}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.centerGradient}
@@ -65,7 +64,7 @@ export default function TabBar({ active, onChange }: Props) {
             <Icon name={SCAN_TAB.icon} size={26} color="#fff" />
           </LinearGradient>
         </Pressable>
-        <Text style={[styles.centerLabel, scanOn && styles.centerLabelActive]}>{SCAN_TAB.label}</Text>
+        <Text style={[styles.centerLabel, styles.centerLabelActive]}>{SCAN_TAB.label}</Text>
       </View>
 
       {RIGHT_TABS.map((t) => (

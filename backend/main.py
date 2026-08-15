@@ -1495,7 +1495,7 @@ def _normalize_meal_from_ai(meal: dict, fallback_name: str) -> dict:
 
 def _ai_next_move(rem: dict, diet: str, goal_name: str, slot: str, training: str, profile: dict) -> Optional[dict]:
     prompt = (
-        "You are a practical Indian nutrition planner. Build ONE realistic next meal and up to three alternatives.\n"
+        "You are a practical Indian nutrition planner. Build ONE realistic next meal and up to six alternatives.\n"
         "Use the user's context and remaining macros.\n"
         f"Context:\nremaining={json.dumps(rem)}\ndiet={diet}\ngoal={goal_name}\nslot={slot}\ntraining={training}\nprofile={json.dumps(profile or {}, ensure_ascii=True)}\n\n"
         "Return JSON only with this exact shape:\n"
@@ -2230,7 +2230,7 @@ def foods_recommend(body: RecommendBody, request: Request):
     )
     if meals:
         primary = meals[0]
-        alternatives = meals[1:4]
+        alternatives = meals[1:7]
         out["next_move"] = {
             "category": reason_category,
             "slot": slot,

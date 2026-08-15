@@ -1332,10 +1332,16 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               {chipKeys.map((k) => {
                 const m = addMeta[k];
                 if (!m) return null;
+                const quickOnly = !addHubExpanded;
                 return (
-                  <Pressable key={k} style={styles.addHubChip} onPress={() => handleAddOption(k)}>
-                    <Icon name={m.icon} size={14} color={colors.green} />
-                    <Text style={styles.addHubChipText}>{m.label}</Text>
+                  <Pressable
+                    key={k}
+                    style={[styles.addHubChip, quickOnly && styles.addHubChipQuick]}
+                    onPress={() => handleAddOption(k)}
+                    accessibilityLabel={m.label}
+                  >
+                    <Icon name={m.icon} size={quickOnly ? 18 : 14} color={colors.green} />
+                    {addHubExpanded ? <Text style={styles.addHubChipText}>{m.label}</Text> : null}
                   </Pressable>
                 );
               })}
@@ -1983,6 +1989,15 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  addHubChipQuick: {
+    width: 44,
+    height: 44,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    borderRadius: 22,
+    justifyContent: "center",
+    gap: 0,
+  },
   addHubOpenBtn: {
     flexDirection: "row",
     alignItems: "center",
