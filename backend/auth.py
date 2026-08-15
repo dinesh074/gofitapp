@@ -64,6 +64,15 @@ ALLOW_DEV_LOGIN = os.environ.get("ALLOW_DEV_LOGIN", "").strip().lower() in (
     "on",
 )
 
+# Temporary kill-switch for email OTP login. Keep default OFF in production
+# until mail delivery is fully stable.
+ENABLE_OTP_LOGIN = os.environ.get("ENABLE_OTP_LOGIN", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 # Google OAuth client id used to validate ID tokens. Leave blank in dev (the
 # scaffold still verifies the token signature; audience check is skipped).
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
@@ -688,6 +697,8 @@ def _otp_send_error_detail(reason: Optional[str]) -> str:
 
 @router.post("/otp/request")
 def otp_request(body: OtpRequestBody, request: Request):
+    if not ENABLE_OTP_LOGIN:
+        raise HTTPException(status_code=503, detail="Email code sign-in is temporarily disabled. Please use Google Sign-In.")
     email = _norm_email(body.email)
     if "@" not in email or "." not in email.split("@")[-1]:
         raise HTTPException(status_code=400, detail="Enter a valid email address")
@@ -721,14 +732,13 @@ def otp_request(body: OtpRequestBody, request: Request):
             status_code=503,
             detail=_otp_send_error_detail(reason),
         )
-    resp = {"ok": True, "sent": sent}
-    if not sent and ALLOW_DEV_LOGIN:
-        resp["devCode"] = code
-    return resp
+    return {"ok": True, "sent": sent}
 
 
 @router.post("/otp/verify")
 def otp_verify(body: OtpVerifyBody, request: Request):
+    if not ENABLE_OTP_LOGIN:
+        raise HTTPException(status_code=503, detail="Email code sign-in is temporarily disabled. Please use Google Sign-In.")
     email = _norm_email(body.email)
     code = body.code.strip()
     now = time.time()
