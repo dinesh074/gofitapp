@@ -114,7 +114,7 @@ SLOTS = [
 # and instead pairs a second complementary dish.
 MIN_SERVINGS = 0.5
 MAX_ITEM_SERVINGS = 1.5
-MAX_ITEMS_PER_SLOT = 3
+MAX_ITEMS_PER_SLOT = 6
 # Stop adding to a slot once this little of its calorie budget is left.
 SLOT_FILL_STOP = 0.12
 # A dish may appear at most this many times across the whole day. Repetition was
@@ -774,10 +774,7 @@ def plan_today(body: PlanBody, request: Request):
             base["status"]["fiber_g"] = _metric_status(base["planned"]["fiber_g"], targets["fiber_g"])
         return {"plan": base, "cached": cached}
 
-    if not body.regenerate:
-        saved = _load_saved(acct["id"], date_key)
-        if saved and saved.get("signature") == sig:
-            return _respond(saved["plan"], True)
+    # Always build a fresh plan on each call (no persisted read-cache).
 
     if body.ai_mode and _ai_full_plan is not None:
         try:
@@ -794,7 +791,6 @@ def plan_today(body: PlanBody, request: Request):
             if isinstance(ai_plan, dict) and ai_plan.get("slots"):
                 ai_plan["signature"] = sig
                 ai_plan["date"] = date_key
-                _save(acct["id"], date_key, sig, ai_plan)
                 return _respond(ai_plan, False)
         except Exception as ex:
             log.info("plan: AI full planner failed (%s) -- falling back to deterministic planner", ex)
@@ -830,5 +826,4 @@ def plan_today(body: PlanBody, request: Request):
         training_context=((body.training or "").strip().lower()),
         account_id=acct["id"],
     )
-    _save(acct["id"], date_key, sig, plan)
     return _respond(plan, False)

@@ -1510,7 +1510,7 @@ def _ai_next_move(rem: dict, diet: str, goal_name: str, slot: str, training: str
             continue
         seen.add(key)
         alternatives.append(norm)
-        if len(alternatives) >= 3:
+        if len(alternatives) >= 8:
             break
     reason = str(data.get("reason") or "").strip()
     if not reason:
@@ -2046,7 +2046,7 @@ def _build_shared_day_plan(
         if not cands:
             log.info("shared_plan: slot=%s no candidates", slot)
             return []
-        slot_cands[slot] = cands[:4]
+        slot_cands[slot] = cands
 
     best_combo: list[dict] = []
     best_score = -1e9
