@@ -158,6 +158,7 @@ export default function FoodSelectorScreen() {
 
   function addToDishPlan() {
     if (!selected) return;
+    const addedName = selected.name;
     setDishItems((prev) => {
       const idx = prev.findIndex((row) => row.food.key === selected.key);
       if (idx === -1) return [...prev, { food: selected, count }];
@@ -165,6 +166,8 @@ export default function FoodSelectorScreen() {
       next[idx] = { ...next[idx], count: Math.min(40, next[idx].count + count) };
       return next;
     });
+    setTemplateMsg(`Added ${addedName} to dish plan.`);
+    setTimeout(() => setTemplateMsg((cur) => (cur === `Added ${addedName} to dish plan.` ? null : cur)), 1600);
     setSelected(null);
   }
 
@@ -357,9 +360,25 @@ export default function FoodSelectorScreen() {
                     {Math.round(item.carbs_g_per_unit)}g · F {Math.round(item.fat_g_per_unit)}g
                   </Text>
                 </View>
-                <View style={styles.addCircle}>
+                <Pressable
+                  style={styles.addCircle}
+                  hitSlop={8}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    const food = item;
+                    setDishItems((prev) => {
+                      const idx = prev.findIndex((row) => row.food.key === food.key);
+                      if (idx === -1) return [...prev, { food, count: 1 }];
+                      const next = [...prev];
+                      next[idx] = { ...next[idx], count: Math.min(40, next[idx].count + 1) };
+                      return next;
+                    });
+                    setTemplateMsg(`Added ${food.name} to dish plan.`);
+                    setTimeout(() => setTemplateMsg((cur) => (cur === `Added ${food.name} to dish plan.` ? null : cur)), 1600);
+                  }}
+                >
                   <Icon name="plus" size={18} color={colors.white} />
-                </View>
+                </Pressable>
               </Pressable>
             )}
           />
