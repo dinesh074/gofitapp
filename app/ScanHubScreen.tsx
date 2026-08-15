@@ -3,18 +3,20 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Screen from "./Screen";
 import Icon from "./Icon";
-import { useApp } from "./AppContext";
 import { colors, elevation } from "./theme";
 
 export default function ScanHubScreen() {
   const navigation = useNavigation<any>();
-  const { triggerScan } = useApp();
+
+  function openHomeOption(option: "barcode" | "describe" | "voice" | "water" | "weight") {
+    navigation.navigate("Home", { openAddOption: option });
+  }
 
   return (
     <Screen edgeTop>
       <ScrollView style={styles.root} contentContainerStyle={styles.body}>
-        <Text style={styles.title}>Scan</Text>
-        <Text style={styles.sub}>Choose how you want to log food.</Text>
+        <Text style={styles.title}>Add / Track</Text>
+        <Text style={styles.sub}>Use full-screen flows for meals, tracking, and workouts.</Text>
 
         <Pressable style={styles.actionCard} onPress={() => navigation.navigate("Scan", { mode: "camera" })}>
           <View style={styles.actionIcon}>
@@ -23,6 +25,28 @@ export default function ScanHubScreen() {
           <View style={styles.actionBody}>
             <Text style={styles.actionTitle}>Scan with camera</Text>
             <Text style={styles.actionSub}>Take a photo and get an itemized nutrition estimate.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("FoodSelector")}>
+          <View style={styles.actionIcon}>
+            <Icon name="edit" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Manual food search</Text>
+            <Text style={styles.actionSub}>Search the food database and log exact servings.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => openHomeOption("barcode")}>
+          <View style={styles.actionIcon}>
+            <Icon name="barcode" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Barcode lookup</Text>
+            <Text style={styles.actionSub}>Scan or type barcode for packaged foods.</Text>
           </View>
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
@@ -38,15 +62,48 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
-        <Pressable
-          style={styles.moreCard}
-          onPress={() => {
-            navigation.navigate("Home");
-            triggerScan();
-          }}
-        >
-          <Icon name="plus" size={15} color={colors.green} />
-          <Text style={styles.moreText}>More options: voice, barcode, manual, workout, water and weight</Text>
+        <Pressable style={styles.actionCard} onPress={() => openHomeOption("voice")}>
+          <View style={styles.actionIcon}>
+            <Icon name="mic" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Voice log</Text>
+            <Text style={styles.actionSub}>Speak your meal and edit before adding.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("ExerciseLog")}>
+          <View style={styles.actionIcon}>
+            <Icon name="dumbbell" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Workout log</Text>
+            <Text style={styles.actionSub}>Track exercises, duration, and calories burned.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => openHomeOption("water")}>
+          <View style={styles.actionIcon}>
+            <Icon name="water" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Water</Text>
+            <Text style={styles.actionSub}>Add hydration quickly to today.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
+        <Pressable style={styles.actionCard} onPress={() => openHomeOption("weight")}>
+          <View style={styles.actionIcon}>
+            <Icon name="scale" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Weight</Text>
+            <Text style={styles.actionSub}>Log your weight with 100g precision.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
       </ScrollView>
     </Screen>
@@ -79,14 +136,4 @@ const styles = StyleSheet.create({
   actionBody: { flex: 1 },
   actionTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
   actionSub: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 2, lineHeight: 16 },
-  moreCard: {
-    marginTop: 4,
-    backgroundColor: colors.greenTint,
-    borderRadius: 14,
-    padding: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  moreText: { flex: 1, color: colors.green, fontSize: 12.5, fontWeight: "700", lineHeight: 17 },
 });

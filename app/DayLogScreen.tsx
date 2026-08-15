@@ -8,6 +8,7 @@ import { useApp } from "./AppContext";
 import { deleteServerLog, AuthRequiredError } from "./api";
 import { deleteMeal, LogMap, Meal, MEAL_TYPE_LABEL, MealType, prettyDate } from "./storage";
 import { dayMicros } from "./micros";
+import { goBackOrTabs } from "./nav";
 
 function mealTime(at: number): string {
   const d = new Date(at);
@@ -77,7 +78,7 @@ export default function DayLogScreen() {
   return (
     <Screen>
       <View style={styles.head}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()} hitSlop={10}>
+        <Pressable style={styles.backBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={10}>
           <Icon name="chevronLeft" size={20} color={colors.ink} />
         </Pressable>
         <View style={{ flex: 1 }}>

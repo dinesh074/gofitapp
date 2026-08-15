@@ -22,6 +22,7 @@ function makeReader(): BrowserMultiFormatReader {
     BarcodeFormat.EAN_8,
     BarcodeFormat.UPC_A,
     BarcodeFormat.UPC_E,
+    BarcodeFormat.CODE_128,
   ]);
   hints.set(DecodeHintType.TRY_HARDER, true);
   return new BrowserMultiFormatReader(hints);

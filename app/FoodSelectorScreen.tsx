@@ -16,6 +16,7 @@ import { colors, radius, elevation, type as T } from "./theme";
 import Icon from "./Icon";
 import Screen from "./Screen";
 import { useApp } from "./AppContext";
+import { goBackOrTabs } from "./nav";
 
 // Turns a food-DB suggestion + a chosen serving count into a loggable Meal.
 // Calories/macros always come straight from the DB row (never guessed) and
@@ -86,7 +87,7 @@ export default function FoodSelectorScreen() {
         if (id !== reqId.current) return;
         if (e instanceof AuthRequiredError) {
           requireAuth();
-          navigation.goBack();
+          goBackOrTabs(navigation);
           return;
         }
         setError(e?.message || "Couldn't search foods. Try again.");
@@ -120,7 +121,7 @@ export default function FoodSelectorScreen() {
     <Screen edgeTop background={colors.bg}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable style={styles.iconBtn} onPress={() => navigation.goBack()} hitSlop={8}>
+        <Pressable style={styles.iconBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={8}>
           <Icon name="chevronLeft" size={22} color={colors.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Add food</Text>

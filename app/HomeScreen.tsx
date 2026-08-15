@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, fetchTodayPlan, DayPlan } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
@@ -198,6 +198,7 @@ function MacroProgress({ label, have, goalV, color }: { label: string; have: num
 
 export default function HomeScreen({ profile, goal, logs, setLogs, streak, account, onRequireAuth, onAccountUpdate, scanTrigger, onWeightLogged }: Props) {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -286,6 +287,13 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     lastScanTrigger.current = scanTrigger;
     setShowAddSheet(true);
   }, [scanTrigger]);
+
+  useEffect(() => {
+    const option = route.params?.openAddOption as AddOptionKey | undefined;
+    if (!option) return;
+    handleAddOption(option);
+    navigation.setParams({ openAddOption: undefined });
+  }, [route.params?.openAddOption]);
 
   // Quick re-log list (recent + favorite meals) loads from local storage.
   useEffect(() => {
@@ -1304,15 +1312,11 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <Icon name="plus" size={15} color={colors.green} />
               <Text style={styles.addHubTitle}>Add / Track</Text>
             </View>
-            <Text style={styles.addHubSub}>All scan and logging options in one place.</Text>
-            <View style={styles.addHubGrid}>
-              {HOME_ADD_OPTIONS.map((opt) => (
-                <Pressable key={opt.key} style={styles.addHubChip} onPress={() => handleAddOption(opt.key)}>
-                  <Icon name={opt.icon} size={15} color={colors.green} />
-                  <Text style={styles.addHubChipText}>{opt.label}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <Text style={styles.addHubSub}>Open the full Add / Track page for scan, barcode, manual, workout, water, and weight tools.</Text>
+            <Pressable style={styles.addHubOpenBtn} onPress={() => navigation.navigate("ScanHub")}>
+              <Icon name="chevronRight" size={14} color={colors.green} />
+              <Text style={styles.addHubOpenText}>Open Add / Track page</Text>
+            </Pressable>
           </View>
         );
       case "streak":
@@ -1996,17 +2000,17 @@ const styles = StyleSheet.create({
   addHubHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   addHubTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
   addHubSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
-  addHubGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 2 },
-  addHubChip: {
+  addHubOpenBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
     backgroundColor: colors.greenTint,
     borderRadius: 999,
-    paddingVertical: 7,
+    alignSelf: "flex-start",
+    paddingVertical: 8,
     paddingHorizontal: 11,
   },
-  addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  addHubOpenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   previewOverlay: { flex: 1, justifyContent: "flex-end" },
   previewBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
   previewSheet: {

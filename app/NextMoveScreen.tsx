@@ -5,7 +5,7 @@ import Screen from "./Screen";
 import Icon from "./Icon";
 import PressableScale from "./PressableScale";
 import { colors, elevation } from "./theme";
-import { useApp } from "./AppContext";
+import { goBackOrTabs } from "./nav";
 
 type MoveMeal = {
   name: string;
@@ -27,7 +27,6 @@ type Params = {
 export default function NextMoveScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { triggerScan } = useApp();
   const params = (route.params ?? {}) as Params;
   const initial = params.selected ?? null;
   const [selected, setSelected] = useState<MoveMeal | null>(initial);
@@ -40,7 +39,7 @@ export default function NextMoveScreen() {
     <Screen edgeTop>
       <ScrollView style={styles.root} contentContainerStyle={styles.body}>
         <View style={styles.headRow}>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Pressable style={styles.backBtn} onPress={() => goBackOrTabs(navigation)}>
             <Icon name="chevronLeft" size={16} color={colors.green} />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
@@ -86,8 +85,7 @@ export default function NextMoveScreen() {
           <PressableScale
             style={[styles.logBtn]}
             onPress={() => {
-              navigation.navigate("Tabs");
-              triggerScan();
+              navigation.navigate("Tabs", { screen: "ScanHub" });
             }}
           >
             <Icon name="plus" size={16} color="#fff" />

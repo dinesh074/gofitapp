@@ -29,6 +29,7 @@ import ScanScreen from "./ScanScreen";
 import DayLogScreen from "./DayLogScreen";
 import MealDetailScreen from "./MealDetailScreen";
 import NextMoveScreen from "./NextMoveScreen";
+import ExerciseLogScreen from "./ExerciseLogScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -207,6 +208,11 @@ export function RootNavigator() {
       <Stack.Screen
         name="Community"
         component={CommunityPage}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="ExerciseLog"
+        component={ExerciseLogScreen}
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
     </Stack.Navigator>

@@ -79,8 +79,8 @@ export default function BarcodeScanner({
 
   async function lookup(code: string) {
     const digits = code.replace(/\D/g, "");
-    if (digits.length < 8) {
-      setError("That doesn't look like a valid barcode.");
+    if (digits.length < 6) {
+      setError("Enter a valid barcode number (usually 8–13 digits).");
       lockedRef.current = false;
       return;
     }
@@ -100,7 +100,7 @@ export default function BarcodeScanner({
       }
       if (e instanceof BarcodeNotFoundError) {
         setNotFound(true);
-        setError(e.message || "We couldn't find that barcode.");
+        setError(e.message || "We couldn't find that barcode in the food database.");
       } else {
         setError(e?.message || "Couldn't look that up. Try again.");
       }
@@ -169,7 +169,7 @@ export default function BarcodeScanner({
                 facing="back"
                 onBarcodeScanned={busy ? undefined : onScanned}
                 barcodeScannerSettings={{
-                  barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"],
+                  barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128"],
                 }}
               />
               <View style={styles.reticle} pointerEvents="none" />

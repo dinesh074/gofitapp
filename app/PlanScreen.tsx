@@ -22,7 +22,7 @@ type MoveMeal = {
 
 export default function PlanScreen() {
   const navigation = useNavigation<any>();
-  const { profile, goal, logs, account, requireAuth, triggerScan } = useApp();
+  const { profile, goal, logs, account, requireAuth } = useApp();
   const today = todayKey();
   const dayKcal = dayTotal(logs, today);
   const dm = dayMacros(logs, today);
@@ -177,8 +177,7 @@ export default function PlanScreen() {
                   <PressableScale
                     style={[styles.logBtn]}
                     onPress={() => {
-                      navigation.navigate("Home");
-                      triggerScan();
+                      navigation.navigate("Tabs", { screen: "ScanHub" });
                     }}
                   >
                     <Icon name="plus" size={15} color="#fff" />

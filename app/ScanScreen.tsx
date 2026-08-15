@@ -29,6 +29,7 @@ import Screen from "./Screen";
 import { useApp } from "./AppContext";
 import FoodSearchSheet from "./FoodSearchSheet";
 import PortionPicker from "./PortionPicker";
+import { goBackOrTabs } from "./nav";
 
 // Builds a fresh, DB-anchored FoodItem when swapping in a corrected food or
 // adding a suggested pairing. Mirrors HomeScreen's itemFromSuggestion so a
@@ -152,7 +153,7 @@ export default function ScanScreen() {
   useEffect(() => {
     if (!account) {
       requireAuth();
-      navigation.goBack();
+      goBackOrTabs(navigation);
       return;
     }
     void capture(mode !== "gallery");
@@ -293,13 +294,13 @@ export default function ScanScreen() {
     };
     logMeal(meal);
     setAdded(true);
-    setTimeout(() => navigation.goBack(), 900);
+    setTimeout(() => goBackOrTabs(navigation), 900);
   }
 
   return (
     <Screen edgeTop background={colors.bg}>
       <View style={styles.header}>
-        <Pressable style={styles.iconBtn} onPress={() => navigation.goBack()} hitSlop={8}>
+        <Pressable style={styles.iconBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={8}>
           <Icon name="chevronLeft" size={22} color={colors.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Scan meal</Text>
