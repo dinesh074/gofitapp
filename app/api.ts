@@ -330,6 +330,43 @@ export type RecipeIngredientInput = {
   notes?: string;
 };
 
+export type RecipeTemplateSummary = {
+  id: number;
+  recipe_code: string;
+  name: string;
+  servings: number;
+  source: string;
+};
+
+export type RecipeTemplateDetail = {
+  id: number;
+  recipe_code: string;
+  name: string;
+  servings: number;
+  source: string;
+  notes?: string;
+  ingredients: Array<{
+    food_key: string;
+    quantity: number;
+    quantity_unit: string;
+    notes?: string;
+  }>;
+};
+
+export type RecipeTemplateEstimate = {
+  items: Array<{
+    food_key: string;
+    name: string;
+    unit: string;
+    count: number;
+    kcal: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+  }>;
+  totals: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+};
+
 export async function saveRecipeTemplate(input: {
   recipe_code: string;
   name: string;
@@ -344,6 +381,33 @@ export async function saveRecipeTemplate(input: {
     ingredients: input.ingredients,
     source: input.source ?? "user",
   });
+}
+
+export async function searchRecipeTemplates(q: string, limit = 12): Promise<RecipeTemplateSummary[]> {
+  const query = q.trim();
+  if (!query) return [];
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE}/recipes/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      { headers: authHeaders() }
+    );
+  } catch {
+    throw new Error("Can't reach the server. Check your connection.");
+  }
+  if (!res.ok) {
+    const msg = await friendlyError(res);
+    if (res.status === 401) throw new AuthRequiredError(msg);
+    throw new Error(msg);
+  }
+  const data = (await res.json()) as { results?: RecipeTemplateSummary[] };
+  return data.results ?? [];
+}
+
+export async function getRecipeTemplate(
+  recipeId: number
+): Promise<{ recipe: RecipeTemplateDetail; estimate: RecipeTemplateEstimate }> {
+  return getJson<{ recipe: RecipeTemplateDetail; estimate: RecipeTemplateEstimate }>(`/recipes/${recipeId}`);
 }
 
 export async function getCombos(dishes: string[], limit = 6): Promise<Pairing[]> {

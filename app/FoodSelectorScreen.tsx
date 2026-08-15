@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -10,8 +9,18 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { FoodSuggestion, searchFoods, AuthRequiredError, saveRecipeTemplate } from "./api";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  FoodSuggestion,
+  searchFoods,
+  AuthRequiredError,
+  saveRecipeTemplate,
+  analyzeText,
+  PaywallError,
+  searchRecipeTemplates,
+  getRecipeTemplate,
+  RecipeTemplateSummary,
+} from "./api";
 import { Meal } from "./storage";
 import { colors, radius, elevation, type as T } from "./theme";
 import Icon from "./Icon";
@@ -41,6 +50,7 @@ function mealFromSuggestion(s: FoodSuggestion, count: number): Meal {
 }
 
 type PlannedDishItem = { food: FoodSuggestion; count: number };
+type ScreenParams = { mode?: "template" | "search" };
 
 function mealFromDishPlan(name: string, rows: PlannedDishItem[]): Meal {
   const totals = rows.reduce(
@@ -82,7 +92,9 @@ function MacroPill({ label, value, color }: { label: string; value: number; colo
 
 export default function FoodSelectorScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { logMeal, requireAuth } = useApp();
+  const openTemplateMode = (((route.params ?? {}) as ScreenParams).mode || "search") === "template";
 
   const [q, setQ] = useState("");
   const [results, setResults] = useState<FoodSuggestion[]>([]);
@@ -99,6 +111,13 @@ export default function FoodSelectorScreen() {
   const [dishItems, setDishItems] = useState<PlannedDishItem[]>([]);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateMsg, setTemplateMsg] = useState<string | null>(null);
+  const [estimateLoading, setEstimateLoading] = useState(false);
+  const [estimatedMeal, setEstimatedMeal] = useState<Meal | null>(null);
+  const lastEstimateQuery = useRef("");
+  const [templateQ, setTemplateQ] = useState("");
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
+  const [templateResults, setTemplateResults] = useState<RecipeTemplateSummary[]>([]);
 
   // Debounced search — one request after typing settles, not per keystroke.
   useEffect(() => {
@@ -142,6 +161,95 @@ export default function FoodSelectorScreen() {
     [dishName, dishItems]
   );
 
+  useEffect(() => {
+    const query = q.trim();
+    if (!searched || loading || results.length > 0 || query.length < 2) {
+      setEstimateLoading(false);
+      if (results.length > 0 || query.length < 2) setEstimatedMeal(null);
+      return;
+    }
+    if (lastEstimateQuery.current === query) return;
+    lastEstimateQuery.current = query;
+    let alive = true;
+    setEstimateLoading(true);
+    setEstimatedMeal(null);
+    analyzeText(query)
+      .then((res) => {
+        if (!alive) return;
+        const t = res.totals;
+        setEstimatedMeal({
+          dish: (res.dish || query).trim() || query,
+          kcal: Math.round(t?.kcal ?? res.calories_kcal ?? 0),
+          protein_g: Math.round(t?.protein_g ?? 0),
+          carbs_g: Math.round(t?.carbs_g ?? 0),
+          fat_g: Math.round(t?.fat_g ?? 0),
+          at: Date.now(),
+          micros: t?.micros,
+          microsEstimated: !!t?.micros_estimated,
+        });
+      })
+      .catch((e: any) => {
+        if (!alive) return;
+        if (e instanceof AuthRequiredError) {
+          requireAuth();
+          goBackOrTabs(navigation);
+          return;
+        }
+        if (e instanceof PaywallError) {
+          setError("AI estimate needs Pro scans. Upgrade to estimate foods not in the DB.");
+          return;
+        }
+        const msg = String(e?.message || "");
+        if (msg.toLowerCase().includes("can't reach the server")) {
+          setError("Network issue while estimating nutrition. Please check your connection and try again.");
+          return;
+        }
+        setError(msg || "Couldn't estimate nutrition right now.");
+      })
+      .finally(() => {
+        if (alive) setEstimateLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [q, searched, loading, results, requireAuth, navigation]);
+
+  useEffect(() => {
+    const query = templateQ.trim();
+    if (query.length < 2) {
+      setTemplateResults([]);
+      setTemplateError(null);
+      setTemplateLoading(false);
+      return;
+    }
+    let alive = true;
+    setTemplateLoading(true);
+    setTemplateError(null);
+    const t = setTimeout(() => {
+      searchRecipeTemplates(query, 10)
+        .then((rows) => {
+          if (!alive) return;
+          setTemplateResults(rows);
+        })
+        .catch((e: any) => {
+          if (!alive) return;
+          if (e instanceof AuthRequiredError) {
+            requireAuth();
+            goBackOrTabs(navigation);
+            return;
+          }
+          setTemplateError(e?.message || "Couldn't load templates right now.");
+        })
+        .finally(() => {
+          if (alive) setTemplateLoading(false);
+        });
+    }, 260);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [templateQ, requireAuth, navigation]);
+
   function openPortion(food: FoodSuggestion) {
     setSelected(food);
     setCount(1);
@@ -184,6 +292,13 @@ export default function FoodSelectorScreen() {
     setTimeout(() => setAdded((cur) => (cur === plannedPreview.dish ? null : cur)), 1800);
   }
 
+  function addEstimatedMeal() {
+    if (!estimatedMeal) return;
+    logMeal(estimatedMeal);
+    setAdded(estimatedMeal.dish);
+    setTimeout(() => setAdded((cur) => (cur === estimatedMeal.dish ? null : cur)), 1800);
+  }
+
   function makeRecipeCode(name: string): string {
     const base = (name || "planned_dish")
       .toLowerCase()
@@ -224,6 +339,49 @@ export default function FoodSelectorScreen() {
     }
   }
 
+  async function applyTemplate(row: RecipeTemplateSummary) {
+    setTemplateError(null);
+    setTemplateLoading(true);
+    try {
+      const data = await getRecipeTemplate(row.id);
+      const loaded = (data.estimate?.items ?? [])
+        .filter((it) => typeof it.count === "number" && it.count > 0)
+        .map((it) => {
+          const c = Math.max(0.1, Number(it.count || 1));
+          const per = {
+            kcal: Number(it.kcal || 0) / c,
+            protein_g: Number(it.protein_g || 0) / c,
+            carbs_g: Number(it.carbs_g || 0) / c,
+            fat_g: Number(it.fat_g || 0) / c,
+          };
+          return {
+            food: {
+              key: it.food_key || it.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+              name: it.name,
+              unit: it.unit || "serving",
+              kcal_per_unit: per.kcal,
+              protein_g_per_unit: per.protein_g,
+              carbs_g_per_unit: per.carbs_g,
+              fat_g_per_unit: per.fat_g,
+            } as FoodSuggestion,
+            count: c,
+          } as PlannedDishItem;
+        });
+      setDishItems(loaded);
+      setDishName(data.recipe?.name || row.name || "Planned dish");
+      setTemplateMsg(`Loaded template: ${row.name}`);
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) {
+        requireAuth();
+        goBackOrTabs(navigation);
+        return;
+      }
+      setTemplateError(e?.message || "Couldn't apply that template.");
+    } finally {
+      setTemplateLoading(false);
+    }
+  }
+
   return (
     <Screen edgeTop background={colors.bg}>
       {/* Header */}
@@ -231,7 +389,7 @@ export default function FoodSelectorScreen() {
         <Pressable style={styles.iconBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={8}>
           <Icon name="chevronLeft" size={22} color={colors.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Manual search</Text>
+        <Text style={styles.headerTitle}>{openTemplateMode ? "Add from template" : "Manual search"}</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -245,7 +403,7 @@ export default function FoodSelectorScreen() {
             onChangeText={setQ}
             placeholder="Search 1,000+ foods — dal, paneer, dosa…"
             placeholderTextColor={colors.faint}
-            autoFocus
+            autoFocus={!openTemplateMode}
             autoCorrect={false}
             returnKeyType="search"
           />
@@ -263,6 +421,39 @@ export default function FoodSelectorScreen() {
           <Text style={styles.addedText}>Added {added} to today</Text>
         </View>
       )}
+
+      <View style={styles.templateCard}>
+        <View style={styles.templateHead}>
+          <Icon name="nutrition" size={14} color={colors.green} />
+          <Text style={styles.templateHeadText}>Add from template</Text>
+        </View>
+        <TextInput
+          style={styles.templateInput}
+          value={templateQ}
+          onChangeText={setTemplateQ}
+          placeholder="Search saved templates"
+          placeholderTextColor={colors.faint}
+          autoFocus={openTemplateMode}
+        />
+        {templateLoading ? (
+          <View style={styles.templateLoadingRow}>
+            <ActivityIndicator size="small" color={colors.green} />
+            <Text style={styles.templateHint}>Loading templates…</Text>
+          </View>
+        ) : templateQ.trim().length >= 2 && templateResults.length === 0 ? (
+          <Text style={styles.templateHint}>No template matches yet.</Text>
+        ) : null}
+        {templateResults.map((row) => (
+          <Pressable key={row.id} style={styles.templateRow} onPress={() => void applyTemplate(row)}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.templateRowTitle}>{row.name}</Text>
+              <Text style={styles.templateRowSub}>{row.recipe_code}</Text>
+            </View>
+            <Icon name="chevronRight" size={14} color={colors.mute} />
+          </Pressable>
+        ))}
+        {!!templateError && <Text style={styles.templateErr}>{templateError}</Text>}
+      </View>
 
       <View style={styles.planCard}>
         <View style={styles.planHead}>
@@ -326,19 +517,27 @@ export default function FoodSelectorScreen() {
         ) : results.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={styles.empty}>
-              No matches in our food database. Try a simpler name, or run a web search.
+              No direct DB match. Pulling an automatic nutrition estimate now.
             </Text>
-            <Pressable
-              style={styles.webSearchBtn}
-              onPress={() => {
-                const query = q.trim();
-                if (!query) return;
-                void Linking.openURL(`https://www.google.com/search?q=${encodeURIComponent(query + " nutrition")}`);
-              }}
-            >
-              <Icon name="search" size={14} color={colors.green} />
-              <Text style={styles.webSearchText}>Search on web</Text>
-            </Pressable>
+            {estimateLoading ? (
+              <View style={styles.centerEstimate}>
+                <ActivityIndicator color={colors.green} />
+                <Text style={styles.estimateHint}>Estimating nutrients…</Text>
+              </View>
+            ) : estimatedMeal ? (
+              <View style={styles.estimateCard}>
+                <Text style={styles.estimateTitle}>{estimatedMeal.dish}</Text>
+                <Text style={styles.estimateMeta}>
+                  ~{estimatedMeal.kcal} kcal · P {estimatedMeal.protein_g}g · C {estimatedMeal.carbs_g}g · F {estimatedMeal.fat_g}g
+                </Text>
+                <Pressable style={styles.estimateAddBtn} onPress={addEstimatedMeal}>
+                  <Icon name="plus" size={15} color={colors.white} />
+                  <Text style={styles.estimateAddText}>Add estimated meal</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Text style={styles.estimateHint}>Couldn't estimate this right now. Try another query.</Text>
+            )}
           </View>
         ) : (
           <FlatList
@@ -483,6 +682,45 @@ const styles = StyleSheet.create({
     ...elevation.sm,
   },
   addedText: { color: colors.white, fontWeight: "800", fontSize: 13 },
+  templateCard: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 12,
+    gap: 8,
+    ...elevation.sm,
+  },
+  templateHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  templateHeadText: { color: colors.ink, fontSize: 13.5, fontWeight: "800" },
+  templateInput: {
+    backgroundColor: colors.cardMuted,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    color: colors.ink,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    fontSize: 13.5,
+    fontWeight: "600",
+  },
+  templateLoadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  templateHint: { color: colors.mute, fontSize: 12, fontWeight: "600" },
+  templateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    backgroundColor: colors.cardMuted,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  templateRowTitle: { color: colors.ink, fontSize: 12.5, fontWeight: "700" },
+  templateRowSub: { color: colors.mute, fontSize: 11, fontWeight: "600", marginTop: 1 },
+  templateErr: { color: colors.red, fontSize: 12, fontWeight: "700" },
   planCard: {
     marginHorizontal: 16,
     marginTop: 10,
@@ -557,18 +795,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyWrap: { alignItems: "center", gap: 10, paddingTop: 40, paddingHorizontal: 12 },
-  webSearchBtn: {
+  centerEstimate: { alignItems: "center", gap: 8 },
+  estimateHint: { color: colors.mute, fontSize: 12.5, fontWeight: "600", textAlign: "center" },
+  estimateCard: {
+    width: "100%",
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 12,
+    gap: 6,
+    ...elevation.sm,
+  },
+  estimateTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
+  estimateMeta: { color: colors.mute, fontSize: 12, fontWeight: "700" },
+  estimateAddBtn: {
+    marginTop: 2,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: colors.greenTint,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.green,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    justifyContent: "center",
+    gap: 7,
+    backgroundColor: colors.green,
+    borderRadius: 10,
+    paddingVertical: 10,
   },
-  webSearchText: { color: colors.green, fontSize: 12.5, fontWeight: "800" },
+  estimateAddText: { color: colors.white, fontSize: 13, fontWeight: "800" },
 
   row: {
     flexDirection: "row",

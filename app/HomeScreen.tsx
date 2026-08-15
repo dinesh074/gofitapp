@@ -90,6 +90,7 @@ type AddOptionKey =
   | "gallery"
   | "barcode"
   | "manual"
+  | "template"
   | "voice"
   | "exercise"
   | "water"
@@ -101,6 +102,7 @@ const HOME_ADD_OPTIONS: Array<{ key: AddOptionKey; label: string; icon: IconName
   { key: "gallery", label: "Gallery", icon: "gallery" },
   { key: "barcode", label: "Barcode", icon: "barcode" },
   { key: "manual", label: "Manual", icon: "edit" },
+  { key: "template", label: "Template", icon: "nutrition" },
   { key: "exercise", label: "Workout", icon: "dumbbell" },
   { key: "water", label: "Water", icon: "water" },
   { key: "weight", label: "Weight", icon: "scale" },
@@ -710,6 +712,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       navigation.navigate("ManualSearch");
       return;
     }
+    if (option === "template") {
+      navigation.navigate("ManualSearch", { mode: "template" });
+      return;
+    }
     // Non-meal trackers -- each routes to a real, already-implemented flow.
     if (option === "exercise") {
       navigation.navigate("ExerciseLog");
@@ -1292,6 +1298,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <Pressable style={styles.addHubChip} onPress={() => handleAddOption("manual")}>
                 <Icon name="edit" size={14} color={colors.green} />
                 <Text style={styles.addHubChipText}>Manual search</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("template")}>
+                <Icon name="nutrition" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Add from template</Text>
               </Pressable>
               <Pressable style={styles.addHubChip} onPress={() => handleAddOption("exercise")}>
                 <Icon name="dumbbell" size={14} color={colors.green} />

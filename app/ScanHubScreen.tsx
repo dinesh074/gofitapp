@@ -58,6 +58,17 @@ export default function ScanHubScreen() {
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>
 
+        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("ManualSearch", { mode: "template" })}>
+          <View style={styles.actionIcon}>
+            <Icon name="nutrition" size={18} color={colors.green} />
+          </View>
+          <View style={styles.actionBody}>
+            <Text style={styles.actionTitle}>Add from template</Text>
+            <Text style={styles.actionSub}>Load a saved dish template and log it quickly.</Text>
+          </View>
+          <Icon name="chevronRight" size={16} color={colors.mute} />
+        </Pressable>
+
         <Pressable style={styles.actionCard} onPress={() => navigation.navigate("ExerciseLog")}>
           <View style={styles.actionIcon}>
             <Icon name="dumbbell" size={18} color={colors.green} />
