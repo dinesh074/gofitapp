@@ -57,6 +57,7 @@ _pick_for_slot: Optional[Callable] = None
 _ai_note: Optional[Callable] = None
 _pick_meal_for_slot: Optional[Callable] = None
 _build_day_plan: Optional[Callable] = None
+_ai_full_plan: Optional[Callable] = None
 
 
 def configure(
@@ -64,13 +65,15 @@ def configure(
     ai_note: Callable,
     pick_meal_for_slot: Optional[Callable] = None,
     build_day_plan: Optional[Callable] = None,
+    ai_full_plan: Optional[Callable] = None,
 ) -> None:
     """Wire in the food-selection + AI-note callables owned by main.py."""
-    global _pick_for_slot, _ai_note, _pick_meal_for_slot, _build_day_plan
+    global _pick_for_slot, _ai_note, _pick_meal_for_slot, _build_day_plan, _ai_full_plan
     _pick_for_slot = pick_for_slot
     _ai_note = ai_note
     _pick_meal_for_slot = pick_meal_for_slot
     _build_day_plan = build_day_plan
+    _ai_full_plan = ai_full_plan
 
 
 def init_db() -> None:
@@ -718,6 +721,8 @@ class PlanBody(BaseModel):
     consumed: Optional[Targets] = None
     hour: Optional[int] = Field(None, ge=0, le=23)
     training: Optional[str] = None
+    ai_mode: bool = False
+    profile: Optional[dict] = None
 
 
 @router.post("/plan/today")
@@ -743,6 +748,8 @@ def plan_today(body: PlanBody, request: Request):
     diet = (body.diet or "veg").strip().lower()
     goal = (body.goal or "maintain").strip().lower()
     sig = _signature(targets, diet, goal)
+    if body.ai_mode:
+        sig = f"{sig}|ai"
 
     consumed = None
     if body.consumed is not None:
@@ -771,6 +778,26 @@ def plan_today(body: PlanBody, request: Request):
         saved = _load_saved(acct["id"], date_key)
         if saved and saved.get("signature") == sig:
             return _respond(saved["plan"], True)
+
+    if body.ai_mode and _ai_full_plan is not None:
+        try:
+            ai_plan = _ai_full_plan(
+                targets=targets,
+                diet=diet,
+                goal=goal,
+                date_key=date_key,
+                training_context=((body.training or "").strip().lower()),
+                consumed=consumed or {},
+                hour=body.hour,
+                profile=body.profile or {},
+            )
+            if isinstance(ai_plan, dict) and ai_plan.get("slots"):
+                ai_plan["signature"] = sig
+                ai_plan["date"] = date_key
+                _save(acct["id"], date_key, sig, ai_plan)
+                return _respond(ai_plan, False)
+        except Exception as ex:
+            log.info("plan: AI full planner failed (%s) -- falling back to deterministic planner", ex)
 
     best_plan = None
     best_score = 1e18

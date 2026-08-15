@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, elevation } from "./theme";
 import Icon from "./Icon";
-import { fetchTodayPlan, DayPlan, PlanMacros } from "./api";
+import { fetchTodayPlan, DayPlan, PlanMacros, PlannerProfileContext } from "./api";
 import { Diet, GoalTargets } from "./nutrition";
 import { Account } from "./auth";
 
@@ -22,6 +22,8 @@ type Props = {
   consumed?: PlanMacros;
   fiberTarget?: number;
   training?: string | null;
+  aiMode?: boolean;
+  profileContext?: PlannerProfileContext;
   onPlanResolved?: (plan: DayPlan) => void;
 };
 
@@ -82,6 +84,8 @@ export default function TodayPlanCard({
   consumed,
   fiberTarget,
   training,
+  aiMode,
+  profileContext,
   onPlanResolved,
 }: Props) {
   const [plan, setPlan] = useState<DayPlan | null>(null);
@@ -126,6 +130,8 @@ export default function TodayPlanCard({
         consumed,
         hour: new Date().getHours(),
         training: training ?? "",
+        aiMode,
+        profile: profileContext,
       });
       setLoading(false);
       if (p) {

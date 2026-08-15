@@ -357,6 +357,8 @@ export async function recommendMeals(
     consumed?: { kcal: number; protein_g: number; carbs_g: number; fat_g: number };
     date?: string;
     training?: string;
+    aiMode?: boolean;
+    profile?: PlannerProfileContext;
   } = {},
   limit = 12,
 ): Promise<{
@@ -401,6 +403,8 @@ export async function recommendMeals(
         ...(options.consumed ? { consumed: options.consumed } : {}),
         ...(options.date ? { date: options.date } : {}),
         ...(options.training ? { training: options.training } : {}),
+        ...(options.aiMode ? { ai_mode: true } : {}),
+        ...(options.profile ? { profile: options.profile } : {}),
       }),
     });
   } catch {
@@ -571,6 +575,19 @@ export type DayPlan = {
   status?: Record<string, "on_target" | "slightly_below" | "slightly_above" | "significantly_below" | "significantly_above">;
 };
 
+export type PlannerProfileContext = {
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  target_weight_kg?: number;
+  activity?: string;
+  goal_pace?: string;
+  goal_kind?: string;
+  diet?: string;
+  goal?: string;
+};
+
 export async function fetchTodayPlan(input: {
   targets: PlanMacros;
   diet: Diet;
@@ -582,6 +599,8 @@ export async function fetchTodayPlan(input: {
   consumed?: PlanMacros;
   hour?: number;
   training?: string;
+  aiMode?: boolean;
+  profile?: PlannerProfileContext;
 }): Promise<DayPlan | null> {
   let res: Response;
   try {
@@ -597,6 +616,8 @@ export async function fetchTodayPlan(input: {
         ...(input.consumed ? { consumed: input.consumed } : {}),
         ...(typeof input.hour === "number" ? { hour: input.hour } : {}),
         ...(input.training ? { training: input.training } : {}),
+        ...(input.aiMode ? { ai_mode: true } : {}),
+        ...(input.profile ? { profile: input.profile } : {}),
       }),
     });
   } catch {

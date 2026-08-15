@@ -17,7 +17,7 @@ import ShareSheet from "./ShareSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
 import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
-import { APP_NAME, APP_SUBTAGLINE, APP_TAGLINE } from "./config";
+import { AI_PLANNER_FULL_MODE, APP_NAME, APP_SUBTAGLINE, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
 import {
   dayMacros,
@@ -383,6 +383,18 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const remP = Math.max(0, goal.protein_g - dm.protein_g);
   const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
   const remF = Math.max(0, goal.fat_g - dm.fat_g);
+  const plannerProfile = {
+    age: profile.age,
+    gender: profile.gender || undefined,
+    height_cm: profile.heightCm,
+    weight_kg: profile.weightKg,
+    target_weight_kg: profile.targetWeightKg,
+    activity: profile.activity,
+    goal_pace: profile.goalPace,
+    goal_kind: profile.goalKind,
+    diet: profile.diet,
+    goal: profile.goal,
+  };
   const biggestGap = useMemo(() => {
     const rows = [
       { key: "protein", left: remP, target: Math.max(1, goal.protein_g) },
@@ -418,6 +430,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           consumed: { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
           date: today,
           training: training ?? "",
+          aiMode: AI_PLANNER_FULL_MODE,
+          profile: plannerProfile,
         },
       )
         .then(({ candidates, suggestion, nextMove: move }) => {
@@ -1063,6 +1077,8 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             account={account}
             onRequireAuth={onRequireAuth}
             training={training}
+            aiMode={AI_PLANNER_FULL_MODE}
+            profileContext={plannerProfile}
             fiberTarget={fibreRow?.target}
             consumed={{
               kcal: dayKcal,

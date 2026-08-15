@@ -8,7 +8,8 @@ import TodayPlanCard from "./TodayPlanCard";
 import { useApp } from "./AppContext";
 import { dayMacros, dayTotal, todayKey } from "./storage";
 import { dayMicros } from "./micros";
-import { recommendMeals, DayPlan } from "./api";
+import { recommendMeals, DayPlan, PlannerProfileContext } from "./api";
+import { AI_PLANNER_FULL_MODE } from "./config";
 import { colors, elevation } from "./theme";
 import { notifyNextMealRecommendation, notifyPlanUpdate } from "./push";
 
@@ -43,6 +44,18 @@ export default function PlanScreen() {
   const remP = Math.max(0, goal.protein_g - dm.protein_g);
   const remC = Math.max(0, goal.carbs_g - dm.carbs_g);
   const remF = Math.max(0, goal.fat_g - dm.fat_g);
+  const plannerProfile: PlannerProfileContext = {
+    age: profile.age,
+    gender: profile.gender || undefined,
+    height_cm: profile.heightCm,
+    weight_kg: profile.weightKg,
+    target_weight_kg: profile.targetWeightKg,
+    activity: profile.activity,
+    goal_pace: profile.goalPace,
+    goal_kind: profile.goalKind,
+    diet: profile.diet,
+    goal: profile.goal,
+  };
 
   const biggestGap = useMemo(() => {
     const rows = [
@@ -76,6 +89,8 @@ export default function PlanScreen() {
           targets: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
           consumed: { kcal: dayKcal, protein_g: dm.protein_g, carbs_g: dm.carbs_g, fat_g: dm.fat_g },
           date: today,
+          aiMode: AI_PLANNER_FULL_MODE,
+          profile: plannerProfile,
         },
       )
         .then(({ nextMove: move }) => {
@@ -218,6 +233,8 @@ export default function PlanScreen() {
             account={account}
             onRequireAuth={requireAuth}
             training=""
+            aiMode={AI_PLANNER_FULL_MODE}
+            profileContext={plannerProfile}
             fiberTarget={fibreRow?.target}
             consumed={{
               kcal: dayKcal,

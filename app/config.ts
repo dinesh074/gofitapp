@@ -39,3 +39,7 @@ export const FREE_SCANS = 3;
 // (backend must have ALLOW_DEV_LOGIN=1). OFF for production — real Google
 // sign-in is required. Flip to true only for local testing on your own machine.
 export const AUTH_BYPASS = false;
+
+// Temporary test switch: run Next Move + Today Plan in AI-first mode.
+// Keep false for normal deterministic DB-first planning.
+export const AI_PLANNER_FULL_MODE = true;

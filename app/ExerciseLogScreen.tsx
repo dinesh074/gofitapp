@@ -8,6 +8,7 @@ import { addExerciseLog, AuthRequiredError, deleteExerciseLog, ExerciseCatalog, 
 import { todayKey } from "./storage";
 import { useApp } from "./AppContext";
 import { goBackOrTabs } from "./nav";
+import WorkoutLibrary from "./WorkoutLibrary";
 
 const DURATIONS = [10, 20, 30, 45, 60];
 
@@ -18,6 +19,7 @@ export default function ExerciseLogScreen() {
   const [catalog, setCatalog] = useState<ExerciseCatalog | null>(null);
   const [day, setDay] = useState<ExerciseDay | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,10 +156,34 @@ export default function ExerciseLogScreen() {
                   })}
                 </View>
               ))}
+
+              <Pressable style={styles.guidedBtn} onPress={() => setShowLibrary(true)}>
+                <View style={styles.guidedIcon}>
+                  <Icon name="dumbbell" size={16} color={colors.green} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.guidedTitle}>Guided workouts</Text>
+                  <Text style={styles.guidedSub}>Demo photos + step-by-step form</Text>
+                </View>
+                <Icon name="chevronRight" size={16} color={colors.mute} />
+              </Pressable>
             </>
           )}
         </ScrollView>
       </View>
+
+      {showLibrary && (
+        <WorkoutLibrary
+          visible={showLibrary}
+          date={date}
+          onClose={() => setShowLibrary(false)}
+          onLogged={(d) => setDay(d)}
+          onRequireAuth={() => {
+            setShowLibrary(false);
+            requireAuth();
+          }}
+        />
+      )}
     </Screen>
   );
 }
@@ -184,5 +210,8 @@ const styles = StyleSheet.create({
   durRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8, marginBottom: 2 },
   durChip: { backgroundColor: colors.greenTint, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
   durText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  guidedBtn: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.card, borderRadius: 14, padding: 12, ...elevation.sm },
+  guidedIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
+  guidedTitle: { color: colors.ink, fontWeight: "800", fontSize: 14 },
+  guidedSub: { color: colors.mute, fontWeight: "600", fontSize: 12, marginTop: 1 },
 });
-

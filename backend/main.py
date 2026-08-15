@@ -19,6 +19,7 @@ Run:
 import os
 import io
 import json
+import math
 import re
 import time
 import hashlib
@@ -26,6 +27,7 @@ import logging
 import threading
 import itertools
 from collections import Counter, defaultdict, deque
+from typing import Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -1430,6 +1432,92 @@ def _ai_phrase(diet: str, goal: dict, slot: str, rem: dict, top: list) -> str:
     return text
 
 
+def _to_num(v, default: float = 0.0) -> float:
+    try:
+        n = float(v)
+        if not math.isfinite(n):
+            return default
+        return n
+    except Exception:
+        return default
+
+
+def _normalize_meal_from_ai(meal: dict, fallback_name: str) -> dict:
+    name = str((meal or {}).get("name") or fallback_name or "Suggested meal").strip()[:80] or "Suggested meal"
+    raw_items = (meal or {}).get("items") or []
+    items = []
+    for it in raw_items[:6]:
+        if not isinstance(it, dict):
+            continue
+        item_name = str(it.get("name") or "").strip()[:80]
+        if not item_name:
+            continue
+        items.append(
+            {
+                "name": item_name,
+                "count": max(0.1, min(6.0, _to_num(it.get("count"), 1.0))),
+                "unit": str(it.get("unit") or "serving").strip()[:20] or "serving",
+                "kcal": max(0.0, _to_num(it.get("kcal"), 0.0)),
+                "protein_g": max(0.0, _to_num(it.get("protein_g"), 0.0)),
+                "carbs_g": max(0.0, _to_num(it.get("carbs_g"), 0.0)),
+                "fat_g": max(0.0, _to_num(it.get("fat_g"), 0.0)),
+                "fiber_g": max(0.0, _to_num(it.get("fiber_g"), 0.0)),
+            }
+        )
+    if not items:
+        return {
+            "name": name,
+            "kcal": max(0.0, _to_num((meal or {}).get("kcal"), 0.0)),
+            "protein_g": max(0.0, _to_num((meal or {}).get("protein_g"), 0.0)),
+            "carbs_g": max(0.0, _to_num((meal or {}).get("carbs_g"), 0.0)),
+            "fat_g": max(0.0, _to_num((meal or {}).get("fat_g"), 0.0)),
+            "items": [],
+        }
+    kcal = round(sum(_to_num(i.get("kcal")) for i in items), 1)
+    protein_g = round(sum(_to_num(i.get("protein_g")) for i in items), 1)
+    carbs_g = round(sum(_to_num(i.get("carbs_g")) for i in items), 1)
+    fat_g = round(sum(_to_num(i.get("fat_g")) for i in items), 1)
+    return {"name": name, "kcal": kcal, "protein_g": protein_g, "carbs_g": carbs_g, "fat_g": fat_g, "items": items}
+
+
+def _ai_next_move(rem: dict, diet: str, goal_name: str, slot: str, training: str, profile: dict) -> Optional[dict]:
+    prompt = (
+        "You are a practical Indian nutrition planner. Build ONE realistic next meal and up to three alternatives.\n"
+        "Use the user's context and remaining macros.\n"
+        f"Context:\nremaining={json.dumps(rem)}\ndiet={diet}\ngoal={goal_name}\nslot={slot}\ntraining={training}\nprofile={json.dumps(profile or {}, ensure_ascii=True)}\n\n"
+        "Return JSON only with this exact shape:\n"
+        '{"category":"protein_gap|energy_gap|fat_cap|balanced","reason":"short user-facing sentence",'
+        '"meal":{"name":"...","items":[{"name":"...","count":1,"unit":"serving","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]},'
+        '"alternatives":[{"name":"...","items":[{"name":"...","count":1,"unit":"serving","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]}]}\n'
+        "Rules: Indian-friendly meals only, no supplements/powders, realistic portions, concise reason (<24 words)."
+    )
+    resp = _generate(prompt)
+    data = extract_json(resp.text)
+    cat = str(data.get("category") or "").strip().lower()
+    if cat not in ("protein_gap", "energy_gap", "fat_cap", "balanced"):
+        cat = _macro_gap_reason(rem, goal_name)[0]
+    meal = _normalize_meal_from_ai(data.get("meal") or {}, "Next meal")
+    if meal["kcal"] <= 0 and not meal["items"]:
+        return None
+    seen = {meal["name"].strip().lower()}
+    alternatives = []
+    for alt in (data.get("alternatives") or [])[:5]:
+        if not isinstance(alt, dict):
+            continue
+        norm = _normalize_meal_from_ai(alt, "Alternative")
+        key = norm["name"].strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        alternatives.append(norm)
+        if len(alternatives) >= 3:
+            break
+    reason = str(data.get("reason") or "").strip()
+    if not reason:
+        reason = _macro_gap_reason(rem, goal_name)[1]
+    return {"category": cat, "slot": slot, "reason": reason[:180], "meal": meal, "alternatives": alternatives}
+
+
 class Remaining(BaseModel):
     kcal: float = 0
     protein_g: float = 0
@@ -1444,6 +1532,19 @@ class RecommendTargets(BaseModel):
     fat_g: float = 0
 
 
+class RecommendProfile(BaseModel):
+    age: Optional[float] = None
+    gender: str = ""
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
+    activity: str = ""
+    goal_pace: str = ""
+    goal_kind: str = ""
+    diet: str = ""
+    goal: str = ""
+
+
 class RecommendBody(BaseModel):
     remaining: Remaining
     diet: str = "veg"
@@ -1455,6 +1556,8 @@ class RecommendBody(BaseModel):
     consumed: RecommendTargets | None = None
     date: str = ""
     training: str = ""
+    ai_mode: bool = False
+    profile: RecommendProfile | None = None
 
 
 def _init_recommendation_history_table(c) -> None:
@@ -2070,6 +2173,33 @@ def foods_recommend(body: RecommendBody, request: Request):
         rem["carbs_g"] = min(rem["carbs_g"], max(10.0, body.targets.carbs_g * share))
         rem["fat_g"] = min(rem["fat_g"], max(4.0, body.targets.fat_g * share))
 
+    reason_category, reason_text = _macro_gap_reason(rem, goal_name)
+    top = _rank_foods(rem, goal, diet, limit)
+    out = {"results": [_food_suggestion(f) for f in top], "slot": slot}
+    if body.ai_mode:
+        try:
+            ai_move = _ai_next_move(
+                rem=rem,
+                diet=diet,
+                goal_name=goal_name,
+                slot=slot,
+                training=training,
+                profile=(body.profile.model_dump() if body.profile else {}),
+            )
+            if ai_move:
+                out["next_move"] = ai_move
+                log.info(
+                    "next_move ai mode slot=%s category=%s meal=%s",
+                    slot,
+                    ai_move.get("category"),
+                    ai_move.get("meal", {}).get("name"),
+                )
+        except Exception as ex:
+            log.info("next_move ai mode failed (%s) -- falling back to deterministic ranking", ex)
+        if body.phrase:
+            out["suggestion"] = (out.get("next_move", {}).get("reason") if out.get("next_move") else None) or _deterministic_phrase(top, rem)
+        return out
+
     meals = _build_next_move_candidates(
         account_id=acct["id"],
         date_key=date_key,
@@ -2080,9 +2210,6 @@ def foods_recommend(body: RecommendBody, request: Request):
         training=training,
         limit=max(3, min(10, limit)),
     )
-    reason_category, reason_text = _macro_gap_reason(rem, goal_name)
-    top = _rank_foods(rem, goal, diet, limit)
-    out = {"results": [_food_suggestion(f) for f in top], "slot": slot}
     if meals:
         primary = meals[0]
         alternatives = meals[1:4]
@@ -2997,11 +3124,101 @@ def _plan_ai_note(plan_data: dict, diet: str, goal_str: str) -> str:
         return ""
 
 
+def _plan_ai_complete(
+    targets: dict,
+    diet: str,
+    goal: str,
+    date_key: str,
+    training_context: str = "",
+    consumed: Optional[dict] = None,
+    hour: Optional[int] = None,
+    profile: Optional[dict] = None,
+) -> dict:
+    consumed = consumed or {}
+    slot_template = {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "snack": "Snack",
+        "dinner": "Dinner",
+    }
+    remaining = {
+        "kcal": round(max(0.0, _to_num(targets.get("kcal")) - _to_num(consumed.get("kcal"))), 1),
+        "protein_g": round(max(0.0, _to_num(targets.get("protein_g")) - _to_num(consumed.get("protein_g"))), 1),
+        "carbs_g": round(max(0.0, _to_num(targets.get("carbs_g")) - _to_num(consumed.get("carbs_g"))), 1),
+        "fat_g": round(max(0.0, _to_num(targets.get("fat_g")) - _to_num(consumed.get("fat_g"))), 1),
+    }
+    prompt = (
+        "Create an Indian diet meal plan JSON for one day with four slots (breakfast, lunch, snack, dinner).\n"
+        "Be practical, culturally realistic, and goal-aligned. No supplements.\n"
+        f"Context:\nprofile={json.dumps(profile or {}, ensure_ascii=True)}\ndiet={diet}\ngoal={goal}\n"
+        f"training={training_context}\ntargets={json.dumps(targets)}\nconsumed={json.dumps(consumed)}\nremaining={json.dumps(remaining)}\nhour={hour}\n\n"
+        "Return JSON only in this exact shape:\n"
+        '{"coach_note":"short sentence","slots":['
+        '{"slot":"breakfast","label":"Breakfast","target_kcal":0,"items":[{"name":"...","count":1,"unit":"serving","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0,"fiber_g":0}]},'
+        '{"slot":"lunch","label":"Lunch","target_kcal":0,"items":[]},'
+        '{"slot":"snack","label":"Snack","target_kcal":0,"items":[]},'
+        '{"slot":"dinner","label":"Dinner","target_kcal":0,"items":[]}'
+        "]}\n"
+        "Use numeric values for macros, concise names, and realistic portions."
+    )
+    resp = _generate(prompt)
+    data = extract_json(resp.text)
+    slots = []
+    by_slot = {}
+    for row in (data.get("slots") or []):
+        if not isinstance(row, dict):
+            continue
+        key = str(row.get("slot") or "").strip().lower()
+        if key not in slot_template:
+            continue
+        meal = _normalize_meal_from_ai({"name": key.title(), "items": row.get("items") or []}, key.title())
+        slot = {
+            "slot": key,
+            "label": slot_template[key],
+            "target_kcal": round(max(0.0, _to_num(row.get("target_kcal"), 0.0))),
+            "items": meal.get("items", []),
+            "kcal": round(_to_num(meal.get("kcal")), 1),
+            "protein_g": round(_to_num(meal.get("protein_g")), 1),
+            "carbs_g": round(_to_num(meal.get("carbs_g")), 1),
+            "fat_g": round(_to_num(meal.get("fat_g")), 1),
+        }
+        fibre_vals = [_to_num(i.get("fiber_g")) for i in slot["items"] if _to_num(i.get("fiber_g"), -1.0) >= 0]
+        if fibre_vals:
+            slot["fiber_g"] = round(sum(fibre_vals), 1)
+        by_slot[key] = slot
+    for key, label in slot_template.items():
+        slots.append(by_slot.get(key) or {"slot": key, "label": label, "target_kcal": 0, "items": [], "kcal": 0.0, "protein_g": 0.0, "carbs_g": 0.0, "fat_g": 0.0})
+    totals = {
+        "kcal": round(sum(_to_num(s.get("kcal")) for s in slots), 1),
+        "protein_g": round(sum(_to_num(s.get("protein_g")) for s in slots), 1),
+        "carbs_g": round(sum(_to_num(s.get("carbs_g")) for s in slots), 1),
+        "fat_g": round(sum(_to_num(s.get("fat_g")) for s in slots), 1),
+    }
+    fibre_total = round(sum(_to_num(s.get("fiber_g")) for s in slots if _to_num(s.get("fiber_g"), -1.0) >= 0), 1)
+    if fibre_total > 0:
+        totals["fiber_g"] = fibre_total
+    out = {
+        "date": date_key,
+        "signature": "",
+        "targets": {k: round(_to_num(targets.get(k)), 1) for k in ("kcal", "protein_g", "carbs_g", "fat_g")},
+        "totals": totals,
+        "slots": slots,
+        "generated_at": time.time(),
+        "coach_note": str(data.get("coach_note") or "").strip()[:220],
+    }
+    if "fiber_g" in targets:
+        out["targets"]["fiber_g"] = round(_to_num(targets.get("fiber_g")), 1)
+    if not out["coach_note"]:
+        out["coach_note"] = _plan_ai_note(out, diet, goal) or "Plan tuned to your profile and today's remaining budget."
+    return out
+
+
 plan.init_db()
 plan.configure(
     pick_for_slot=_plan_pick_for_slot,
     ai_note=_plan_ai_note,
     pick_meal_for_slot=_plan_pick_meal_for_slot,
     build_day_plan=_build_shared_day_plan,
+    ai_full_plan=_plan_ai_complete,
 )
 app.include_router(plan.router)
