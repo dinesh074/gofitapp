@@ -30,7 +30,7 @@ export type HomeModuleMeta = {
 export const HOME_MODULES: HomeModuleMeta[] = [
   { key: "summary", label: "Today's nutrition", desc: "Calories, macros and remaining budget", icon: "flame", lockedVisible: true },
   { key: "addHub", label: "Add / Track", desc: "All scan and logging options in one place", icon: "plus" },
-  { key: "streak", label: "Monthly streak", desc: "Days you hit your goal", icon: "trophy" },
+  { key: "streak", label: "Last 30 days", desc: "Logged and on-target day summary", icon: "trophy" },
   { key: "micros", label: "Micronutrients", desc: "Fibre, iron, sodium and more", icon: "nutrition", requiresCoach: true },
   { key: "wellness", label: "Water & steps", desc: "Hydration and daily steps", icon: "water" },
   { key: "exercise", label: "Exercise", desc: "Log workouts & calories burned", icon: "dumbbell" },

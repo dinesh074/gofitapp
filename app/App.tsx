@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, BackHandler, Platform, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
@@ -50,6 +50,17 @@ import {
 } from "./storage";
 
 const navRef = createNavigationContainerRef();
+
+function activeLeafRouteName(state: any): string {
+  let cursor = state;
+  while (cursor && cursor.routes && typeof cursor.index === "number") {
+    const route = cursor.routes[cursor.index];
+    if (!route) break;
+    if (!route.state) return String(route.name ?? "");
+    cursor = route.state;
+  }
+  return "";
+}
 
 function AppInner() {
   const [logs, setLogs] = useState<LogMap>({});
@@ -114,6 +125,53 @@ function AppInner() {
       (navRef as any).navigate("Tabs", { screen: "Plan" });
     });
     return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (!navRef.isReady()) return false;
+      if (navRef.canGoBack()) {
+        (navRef as any).goBack();
+        return true;
+      }
+      const active = activeLeafRouteName(navRef.getRootState());
+      if (active && active !== "Home") {
+        (navRef as any).navigate("Tabs", { screen: "Home" });
+        return true;
+      }
+      // Keep the app in place at the root instead of closing immediately.
+      return true;
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const keepInAppHistory = () => {
+      try {
+        window.history.pushState({ gofit: true }, "", window.location.href);
+      } catch {}
+    };
+    keepInAppHistory();
+    const onPopState = () => {
+      if (!navRef.isReady()) {
+        keepInAppHistory();
+        return;
+      }
+      if (navRef.canGoBack()) {
+        (navRef as any).goBack();
+        keepInAppHistory();
+        return;
+      }
+      const active = activeLeafRouteName(navRef.getRootState());
+      if (active && active !== "Home") {
+        (navRef as any).navigate("Tabs", { screen: "Home" });
+      }
+      keepInAppHistory();
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   // The tables this account's profile and meal history actually live in

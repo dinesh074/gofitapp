@@ -64,6 +64,11 @@ import recipe_combo_engine
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gofit")
 
+if not blob_storage.configured():
+    log.warning(
+        "Supabase Storage is not configured; image uploads will fall back to local disk only."
+    )
+
 MODEL = os.environ.get("FOOD_MODEL", "gemini-3.5-flash-lite")
 
 # temperature=0 => deterministic: the same photo yields the same numbers.

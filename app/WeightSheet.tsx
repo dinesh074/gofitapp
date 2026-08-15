@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { LIMITS, clamp } from "./nutrition";
 import { addWeight } from "./storage";
 import { addServerWeight, AuthRequiredError } from "./api";
 import { colors, radius, elevation } from "./theme";
-import Icon from "./Icon";
+import NumberStepper from "./NumberStepper";
 
 type Props = {
   visible: boolean;
@@ -21,31 +21,15 @@ type Props = {
 // weight_logs table (addServerWeight), then it tells the app so every dependent
 // target recalculates.
 export default function WeightSheet({ visible, initialKg, onClose, onLogged, onRequireAuth }: Props) {
-  const STEP_KG = 0.1;
   const round1 = (n: number) => Math.round(n * 10) / 10;
   const clampWeight = (n: number) => round1(clamp(n, LIMITS.weightKg.min, LIMITS.weightKg.max));
   const [entry, setEntry] = useState<number>(clampWeight(initialKg));
-  const [draft, setDraft] = useState<string>(clampWeight(initialKg).toFixed(1));
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
-    const next = clampWeight(initialKg);
-    setEntry(next);
-    setDraft(next.toFixed(1));
+    setEntry(clampWeight(initialKg));
   }, [visible, initialKg]);
-
-  function applyDraft(text: string) {
-    const cleaned = text.replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    const normalized =
-      parts.length <= 1
-        ? cleaned
-        : `${parts[0]}.${parts.slice(1).join("")}`;
-    setDraft(normalized);
-    const n = Number(normalized);
-    if (Number.isFinite(n)) setEntry(clampWeight(n));
-  }
 
   async function save() {
     setBusy(true);
@@ -73,36 +57,16 @@ export default function WeightSheet({ visible, initialKg, onClose, onLogged, onR
           <Text style={styles.sub}>Updates your profile and all dependent targets.</Text>
 
           <View style={styles.inputRow}>
-            <Pressable
-              style={styles.btn}
-              onPress={() => {
-                const next = clampWeight(entry - STEP_KG);
-                setEntry(next);
-                setDraft(next.toFixed(1));
-              }}
-            >
-              <Icon name="minus" size={22} color={colors.green} />
-            </Pressable>
-            <View style={styles.center}>
-              <TextInput
-                style={styles.input}
-                keyboardType="decimal-pad"
-                value={draft}
-                onChangeText={applyDraft}
-                onBlur={() => setDraft(entry.toFixed(1))}
-              />
-              <Text style={styles.unit}>kg</Text>
-            </View>
-            <Pressable
-              style={styles.btn}
-              onPress={() => {
-                const next = clampWeight(entry + STEP_KG);
-                setEntry(next);
-                setDraft(next.toFixed(1));
-              }}
-            >
-              <Icon name="plus" size={22} color={colors.green} />
-            </Pressable>
+            <NumberStepper
+              value={entry}
+              min={LIMITS.weightKg.min}
+              max={LIMITS.weightKg.max}
+              step={0.1}
+              decimals={1}
+              unit="kg"
+              compact
+              onChange={(v) => setEntry(clampWeight(v))}
+            />
           </View>
 
           <Pressable style={styles.logBtn} onPress={save} disabled={busy}>
@@ -134,20 +98,7 @@ const styles = StyleSheet.create({
   grabber: { alignSelf: "center", width: 40, height: 5, borderRadius: 3, backgroundColor: "#CBD5D0", marginTop: 10, marginBottom: 14 },
   title: { fontSize: 20, fontWeight: "900", color: colors.ink, letterSpacing: -0.3 },
   sub: { fontSize: 13, color: colors.mute, marginTop: 4, marginBottom: 18, lineHeight: 18 },
-  inputRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  btn: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.greenTint, alignItems: "center", justifyContent: "center" },
-  center: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    minHeight: 92,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.card,
-  },
-  input: { fontSize: 34, fontWeight: "900", color: colors.ink, textAlign: "center", minWidth: 120, padding: 0 },
-  unit: { fontSize: 13, color: colors.mute, marginTop: -2, fontWeight: "700" },
+  inputRow: { alignItems: "center", justifyContent: "center" },
   logBtn: { backgroundColor: colors.green, borderRadius: radius.md, paddingVertical: 15, alignItems: "center", marginTop: 22, ...elevation.sm },
   logBtnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   cancel: { alignItems: "center", paddingVertical: 12, marginTop: 2 },

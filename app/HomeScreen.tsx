@@ -12,16 +12,14 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, fetchTodayPlan, DayPlan } from "./api";
+import { analyzeImage, AnalysisResult, FoodItem, FoodSuggestion, Pairing, getCombos, PortionQuestion, PaywallError, AuthRequiredError, addServerLog, getWater, addWater as apiAddWater, getHabits, setHabit as apiSetHabit, recommendMeals, fetchMealVerdict, ApiVerdict, getExerciseLogs, getHomeLayout, putHomeLayout, submitScanCorrection, DayPlan } from "./api";
 import DescribeMeal from "./DescribeMeal";
 import BarcodeScanner from "./BarcodeScanner";
 import ShareSheet from "./ShareSheet";
 import AddFoodSheet from "./AddFoodSheet";
 import FoodSearchSheet from "./FoodSearchSheet";
-import ExerciseSheet from "./ExerciseSheet";
 import WeightSheet from "./WeightSheet";
 import CustomizeHomeSheet from "./CustomizeHomeSheet";
-import WorkoutLibrary from "./WorkoutLibrary";
 import { DEFAULT_ORDER, HomeModuleKey, resolveLayout } from "./homeModules";
 import { APP_NAME, APP_SUBTAGLINE, APP_TAGLINE } from "./config";
 import { computeStepGoal, computeWaterGoalMl, GoalTargets, Profile } from "./nutrition";
@@ -66,7 +64,6 @@ import {
   saveTrainingContext,
 } from "./training";
 import { dayMicros, sumMealMicros } from "./micros";
-import MonthStreak from "./MonthStreak";
 import NutritionDetails from "./NutritionDetails";
 import Paywall from "./Paywall";
 import PressableScale from "./PressableScale";
@@ -211,11 +208,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const [waterMl, setWaterMl] = useState(0);
   const [steps, setSteps] = useState(0);
   const [exerciseKcal, setExerciseKcal] = useState(0);
-  const [showExercise, setShowExercise] = useState(false);
-  const [showLibrary, setShowLibrary] = useState(false);
-  // Bumped whenever a guided workout is logged so an open ExerciseSheet reloads
-  // today's entries (they share one exercise_logs day).
-  const [exReload, setExReload] = useState(0);
   const [showWeight, setShowWeight] = useState(false);
   const [layoutOrder, setLayoutOrder] = useState<HomeModuleKey[]>(DEFAULT_ORDER);
   const [hiddenSet, setHiddenSet] = useState<Set<HomeModuleKey>>(new Set());
@@ -376,6 +368,24 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   const dayKcal = dayTotal(logs, today);
   const meals = logs[today]?.meals ?? [];
   const dm = dayMacros(logs, today);
+  const last30Summary = useMemo(() => {
+    const now = new Date();
+    let logged = 0;
+    let onTarget = 0;
+    let over = 0;
+    for (let i = 0; i < 30; i += 1) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (29 - i));
+      const key = todayKey(d);
+      const day = logs[key];
+      if (!day || day.meals.length === 0) continue;
+      logged += 1;
+      const kcal = dayTotal(logs, key);
+      if (goal.kcal > 0 && kcal >= goal.kcal * 0.85 && kcal <= goal.kcal * 1.15) onTarget += 1;
+      if (goal.kcal > 0 && kcal > goal.kcal * 1.15) over += 1;
+    }
+    return { logged, onTarget, over };
+  }, [logs, goal.kcal]);
   // Personalized from this profile's weightKg/activity (see nutrition.ts) --
   // not the same flat number for every account regardless of who they are.
   const waterGoalMl = useMemo(() => computeWaterGoalMl(profile), [profile.weightKg, profile.activity]);
@@ -704,7 +714,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }
     // Non-meal trackers -- each routes to a real, already-implemented flow.
     if (option === "exercise") {
-      setShowExercise(true);
+      navigation.navigate("ExerciseLog");
       return;
     }
     if (option === "water") {
@@ -1054,41 +1064,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
 
   const pct = Math.min(100, Math.round((dayKcal / goal.kcal) * 100));
 
-  async function openDayPlanPreview(dateKey: string) {
-    if (!account) {
-      onRequireAuth();
-      return;
-    }
-    setPreviewDateKey(dateKey);
-    setPreviewPlanLoading(true);
-    setPreviewPlan(null);
-    const logged = dayMacros(logs, dateKey);
-    const fiberForDay = dayMicros(logs, dateKey).rows.find((r) => r.key === "fiber_g");
-    const plan = await fetchTodayPlan({
-      targets: {
-        kcal: goal.kcal,
-        protein_g: goal.protein_g,
-        carbs_g: goal.carbs_g,
-        fat_g: goal.fat_g,
-        ...(fiberForDay ? { fiber_g: fiberForDay.target } : {}),
-      },
-      diet: profile.diet,
-      goal: profile.goal,
-      date: dateKey,
-      consumed: {
-        kcal: dayTotal(logs, dateKey),
-        protein_g: logged.protein_g,
-        carbs_g: logged.carbs_g,
-        fat_g: logged.fat_g,
-        ...(fiberForDay ? { fiber_g: fiberForDay.have } : {}),
-      },
-      hour: new Date().getHours(),
-      training: training ?? "",
-    });
-    setPreviewPlan(plan);
-    setPreviewPlanLoading(false);
-  }
-
   // Each dashboard module rendered on demand in the user's chosen order. These
   // are the exact sections that were previously hard-coded top-to-bottom in the
   // scroll; order + visibility now come from the synced layout.
@@ -1312,20 +1287,62 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <Icon name="plus" size={15} color={colors.green} />
               <Text style={styles.addHubTitle}>Add / Track</Text>
             </View>
-            <Text style={styles.addHubSub}>Open the full Add / Track page for scan, barcode, manual, workout, water, and weight tools.</Text>
+            <Text style={styles.addHubSub}>All scan and logging options in one place.</Text>
+            <View style={styles.addHubChipWrap}>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("camera")}>
+                <Icon name="camera" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Scan meal</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("voice")}>
+                <Icon name="mic" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Voice log</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("gallery")}>
+                <Icon name="gallery" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Gallery</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("barcode")}>
+                <Icon name="barcode" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Barcode</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("describe")}>
+                <Icon name="edit" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Manual</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("exercise")}>
+                <Icon name="dumbbell" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Workout</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("water")}>
+                <Icon name="water" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Water</Text>
+              </Pressable>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("weight")}>
+                <Icon name="scale" size={14} color={colors.green} />
+                <Text style={styles.addHubChipText}>Weight</Text>
+              </Pressable>
+            </View>
             <Pressable style={styles.addHubOpenBtn} onPress={() => navigation.navigate("ScanHub")}>
               <Icon name="chevronRight" size={14} color={colors.green} />
-              <Text style={styles.addHubOpenText}>Open Add / Track page</Text>
+              <Text style={styles.addHubOpenText}>Open full Add / Track page</Text>
             </Pressable>
           </View>
         );
       case "streak":
         return (
-          <MonthStreak
-            logs={logs}
-            goalKcal={goal.kcal}
-            onDayPress={openDayPlanPreview}
-          />
+          <View style={styles.streakSummaryCard}>
+            <View style={styles.streakSummaryHead}>
+              <Icon name="trophy" size={16} color={colors.green} />
+              <Text style={styles.streakSummaryTitle}>Last 30 days</Text>
+            </View>
+            <Text style={styles.streakSummarySub}>
+              {last30Summary.onTarget} days on target · {last30Summary.logged} logged · {last30Summary.over} over target
+            </Text>
+            <Pressable style={styles.streakSummaryBtn} onPress={() => navigation.navigate("Progress")}>
+              <Icon name="chevronRight" size={13} color={colors.green} />
+              <Text style={styles.streakSummaryBtnText}>Open progress details</Text>
+            </Pressable>
+          </View>
         );
       case "micros":
         return AI_COACH_ENABLED ? (
@@ -1440,7 +1457,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         );
       case "exercise":
         return (
-          <PressableScale style={styles.exerciseCard} onPress={() => setShowExercise(true)}>
+          <PressableScale style={styles.exerciseCard} onPress={() => navigation.navigate("ExerciseLog")}>
             <View style={styles.exerciseIcon}>
               <Icon name="dumbbell" size={18} color={colors.green} />
             </View>
@@ -1819,37 +1836,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
         />
       )}
 
-      {showExercise && (
-        <ExerciseSheet
-          visible={showExercise}
-          date={today}
-          reloadToken={exReload}
-          onClose={() => setShowExercise(false)}
-          onChanged={(d) => setExerciseKcal(d.totalKcal)}
-          onBrowseGuided={() => setShowLibrary(true)}
-          onRequireAuth={() => {
-            setShowExercise(false);
-            onRequireAuth();
-          }}
-        />
-      )}
-
-      {showLibrary && (
-        <WorkoutLibrary
-          visible={showLibrary}
-          date={today}
-          onClose={() => setShowLibrary(false)}
-          onLogged={(d) => {
-            setExerciseKcal(d.totalKcal);
-            setExReload((n) => n + 1);
-          }}
-          onRequireAuth={() => {
-            setShowLibrary(false);
-            onRequireAuth();
-          }}
-        />
-      )}
-
       {showWeight && (
         <WeightSheet
           visible={showWeight}
@@ -2000,6 +1986,18 @@ const styles = StyleSheet.create({
   addHubHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   addHubTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
   addHubSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  addHubChipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 2 },
+  addHubChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.greenTint,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minHeight: 36,
+  },
+  addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   addHubOpenBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -2009,8 +2007,15 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingVertical: 8,
     paddingHorizontal: 11,
+    marginTop: 2,
   },
   addHubOpenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  streakSummaryCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8, ...elevation.sm },
+  streakSummaryHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  streakSummaryTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  streakSummarySub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
+  streakSummaryBtn: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.greenTint, borderRadius: 999, paddingVertical: 6, paddingHorizontal: 10 },
+  streakSummaryBtnText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   previewOverlay: { flex: 1, justifyContent: "flex-end" },
   previewBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
   previewSheet: {
