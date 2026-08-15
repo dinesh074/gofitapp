@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Platform,
   Pressable,
   ScrollView,
@@ -20,7 +22,15 @@ import Svg, { Path } from "react-native-svg";
 import { googleLogin, devLogin, requestOtp, verifyOtp } from "./api";
 import { AuthState } from "./auth";
 import { colors, radius, gradients, elevation } from "./theme";
-import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS, ENABLE_OTP_LOGIN_UI } from "./config";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  APP_SUBTAGLINE,
+  GOOGLE_CLIENT_IDS,
+  GOOGLE_CONFIGURED,
+  AUTH_BYPASS,
+  ENABLE_OTP_LOGIN_UI,
+} from "./config";
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
 import { initGoogleWeb, renderGoogleButton } from "./googleWeb";
@@ -105,6 +115,97 @@ function Perk({ icon, text }: { icon: IconName; text: string }) {
       </View>
       <Text style={styles.perkText}>{text}</Text>
     </View>
+  );
+}
+
+// Gentle continuous up/down float — used on the hero logo badge to give the
+// landing page a little life without being distracting.
+function FloatingBadge({ children }: { children: React.ReactNode }) {
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateY, {
+          toValue: -8,
+          duration: 1600,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 1600,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [translateY]);
+
+  return <Animated.View style={{ transform: [{ translateY }] }}>{children}</Animated.View>;
+}
+
+// Fade + slide-up entrance, triggered once on mount. Used to bring each
+// landing-page section in gently as the page first renders.
+function FadeInUp({
+  children,
+  delay = 0,
+  style,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  style?: any;
+}) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 480,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 480,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateY, delay]);
+
+  return <Animated.View style={[style, { opacity, transform: [{ translateY }] }]}>{children}</Animated.View>;
+}
+
+// Scale-down-on-press feedback for CTA buttons, so taps feel responsive.
+function PressScale({
+  onPress,
+  style,
+  children,
+}: {
+  onPress: () => void;
+  style?: any;
+  children: React.ReactNode;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  function onPressIn() {
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
+  }
+  function onPressOut() {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 6 }).start();
+  }
+
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+    </Pressable>
   );
 }
 
@@ -280,6 +381,154 @@ export default function AuthGate({ onAuthed }: Props) {
     }
   }
 
+  if (!AUTH_BYPASS && !showSignIn) {
+    return (
+      <View style={styles.landingRoot}>
+        <ScrollView contentContainerStyle={styles.landingScrollFull} showsVerticalScrollIndicator={false}>
+          <LinearGradient colors={gradients.brandDeep} style={styles.landingHero}>
+            <FloatingBadge>
+              <View style={styles.logoBadge}>
+                <Logo size={56} tone="light" />
+              </View>
+            </FloatingBadge>
+            <Text style={styles.heroKicker}>{APP_NAME}</Text>
+            <Text style={styles.heroHeadline}>{APP_TAGLINE}</Text>
+            <Text style={styles.heroSub}>{APP_SUBTAGLINE}</Text>
+
+            <PressScale style={styles.heroCta} onPress={() => setShowSignIn(true)}>
+              <Text style={styles.heroCtaText}>Get started — it's free</Text>
+            </PressScale>
+            <Text style={styles.heroFinePrint}>No credit card needed · Takes under a minute</Text>
+          </LinearGradient>
+
+          <FadeInUp style={styles.statsStrip} delay={80}>
+            <>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>1000+</Text>
+                <Text style={styles.statLabel}>Indian foods recognized</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>AI</Text>
+                <Text style={styles.statLabel}>Guided next meal, daily</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>Free</Text>
+                <Text style={styles.statLabel}>To get started</Text>
+              </View>
+            </>
+          </FadeInUp>
+
+          <FadeInUp style={styles.sectionWrap} delay={120}>
+            <>
+              <Text style={styles.sectionLabelCentered}>Core idea</Text>
+              <Text style={styles.sectionHeading}>
+                Track food the way you really eat, then get actionable guidance.
+              </Text>
+              <Text style={styles.sectionBody}>
+                Instead of only showing calories, {APP_NAME} explains what to eat next, what to improve, and how
+                your daily choices connect to progress.
+              </Text>
+            </>
+          </FadeInUp>
+
+          <View style={styles.sectionWrap}>
+            <Text style={styles.sectionLabelCentered}>What you get</Text>
+            <View style={styles.featureGrid}>
+              {LANDING_SECTIONS.map((item, idx) => (
+                <FadeInUp key={item.title} style={styles.featureCard} delay={160 + idx * 60}>
+                  <>
+                    <View style={styles.featureIconCircle}>
+                      <Icon name={item.icon} size={18} color="#fff" />
+                    </View>
+                    <Text style={styles.featureTitle}>{item.title}</Text>
+                    <Text style={styles.featureDesc}>{item.desc}</Text>
+                  </>
+                </FadeInUp>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.sectionWrap}>
+            <Text style={styles.sectionLabelCentered}>How it works</Text>
+            <View style={styles.stepsWrap}>
+              {["Log your meal", "Understand nutrition", "Follow next move", "Stay consistent"].map((step, idx) => (
+                <FadeInUp key={step} style={styles.stepRow} delay={idx * 70}>
+                  <>
+                    <View style={styles.stepDot}>
+                      <Text style={styles.stepDotText}>{idx + 1}</Text>
+                    </View>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </>
+                </FadeInUp>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.sectionWrap}>
+            <Text style={styles.sectionLabelCentered}>Popular goals</Text>
+            <View style={styles.goalWrap}>
+              {GOALS.map((goal) => (
+                <View key={goal} style={styles.goalChip}>
+                  <Text style={styles.goalChipText}>{goal}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.calloutBanner}>
+            <Text style={styles.calloutTitle}>Best for new users</Text>
+            <Text style={styles.calloutBody}>
+              Start with one meal log, check your suggested next meal, and build daily consistency gradually.
+              You do not need to be perfect on day one.
+            </Text>
+          </View>
+
+          <View style={styles.sectionWrap}>
+            <Text style={styles.sectionLabelCentered}>Frequently asked</Text>
+            <View style={styles.faqWrap}>
+              {FAQS.map((f, idx) => (
+                <View key={f.q} style={[styles.faqItem, idx > 0 && styles.faqDivider]}>
+                  <Text style={styles.faqQ}>{f.q}</Text>
+                  <Text style={styles.faqA}>{f.a}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.ctaBanner}>
+            <LinearGradient colors={gradients.brandDeep} style={styles.ctaBannerInner}>
+              <Text style={styles.ctaBannerTitle}>Ready to see what's next for you?</Text>
+              <Text style={styles.ctaBannerSub}>Sign in once and your plan, logs, and progress stay synced.</Text>
+              <PressScale style={styles.heroCta} onPress={() => setShowSignIn(true)}>
+                <Text style={styles.heroCtaText}>Get started — it's free</Text>
+              </PressScale>
+            </LinearGradient>
+          </View>
+
+          <Text style={styles.legal}>
+            By continuing you agree to our{" "}
+            <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
+              Terms
+            </Text>{" "}
+            and{" "}
+            <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </ScrollView>
+
+        <View style={styles.stickyBar}>
+          <PressScale style={styles.startBtn} onPress={() => setShowSignIn(true)}>
+            <Text style={styles.startBtnText}>Continue to sign in</Text>
+          </PressScale>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <LinearGradient colors={gradients.brandDeep} style={styles.root}>
       <View style={styles.hero}>
@@ -301,100 +550,6 @@ export default function AuthGate({ onAuthed }: Props) {
           <ActivityIndicator color={colors.green} />
           <Text style={styles.testMode}>Signing you in…</Text>
           {error && <Text style={styles.error}>{error}</Text>}
-        </View>
-      ) : !showSignIn ? (
-        <View style={styles.card}>
-          <ScrollView contentContainerStyle={styles.landingScroll} showsVerticalScrollIndicator={false}>
-            <Text style={styles.cardTitle}>Welcome to {APP_NAME}</Text>
-            <Text style={styles.cardSub}>A complete nutrition and progress system designed for Indian meals.</Text>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>Core idea</Text>
-              <Text style={styles.sectionTitle}>Track food the way you really eat, then get actionable guidance.</Text>
-              <Text style={styles.sectionDesc}>
-                Instead of only showing calories, {APP_NAME} explains what to eat next, what to improve, and how
-                your daily choices connect to progress.
-              </Text>
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>How it works</Text>
-              <View style={styles.stepsWrap}>
-                {["Log your meal", "Understand nutrition", "Follow next move", "Stay consistent"].map((step, idx) => (
-                  <View key={step} style={styles.stepRow}>
-                    <View style={styles.stepDot}>
-                      <Text style={styles.stepDotText}>{idx + 1}</Text>
-                    </View>
-                    <Text style={styles.stepText}>{step}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>Popular goals</Text>
-              <View style={styles.goalWrap}>
-                {GOALS.map((goal) => (
-                  <View key={goal} style={styles.goalChip}>
-                    <Text style={styles.goalChipText}>{goal}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>What you get</Text>
-              <View style={styles.previewList}>
-                {LANDING_SECTIONS.map((item) => (
-                  <View key={item.title} style={styles.previewRow}>
-                    <View style={styles.previewIcon}>
-                      <Icon name={item.icon} size={16} color={colors.green} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.previewTitle}>{item.title}</Text>
-                      <Text style={styles.previewSub}>{item.desc}</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>Best for new users</Text>
-              <Text style={styles.sectionDesc}>
-                Start with one meal log, check your suggested next meal, and build daily consistency gradually.
-                You do not need to be perfect on day one.
-              </Text>
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionLabel}>Frequently asked</Text>
-              <View style={styles.faqWrap}>
-                {FAQS.map((f, idx) => (
-                  <View key={f.q} style={[styles.faqItem, idx > 0 && styles.faqDivider]}>
-                    <Text style={styles.faqQ}>{f.q}</Text>
-                    <Text style={styles.faqA}>{f.a}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <Pressable style={styles.startBtn} onPress={() => setShowSignIn(true)}>
-              <Text style={styles.startBtnText}>Continue to sign in</Text>
-            </Pressable>
-
-            <Text style={styles.legal}>
-              By continuing you agree to our{" "}
-              <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
-                Terms
-              </Text>{" "}
-              and{" "}
-              <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
-                Privacy Policy
-              </Text>
-              .
-            </Text>
-          </ScrollView>
         </View>
       ) : (
         <View style={styles.card}>
@@ -571,6 +726,139 @@ const styles = StyleSheet.create({
   googleText: { fontSize: 16, fontWeight: "800", color: colors.ink },
   webBtnWrap: { alignItems: "center", justifyContent: "center", minHeight: 44 },
   landingScroll: { paddingBottom: 8 },
+
+  // Full-page marketing-style landing (Healthify/NutriScan-inspired).
+  landingRoot: { flex: 1, backgroundColor: colors.bg },
+  landingScrollFull: { paddingBottom: 28 },
+  landingHero: {
+    paddingTop: 64,
+    paddingBottom: 44,
+    paddingHorizontal: 28,
+    alignItems: "center",
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+  },
+  heroKicker: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginTop: 14,
+  },
+  heroHeadline: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: -0.5,
+    marginTop: 10,
+    lineHeight: 34,
+  },
+  heroSub: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 15,
+    textAlign: "center",
+    marginTop: 10,
+    lineHeight: 21,
+    maxWidth: 320,
+  },
+  heroCta: {
+    backgroundColor: "#fff",
+    borderRadius: radius.pill,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginTop: 26,
+    ...elevation.md,
+  },
+  heroCtaText: { color: colors.green, fontSize: 15.5, fontWeight: "900" },
+  heroFinePrint: { color: "rgba(255,255,255,0.7)", fontSize: 11.5, marginTop: 12 },
+
+  statsStrip: {
+    flexDirection: "row",
+    marginTop: -26,
+    marginHorizontal: 20,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    paddingVertical: 18,
+    justifyContent: "space-around",
+    ...elevation.md,
+  },
+  statItem: { alignItems: "center", flex: 1, paddingHorizontal: 4 },
+  statNumber: { color: colors.green, fontSize: 18, fontWeight: "900" },
+  statLabel: { color: colors.mute, fontSize: 10.5, fontWeight: "700", textAlign: "center", marginTop: 4 },
+  statDivider: { width: 1, backgroundColor: colors.hairline },
+
+  sectionWrap: { paddingHorizontal: 24, paddingTop: 36 },
+  sectionLabelCentered: {
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    textAlign: "center",
+  },
+  sectionHeading: {
+    color: colors.ink,
+    fontSize: 21,
+    fontWeight: "900",
+    textAlign: "center",
+    lineHeight: 27,
+    marginTop: 8,
+  },
+  sectionBody: {
+    color: colors.inkSoft,
+    fontSize: 13.5,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 20,
+    marginTop: 10,
+  },
+
+  featureGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 18 },
+  featureCard: {
+    flexBasis: "47%",
+    flexGrow: 1,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: 16,
+    ...elevation.sm,
+  },
+  featureIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.green,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  featureTitle: { color: colors.ink, fontSize: 13.5, fontWeight: "800", lineHeight: 18 },
+  featureDesc: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 4, lineHeight: 16 },
+
+  calloutBanner: {
+    marginHorizontal: 24,
+    marginTop: 36,
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.lg,
+    padding: 18,
+  },
+  calloutTitle: { color: colors.green, fontSize: 13, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.5 },
+  calloutBody: { color: colors.inkSoft, fontSize: 13, fontWeight: "600", lineHeight: 19, marginTop: 8 },
+
+  ctaBanner: { marginHorizontal: 20, marginTop: 40, borderRadius: radius.xl, overflow: "hidden" },
+  ctaBannerInner: { padding: 30, alignItems: "center" },
+  ctaBannerTitle: { color: "#fff", fontSize: 19, fontWeight: "900", textAlign: "center" },
+  ctaBannerSub: { color: "rgba(255,255,255,0.85)", fontSize: 13, textAlign: "center", marginTop: 8, lineHeight: 18 },
+
+  stickyBar: {
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.hairline,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 18,
+  },
   sectionCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
