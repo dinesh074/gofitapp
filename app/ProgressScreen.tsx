@@ -559,7 +559,7 @@ export default function ProgressScreen({
                     <Icon name="time" size={12} color={colors.mute} />
                     <Text style={styles.progressCalendarHint}>Selected: {prettyDate(previewDateKey)}</Text>
                   </View>
-                </View>
+                )}
                 <Text style={styles.footnote}>Tap any day to load its plan preview with your current targets and logged meals.</Text>
               </>
             )}
