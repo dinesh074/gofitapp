@@ -55,6 +55,7 @@ function Perk({ icon, text }: { icon: IconName; text: string }) {
 export default function AuthGate({ onAuthed }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSignIn, setShowSignIn] = useState(false);
   const webBtnRef = useRef<View>(null);
   const isWeb = Platform.OS === "web";
 
@@ -245,6 +246,57 @@ export default function AuthGate({ onAuthed }: Props) {
           <Text style={styles.testMode}>Signing you in…</Text>
           {error && <Text style={styles.error}>{error}</Text>}
         </View>
+      ) : !showSignIn ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Welcome to {APP_NAME}</Text>
+          <Text style={styles.cardSub}>Get a quick look before you sign in.</Text>
+
+          <View style={styles.previewList}>
+            <View style={styles.previewRow}>
+              <View style={styles.previewIcon}>
+                <Icon name="camera" size={16} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewTitle}>Scan or log meals in seconds</Text>
+                <Text style={styles.previewSub}>Photo, gallery, or manual logging with instant calories + macros.</Text>
+              </View>
+            </View>
+            <View style={styles.previewRow}>
+              <View style={styles.previewIcon}>
+                <Icon name="sparkles" size={16} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewTitle}>Get smart next-meal guidance</Text>
+                <Text style={styles.previewSub}>Daily plan and suggestions based on your goal and progress.</Text>
+              </View>
+            </View>
+            <View style={styles.previewRow}>
+              <View style={styles.previewIcon}>
+                <Icon name="progress" size={16} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewTitle}>Track results over time</Text>
+                <Text style={styles.previewSub}>See consistency, exercise, and nutrition trends in one place.</Text>
+              </View>
+            </View>
+          </View>
+
+          <Pressable style={styles.startBtn} onPress={() => setShowSignIn(true)}>
+            <Text style={styles.startBtnText}>Continue to sign in</Text>
+          </Pressable>
+
+          <Text style={styles.legal}>
+            By continuing you agree to our{" "}
+            <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
+              Terms
+            </Text>{" "}
+            and{" "}
+            <Text style={styles.legalLink} onPress={() => void openLegal(privacyUrl())}>
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </View>
       ) : (
         <View style={styles.card}>
         <Text style={styles.cardTitle}>Sign in to get started</Text>
@@ -273,6 +325,10 @@ export default function AuthGate({ onAuthed }: Props) {
         )}
 
         {error && <Text style={styles.error}>{error}</Text>}
+
+        <Pressable style={styles.backToPreview} onPress={() => setShowSignIn(false)} hitSlop={8}>
+          <Text style={styles.backToPreviewText}>Back to preview</Text>
+        </Pressable>
 
         {ENABLE_OTP_LOGIN_UI && (otpStage === "closed" ? (
           <Pressable style={styles.otpToggle} onPress={() => setOtpStage("email")} hitSlop={8}>
@@ -415,10 +471,43 @@ const styles = StyleSheet.create({
   googleBtnBusy: { opacity: 0.7 },
   googleText: { fontSize: 16, fontWeight: "800", color: colors.ink },
   webBtnWrap: { alignItems: "center", justifyContent: "center", minHeight: 44 },
+  previewList: { gap: 10, marginBottom: 18 },
+  previewRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
+    padding: 12,
+  },
+  previewIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.greenTint,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  previewTitle: { color: colors.ink, fontSize: 13.5, fontWeight: "800" },
+  previewSub: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 2, lineHeight: 16 },
+  startBtn: {
+    backgroundColor: colors.green,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  startBtnText: { color: "#fff", fontSize: 15, fontWeight: "800" },
   error: { color: colors.red, fontSize: 13, fontWeight: "700", marginTop: 14, textAlign: "center" },
   testMode: { color: colors.mute, fontSize: 13, fontWeight: "700", marginTop: 12, textAlign: "center" },
   legal: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 18, lineHeight: 16 },
   legalLink: { color: colors.mute, fontWeight: "800", textDecorationLine: "underline" },
+  backToPreview: { alignItems: "center", marginTop: 12, paddingVertical: 2 },
+  backToPreviewText: { color: colors.green, fontSize: 12.5, fontWeight: "800" },
   otpToggle: { alignItems: "center", marginTop: 16, paddingVertical: 4 },
   otpToggleText: { color: colors.green, fontSize: 13, fontWeight: "800", marginTop: 10 },
   otpBox: { marginTop: 16, gap: 10 },
