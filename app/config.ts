@@ -40,6 +40,9 @@ export const FREE_SCANS = 3;
 // sign-in is required. Flip to true only for local testing on your own machine.
 export const AUTH_BYPASS = false;
 
+// Email OTP login UI toggle. Keep false while backend OTP login is disabled.
+export const ENABLE_OTP_LOGIN_UI = false;
+
 // Temporary test switch: run Next Move + Today Plan in AI-first mode.
 // Keep false for normal deterministic DB-first planning.
 export const AI_PLANNER_FULL_MODE = true;

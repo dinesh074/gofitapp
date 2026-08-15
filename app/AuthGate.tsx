@@ -19,7 +19,7 @@ import Svg, { Path } from "react-native-svg";
 import { googleLogin, devLogin, requestOtp, verifyOtp } from "./api";
 import { AuthState } from "./auth";
 import { colors, radius, gradients, elevation } from "./theme";
-import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS } from "./config";
+import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS, ENABLE_OTP_LOGIN_UI } from "./config";
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
 import { initGoogleWeb, renderGoogleButton } from "./googleWeb";
@@ -274,7 +274,7 @@ export default function AuthGate({ onAuthed }: Props) {
 
         {error && <Text style={styles.error}>{error}</Text>}
 
-        {otpStage === "closed" ? (
+        {ENABLE_OTP_LOGIN_UI && (otpStage === "closed" ? (
           <Pressable style={styles.otpToggle} onPress={() => setOtpStage("email")} hitSlop={8}>
             <Text style={styles.otpToggleText}>Or sign in with an email code</Text>
           </Pressable>
@@ -336,7 +336,7 @@ export default function AuthGate({ onAuthed }: Props) {
             )}
             {otpError && <Text style={styles.error}>{otpError}</Text>}
           </View>
-        )}
+        ))}
 
         <Text style={styles.legal}>
           By continuing you agree to our{" "}
