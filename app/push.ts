@@ -15,6 +15,7 @@ Notifications.setNotificationHandler({
 });
 
 const REMINDER_IDENTIFIER = "gofit-meal-reminders";
+const PLAN_ALERT_IDENTIFIER = "gofit-plan-update";
 
 // Daily local reminders (work offline, no server involved). Meal-logging
 // nudges plus two water check-ins spread across the day.
@@ -120,7 +121,7 @@ export async function scheduleMealReminders(): Promise<void> {
         content: {
           title: r.title,
           body: r.body,
-          data: { tag: REMINDER_IDENTIFIER },
+          data: { tag: REMINDER_IDENTIFIER, route: "Plan" },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -166,4 +167,55 @@ export async function setRemindersEnabled(on: boolean): Promise<boolean> {
 export async function initNotifications(): Promise<void> {
   await registerForRemotePush();
   await scheduleMealReminders();
+}
+
+type PlannedMeal = {
+  name: string;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+};
+
+async function canSendLocalNotification(): Promise<boolean> {
+  if (Platform.OS === "web") return false;
+  const enabled = await loadRemindersEnabled();
+  if (!enabled) return false;
+  await ensureAndroidChannel();
+  const granted = await requestNotificationPermission();
+  return granted;
+}
+
+export async function notifyPlanUpdate(meal: PlannedMeal): Promise<void> {
+  try {
+    const ok = await canSendLocalNotification();
+    if (!ok) return;
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Plan updated",
+        body: `${meal.name} · ~${Math.round(meal.kcal)} kcal · P ${Math.round(meal.protein_g)}g · C ${Math.round(meal.carbs_g)}g · F ${Math.round(meal.fat_g)}g`,
+        data: { tag: PLAN_ALERT_IDENTIFIER, route: "Plan" },
+      },
+      trigger: null,
+    });
+  } catch {
+    // non-fatal
+  }
+}
+
+export async function notifyNextMealRecommendation(meal: PlannedMeal): Promise<void> {
+  try {
+    const ok = await canSendLocalNotification();
+    if (!ok) return;
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Your next best move",
+        body: `${meal.name} · ~${Math.round(meal.kcal)} kcal · P ${Math.round(meal.protein_g)}g · C ${Math.round(meal.carbs_g)}g · F ${Math.round(meal.fat_g)}g`,
+        data: { tag: PLAN_ALERT_IDENTIFIER, route: "Plan" },
+      },
+      trigger: null,
+    });
+  } catch {
+    // non-fatal
+  }
 }

@@ -11,7 +11,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import Screen from "./Screen";
-import WeeklySummary from "./WeeklySummary";
 import WeightSheet from "./WeightSheet";
 import Icon, { IconName } from "./Icon";
 import { GoalTargets, Profile } from "./nutrition";
@@ -211,6 +210,17 @@ export default function ProgressScreen({
       : `Last ${range} days`;
 
   const loggedCount = selectedDates.filter((date) => loggedDaySet.has(date)).length;
+  const calendarStats = useMemo(() => {
+    let onTarget = 0;
+    let over = 0;
+    for (const date of selectedDates) {
+      const day = summaryByDate.get(date);
+      if (!day || day.mealsCount <= 0) continue;
+      if (adherenceState(day, goal) === "full") onTarget += 1;
+      if (goal.kcal > 0 && day.kcal > goal.kcal * CALORIE_HIT_MAX) over += 1;
+    }
+    return { logged: loggedCount, onTarget, over };
+  }, [goal, loggedCount, selectedDates, summaryByDate]);
 
   return (
     <Screen edgeTop background={colors.bg}>
@@ -218,30 +228,32 @@ export default function ProgressScreen({
         <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <Text style={styles.headerTitle}>Progress</Text>
           <Text style={styles.headerSubtitle}>{rangeLabel}</Text>
-
-          <View style={styles.rangeRow}>
-            {RANGE_OPTIONS.map((option) => {
-              const active = option.key === range;
-              return (
-                <Pressable
-                  key={String(option.key)}
-                  style={[styles.rangeChip, active && styles.rangeChipActive]}
-                  onPress={() => setRange(option.key)}
-                >
-                  <Text style={[styles.rangeChipText, active && styles.rangeChipTextActive]}>{option.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <View style={styles.heroStats}>
-            <HeroStat icon="flame" label="Current streak" value={`${streak}`} />
-            <HeroStat icon="trophy" label="Best streak" value={`${best}`} />
-            <HeroStat icon="meal" label="Logged days" value={`${loggedCount}`} />
-          </View>
         </LinearGradient>
 
         <ScrollView contentContainerStyle={styles.body}>
+          <View style={styles.overviewCard}>
+            <View style={styles.rangeRow}>
+              {RANGE_OPTIONS.map((option) => {
+                const active = option.key === range;
+                return (
+                  <Pressable
+                    key={String(option.key)}
+                    style={[styles.rangeChip, active && styles.rangeChipActive]}
+                    onPress={() => setRange(option.key)}
+                  >
+                    <Text style={[styles.rangeChipText, active && styles.rangeChipTextActive]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.heroStats}>
+              <HeroStat icon="flame" label="Current streak" value={`${streak}`} />
+              <HeroStat icon="trophy" label="Best streak" value={`${best}`} />
+              <HeroStat icon="meal" label="Logged days" value={`${loggedCount}`} />
+            </View>
+          </View>
+
           {error ? (
             <View style={styles.errorCard}>
               <Icon name="warning" size={18} color={colors.red} />
@@ -447,6 +459,11 @@ export default function ProgressScreen({
                     <LegendItem color={colors.green} text="Logged" compact />
                   </View>
                 </View>
+                <View style={styles.calendarStatsRow}>
+                  <MetricTile label="Days logged" value={`${calendarStats.logged}`} accent={colors.green} />
+                  <MetricTile label="Days on target" value={`${calendarStats.onTarget}`} accent={colors.protein} />
+                  <MetricTile label="Days over" value={`${calendarStats.over}`} accent={colors.orange} />
+                </View>
 
                 <View style={styles.heatmapFrame}>
                   <View style={styles.heatmapWeekdayCol}>
@@ -477,9 +494,6 @@ export default function ProgressScreen({
               </>
             )}
           </SectionCard>
-
-          <Text style={styles.sectionLabel}>This week</Text>
-          <WeeklySummary logs={logs} goal={goal} />
 
           <SectionCard
             icon="dumbbell"
@@ -860,49 +874,55 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: {
-    paddingTop: sp(14),
+    paddingTop: sp(10),
     paddingHorizontal: sp(5),
-    paddingBottom: sp(6),
+    paddingBottom: sp(4),
     borderBottomLeftRadius: radius.xl,
     borderBottomRightRadius: radius.xl,
   },
   headerTitle: { ...T.h1, color: colors.white },
   headerSubtitle: { ...T.caption, color: `${colors.white}CC`, marginTop: sp(0.5) },
-  rangeRow: { flexDirection: "row", flexWrap: "wrap", gap: sp(2), marginTop: sp(4) },
+  overviewCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: sp(3),
+    gap: sp(3),
+    ...elevation.sm,
+  },
+  rangeRow: { flexDirection: "row", flexWrap: "wrap", gap: sp(2) },
   rangeChip: {
     minWidth: "22%",
     paddingVertical: sp(2.25),
     paddingHorizontal: sp(3),
     borderRadius: radius.pill,
-    backgroundColor: `${colors.white}1F`,
+    backgroundColor: colors.cardMuted,
     borderWidth: 1,
-    borderColor: `${colors.white}26`,
+    borderColor: colors.line,
   },
-  rangeChipActive: { backgroundColor: colors.white, borderColor: colors.white },
-  rangeChipText: { ...T.caption, color: colors.white, textAlign: "center" },
-  rangeChipTextActive: { color: colors.green },
-  heroStats: { flexDirection: "row", gap: sp(2), marginTop: sp(4) },
+  rangeChipActive: { backgroundColor: colors.greenTint, borderColor: colors.greenTint },
+  rangeChipText: { ...T.caption, color: colors.inkSoft, textAlign: "center" },
+  rangeChipTextActive: { color: colors.green, fontWeight: "800" },
+  heroStats: { flexDirection: "row", gap: sp(2) },
   heroStat: {
     flex: 1,
     paddingVertical: sp(3),
     paddingHorizontal: sp(2.5),
     borderRadius: radius.lg,
-    backgroundColor: `${colors.white}14`,
+    backgroundColor: colors.cardMuted,
     borderWidth: 1,
-    borderColor: `${colors.white}1F`,
+    borderColor: colors.line,
   },
   heroStatIcon: {
     width: sp(8),
     height: sp(8),
     borderRadius: radius.pill,
-    backgroundColor: `${colors.white}1F`,
+    backgroundColor: colors.greenTint,
     alignItems: "center",
     justifyContent: "center",
   },
-  heroStatValue: { ...T.h2, color: colors.white, marginTop: sp(2) },
-  heroStatLabel: { ...T.tiny, color: `${colors.white}CC`, marginTop: sp(1) },
+  heroStatValue: { ...T.h2, color: colors.ink, marginTop: sp(2) },
+  heroStatLabel: { ...T.tiny, color: colors.mute, marginTop: sp(1) },
   body: { padding: sp(4), paddingBottom: sp(8), gap: sp(4) },
-  sectionLabel: { ...T.overline, color: colors.mute, marginTop: sp(1) },
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -985,6 +1005,7 @@ const styles = StyleSheet.create({
   projectionSub: { ...T.body, color: colors.mute, lineHeight: 22 },
   heatmapHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: sp(3), flexWrap: "wrap" },
   heatmapSummary: { ...T.bodyStrong, color: colors.ink },
+  calendarStatsRow: { flexDirection: "row", gap: sp(2) },
   heatmapFrame: { flexDirection: "row", gap: sp(2), alignItems: "flex-start" },
   heatmapWeekdayCol: { gap: sp(1), paddingTop: sp(0.5) },
   heatmapWeekday: { ...T.tiny, color: colors.faint, height: sp(3.5) },

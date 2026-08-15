@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import Onboarding from "./Onboarding";
 import Settings from "./Settings";
 import { RootNavigator } from "./RootTabs";
@@ -47,6 +48,8 @@ import {
   saveProfile,
   todayKey,
 } from "./storage";
+
+const navRef = createNavigationContainerRef();
 
 function AppInner() {
   const [logs, setLogs] = useState<LogMap>({});
@@ -101,6 +104,16 @@ function AppInner() {
         void syncProfileAndLogs(localProfile, l, a.account.id);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
+      const route = String((resp.notification.request.content.data as any)?.route ?? "");
+      if (route !== "Plan") return;
+      if (!navRef.isReady()) return;
+      (navRef as any).navigate("Tabs", { screen: "Plan" });
+    });
+    return () => sub.remove();
   }, []);
 
   // The tables this account's profile and meal history actually live in
@@ -454,7 +467,7 @@ function AppInner() {
         logMeal,
       }}
     >
-      <NavigationContainer>
+      <NavigationContainer ref={navRef}>
         <StatusBar style="light" />
         <RootNavigator />
         <CookieBanner />

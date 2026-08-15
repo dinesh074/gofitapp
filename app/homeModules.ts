@@ -29,8 +29,6 @@ export type HomeModuleMeta = {
 
 export const HOME_MODULES: HomeModuleMeta[] = [
   { key: "summary", label: "Today's nutrition", desc: "Calories, macros and remaining budget", icon: "flame", lockedVisible: true },
-  { key: "todayPlan", label: "Today's plan", desc: "Your planned meals for the day", icon: "nutrition" },
-  { key: "nextMeal", label: "Next best move", desc: "Action-first next meal guidance", icon: "sparkles" },
   { key: "addHub", label: "Add / Track", desc: "All scan and logging options in one place", icon: "plus" },
   { key: "streak", label: "Monthly streak", desc: "Days you hit your goal", icon: "trophy" },
   { key: "micros", label: "Micronutrients", desc: "Fibre, iron, sodium and more", icon: "nutrition", requiresCoach: true },
@@ -39,9 +37,7 @@ export const HOME_MODULES: HomeModuleMeta[] = [
 ];
 
 export const DEFAULT_ORDER: HomeModuleKey[] = [
-  "nextMeal",
   "addHub",
-  "todayPlan",
   "summary",
   "exercise",
   "wellness",

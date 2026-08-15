@@ -22,6 +22,7 @@ type Props = {
   consumed?: PlanMacros;
   fiberTarget?: number;
   training?: string | null;
+  onPlanResolved?: (plan: DayPlan) => void;
 };
 
 const MACROS: { key: keyof PlanMacros; label: string; color: string; unit: string }[] = [
@@ -81,6 +82,7 @@ export default function TodayPlanCard({
   consumed,
   fiberTarget,
   training,
+  onPlanResolved,
 }: Props) {
   const [plan, setPlan] = useState<DayPlan | null>(null);
   const [loading, setLoading] = useState(false);
@@ -129,12 +131,13 @@ export default function TodayPlanCard({
       if (p) {
         setPlan(p);
         lastSig.current = sig;
+        onPlanResolved?.(p);
       } else {
         setFailed(true);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account?.id, sig],
+    [account?.id, sig, onPlanResolved],
   );
 
   useEffect(() => {

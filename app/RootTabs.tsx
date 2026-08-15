@@ -12,12 +12,15 @@ import {
   BottomTabBarProps,
 } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
 
 import TabBar, { TabKey } from "./TabBar";
 import Screen from "./Screen";
 import { useApp } from "./AppContext";
 
 import HomeScreen from "./HomeScreen";
+import PlanScreen from "./PlanScreen";
+import ScanHubScreen from "./ScanHubScreen";
 import ProgressScreen from "./ProgressScreen";
 import CommunityScreen from "./CommunityScreen";
 import ProfileScreen from "./ProfileScreen";
@@ -33,38 +36,26 @@ const Stack = createNativeStackNavigator();
 // Route names match the TabBar's TabKey values so the two stay in lockstep.
 const ROUTE_TO_TAB: Record<string, TabKey> = {
   Home: "home",
+  Plan: "plan",
+  ScanHub: "scan",
   Progress: "progress",
-  Community: "community",
   Profile: "profile",
 };
 const TAB_TO_ROUTE: Record<TabKey, string> = {
   home: "Home",
+  plan: "Plan",
+  scan: "ScanHub",
   progress: "Progress",
-  community: "Community",
   profile: "Profile",
 };
 
 function AppTabBar({ state, navigation }: BottomTabBarProps) {
   const activeRoute = state.routes[state.index]?.name ?? "Home";
   const active = ROUTE_TO_TAB[activeRoute] ?? "home";
-  const { triggerScan } = useApp();
   return (
     <TabBar
       active={active}
       onChange={(t) => navigation.navigate(TAB_TO_ROUTE[t])}
-      onScanPress={() => {
-        // Jump to the Home tab first (in case a modal-covering sheet were to
-        // open on top of a non-Home tab it would still work since Modal
-        // renders above everything, but landing on Home makes the newly
-        // logged meal immediately visible without an extra tab tap).
-        if (activeRoute !== "Home") navigation.navigate("Home");
-        // Same single entry point as Home's own "Add food" button -- bumps
-        // scanTrigger, which HomeScreen is listening on to open the full
-        // AddFoodSheet (camera, search database, gallery, barcode, manual
-        // log, voice, exercise, water, weight). Previously this navigated
-        // straight to the camera, silently skipping every other option.
-        triggerScan();
-      }}
     />
   );
 }
@@ -120,22 +111,16 @@ function ProgressTab() {
   );
 }
 
-function CommunityTab() {
-  const { profile, logs, account, requireAuth, streak } = useApp();
-  return (
-    <Screen edgeTop>
-      <CommunityScreen
-        profile={profile}
-        logs={logs}
-        account={account}
-        streak={streak}
-        onRequireAuth={requireAuth}
-      />
-    </Screen>
-  );
+function PlanTab() {
+  return <PlanScreen />;
+}
+
+function ScanHubTab() {
+  return <ScanHubScreen />;
 }
 
 function ProfileTab() {
+  const navigation = useNavigation<any>();
   const { profile, goal, logs, account, openSettings, requireAuth, signOut, streak, bestStreak } =
     useApp();
   return (
@@ -151,6 +136,22 @@ function ProfileTab() {
         onSignIn={requireAuth}
         onSignOut={signOut}
         onRequireAuth={requireAuth}
+        onOpenCommunity={() => navigation.navigate("Community")}
+      />
+    </Screen>
+  );
+}
+
+function CommunityPage() {
+  const { profile, logs, account, requireAuth, streak } = useApp();
+  return (
+    <Screen edgeTop>
+      <CommunityScreen
+        profile={profile}
+        logs={logs}
+        account={account}
+        streak={streak}
+        onRequireAuth={requireAuth}
       />
     </Screen>
   );
@@ -163,8 +164,9 @@ export default function RootTabs() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeTab} />
+      <Tab.Screen name="Plan" component={PlanTab} />
+      <Tab.Screen name="ScanHub" component={ScanHubTab} />
       <Tab.Screen name="Progress" component={ProgressTab} />
-      <Tab.Screen name="Community" component={CommunityTab} />
       <Tab.Screen name="Profile" component={ProfileTab} />
     </Tab.Navigator>
   );
@@ -200,6 +202,11 @@ export function RootNavigator() {
       <Stack.Screen
         name="NextMove"
         component={NextMoveScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="Community"
+        component={CommunityPage}
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
     </Stack.Navigator>

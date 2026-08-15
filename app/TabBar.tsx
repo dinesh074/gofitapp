@@ -4,24 +4,26 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors, gradients, elevation, type as T } from "./theme";
 import Icon, { IconName } from "./Icon";
 
-export type TabKey = "home" | "progress" | "community" | "profile";
+export type TabKey = "home" | "plan" | "scan" | "progress" | "profile";
 
 const LEFT_TABS: { key: TabKey; icon: IconName; iconOff: IconName; label: string }[] = [
   { key: "home", icon: "home", iconOff: "homeOutline", label: "Home" },
-  { key: "progress", icon: "progress", iconOff: "progressOutline", label: "Progress" },
+  { key: "plan", icon: "nutrition", iconOff: "nutrition", label: "Plan" },
 ];
 const RIGHT_TABS: { key: TabKey; icon: IconName; iconOff: IconName; label: string }[] = [
-  { key: "community", icon: "community", iconOff: "communityOutline", label: "Community" },
+  { key: "progress", icon: "progress", iconOff: "progressOutline", label: "Progress" },
   { key: "profile", icon: "profile", iconOff: "profileOutline", label: "Profile" },
 ];
+const SCAN_TAB: { key: TabKey; icon: IconName; iconOff: IconName; label: string } = {
+  key: "scan",
+  icon: "camera",
+  iconOff: "camera",
+  label: "Scan",
+};
 
 type Props = {
   active: TabKey;
   onChange: (t: TabKey) => void;
-  // Center action button -- jumps to Home and opens the AddFoodSheet (camera
-  // / gallery / barcode / describe, all in one place) immediately, reachable
-  // from any tab in one tap instead of having to first land on Home.
-  onScanPress: () => void;
 };
 
 function TabButton({
@@ -44,7 +46,8 @@ function TabButton({
   );
 }
 
-export default function TabBar({ active, onChange, onScanPress }: Props) {
+export default function TabBar({ active, onChange }: Props) {
+  const scanOn = active === "scan";
   return (
     <View style={styles.bar}>
       {LEFT_TABS.map((t) => (
@@ -52,17 +55,17 @@ export default function TabBar({ active, onChange, onScanPress }: Props) {
       ))}
 
       <View style={styles.centerSlot}>
-        <Pressable style={styles.centerBtn} onPress={onScanPress} hitSlop={8}>
+        <Pressable style={styles.centerBtn} onPress={() => onChange("scan")} hitSlop={8}>
           <LinearGradient
-            colors={gradients.brand}
+            colors={scanOn ? gradients.brand : [colors.faint, colors.faint]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.centerGradient}
           >
-            <Icon name="camera" size={26} color="#fff" />
+            <Icon name={SCAN_TAB.icon} size={26} color="#fff" />
           </LinearGradient>
         </Pressable>
-        <Text style={styles.centerLabel}>Scan</Text>
+        <Text style={[styles.centerLabel, scanOn && styles.centerLabelActive]}>{SCAN_TAB.label}</Text>
       </View>
 
       {RIGHT_TABS.map((t) => (
@@ -100,5 +103,6 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: colors.card,
   },
-  centerLabel: { ...T.tiny, color: colors.green, fontWeight: "800", marginTop: 4 },
+  centerLabel: { ...T.tiny, color: colors.mute, fontWeight: "800", marginTop: 4 },
+  centerLabelActive: { color: colors.green },
 });

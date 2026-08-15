@@ -22,7 +22,7 @@ import { colors, radius, gradients, elevation } from "./theme";
 import { APP_NAME, GOOGLE_CLIENT_IDS, GOOGLE_CONFIGURED, AUTH_BYPASS } from "./config";
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
-import { initGoogleWeb, renderGoogleButton, currentOrigin } from "./googleWeb";
+import { initGoogleWeb, renderGoogleButton } from "./googleWeb";
 import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
 
 type Props = {
@@ -176,7 +176,7 @@ export default function AuthGate({ onAuthed }: Props) {
         if (!cancelled)
           setError(
             e?.message ||
-              "Test sign-in failed. Is the backend running with ALLOW_DEV_LOGIN=1?"
+              "Sign-in failed. Please try again."
           );
       }
     })();
@@ -242,7 +242,7 @@ export default function AuthGate({ onAuthed }: Props) {
       {AUTH_BYPASS ? (
         <View style={[styles.card, { alignItems: "center" }]}>
           <ActivityIndicator color={colors.green} />
-          <Text style={styles.testMode}>Test mode — entering as Tester…</Text>
+          <Text style={styles.testMode}>Signing you in…</Text>
           {error && <Text style={styles.error}>{error}</Text>}
         </View>
       ) : (
@@ -340,14 +340,6 @@ export default function AuthGate({ onAuthed }: Props) {
           </View>
         )}
 
-        {isWeb && __DEV__ && (
-          <Text style={styles.originHint}>
-            Dev only — If Google says “origin not allowed”, add this to your Web OAuth
-            client’s Authorized JavaScript origins:{"\n"}
-            <Text style={styles.originMono}>{currentOrigin()}</Text>
-          </Text>
-        )}
-
         <Text style={styles.legal}>
           By continuing you agree to our{" "}
           <Text style={styles.legalLink} onPress={() => void openLegal(termsUrl())}>
@@ -427,8 +419,6 @@ const styles = StyleSheet.create({
   webBtnWrap: { alignItems: "center", justifyContent: "center", minHeight: 44 },
   error: { color: colors.red, fontSize: 13, fontWeight: "700", marginTop: 14, textAlign: "center" },
   testMode: { color: colors.mute, fontSize: 13, fontWeight: "700", marginTop: 12, textAlign: "center" },
-  originHint: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 14, lineHeight: 16 },
-  originMono: { color: colors.mute, fontWeight: "800" },
   legal: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 18, lineHeight: 16 },
   legalLink: { color: colors.mute, fontWeight: "800", textDecorationLine: "underline" },
   otpToggle: { alignItems: "center", marginTop: 16, paddingVertical: 4 },

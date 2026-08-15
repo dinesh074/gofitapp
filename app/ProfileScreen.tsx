@@ -33,6 +33,7 @@ type Props = {
   streak: number;
   bestStreak: number | null;
   onEditProfile: () => void;
+  onOpenCommunity: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onRequireAuth: () => void;
@@ -70,6 +71,7 @@ export default function ProfileScreen({
   streak,
   bestStreak: serverBestStreak,
   onEditProfile,
+  onOpenCommunity,
   onSignIn,
   onSignOut,
   onRequireAuth,
@@ -185,6 +187,7 @@ export default function ProfileScreen({
         {/* Actions */}
         <Text style={styles.section}>Settings</Text>
         <View style={styles.card}>
+          <MenuItem icon="group" label="Community" onPress={onOpenCommunity} />
           <MenuItem icon="edit" label="Edit profile & goal" onPress={onEditProfile} />
           <MenuItem icon="settings" label="Settings & data" onPress={onEditProfile} last />
         </View>
@@ -266,14 +269,14 @@ function MenuItem({ icon, label, onPress, last }: { icon: IconName; label: strin
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingBottom: 24, alignItems: "center", borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
-  avatar: { width: 76, height: 76, borderRadius: 38, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)" },
-  avatarText: { color: "#fff", fontSize: 28, fontWeight: "900" },
-  name: { color: "#fff", fontSize: 22, fontWeight: "800", marginTop: 12 },
-  sub: { color: "#CDEBD9", fontSize: 13, marginTop: 2 },
+  header: { paddingTop: 24, paddingBottom: 16, alignItems: "center", borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)" },
+  avatarText: { color: "#fff", fontSize: 22, fontWeight: "900" },
+  name: { color: "#fff", fontSize: 20, fontWeight: "800", marginTop: 8 },
+  sub: { color: "#CDEBD9", fontSize: 12.5, marginTop: 2 },
   body: { padding: 16, paddingBottom: 24 },
 
-  statRow: { flexDirection: "row", gap: 10, marginTop: -36, marginBottom: 8 },
+  statRow: { flexDirection: "row", gap: 10, marginTop: -24, marginBottom: 8 },
   stat: { flex: 1, backgroundColor: colors.card, borderRadius: radius.md, paddingVertical: 16, alignItems: "center", ...shadow.card },
   statValue: { fontSize: 22, fontWeight: "900", color: colors.ink },
   statLabel: { fontSize: 11, color: colors.mute, marginTop: 2 },
