@@ -323,6 +323,29 @@ export type Pairing = FoodSuggestion & {
   pairs_with?: string;
 };
 
+export type RecipeIngredientInput = {
+  food_key: string;
+  quantity: number;
+  quantity_unit: string;
+  notes?: string;
+};
+
+export async function saveRecipeTemplate(input: {
+  recipe_code: string;
+  name: string;
+  servings: number;
+  ingredients: RecipeIngredientInput[];
+  source?: string;
+}): Promise<{ ok: boolean; id: number; recipe_code: string }> {
+  return postAuth("/recipes", {
+    recipe_code: input.recipe_code,
+    name: input.name,
+    servings: input.servings,
+    ingredients: input.ingredients,
+    source: input.source ?? "user",
+  });
+}
+
 export async function getCombos(dishes: string[], limit = 6): Promise<Pairing[]> {
   const q = dishes.map((d) => d.trim()).filter(Boolean).join("|");
   if (!q) return [];

@@ -1362,6 +1362,19 @@ _PHRASE_TTL = 600  # seconds
 _PHRASE_CACHE_MAX = 512
 _phrase_cache: dict = {}
 _phrase_lock = threading.Lock()
+_ai_mode_stats = {"next_move_ok": 0, "next_move_fail": 0, "plan_ok": 0, "plan_fail": 0}
+_ai_mode_stats_lock = threading.Lock()
+
+
+def _mark_ai_mode(event: str, **ctx) -> None:
+    with _ai_mode_stats_lock:
+        if event in _ai_mode_stats:
+            _ai_mode_stats[event] += 1
+        snap = dict(_ai_mode_stats)
+    if ctx:
+        log.info("ai_mode event=%s stats=%s ctx=%s", event, snap, ctx)
+    else:
+        log.info("ai_mode event=%s stats=%s", event, snap)
 
 
 def _phrase_key(diet, goal, slot, rem, top_key) -> tuple:
@@ -2173,9 +2186,6 @@ def foods_recommend(body: RecommendBody, request: Request):
         rem["carbs_g"] = min(rem["carbs_g"], max(10.0, body.targets.carbs_g * share))
         rem["fat_g"] = min(rem["fat_g"], max(4.0, body.targets.fat_g * share))
 
-    reason_category, reason_text = _macro_gap_reason(rem, goal_name)
-    top = _rank_foods(rem, goal, diet, limit)
-    out = {"results": [_food_suggestion(f) for f in top], "slot": slot}
     if body.ai_mode:
         try:
             ai_move = _ai_next_move(
@@ -2186,19 +2196,27 @@ def foods_recommend(body: RecommendBody, request: Request):
                 training=training,
                 profile=(body.profile.model_dump() if body.profile else {}),
             )
-            if ai_move:
-                out["next_move"] = ai_move
-                log.info(
-                    "next_move ai mode slot=%s category=%s meal=%s",
-                    slot,
-                    ai_move.get("category"),
-                    ai_move.get("meal", {}).get("name"),
-                )
+            if not ai_move:
+                raise RuntimeError("empty AI next_move")
+            out = {"results": [], "slot": slot, "next_move": ai_move}
+            log.info(
+                "next_move ai mode slot=%s category=%s meal=%s",
+                slot,
+                ai_move.get("category"),
+                ai_move.get("meal", {}).get("name"),
+            )
+            _mark_ai_mode("next_move_ok", account_id=acct["id"], slot=slot)
+            if body.phrase:
+                out["suggestion"] = ai_move.get("reason") or ""
+            return out
         except Exception as ex:
-            log.info("next_move ai mode failed (%s) -- falling back to deterministic ranking", ex)
-        if body.phrase:
-            out["suggestion"] = (out.get("next_move", {}).get("reason") if out.get("next_move") else None) or _deterministic_phrase(top, rem)
-        return out
+            log.info("next_move ai mode failed (%s)", ex)
+            _mark_ai_mode("next_move_fail", account_id=acct["id"], slot=slot)
+            raise HTTPException(status_code=503, detail="AI next move unavailable")
+
+    reason_category, reason_text = _macro_gap_reason(rem, goal_name)
+    top = _rank_foods(rem, goal, diet, limit)
+    out = {"results": [_food_suggestion(f) for f in top], "slot": slot}
 
     meals = _build_next_move_candidates(
         account_id=acct["id"],

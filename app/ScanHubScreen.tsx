@@ -12,7 +12,7 @@ export default function ScanHubScreen() {
     <Screen edgeTop>
       <ScrollView style={styles.root} contentContainerStyle={styles.body}>
         <Text style={styles.title}>Add / Track</Text>
-        <Text style={styles.sub}>Use full-screen flows for meals, tracking, and workouts.</Text>
+        <Text style={styles.sub}>Use full-screen scan flows for camera, barcode, and tracking.</Text>
 
         <Pressable style={styles.actionCard} onPress={() => navigation.navigate("Scan", { mode: "camera" })}>
           <View style={styles.actionIcon}>
@@ -21,17 +21,6 @@ export default function ScanHubScreen() {
           <View style={styles.actionBody}>
             <Text style={styles.actionTitle}>Scan with camera</Text>
             <Text style={styles.actionSub}>Take a photo and get an itemized nutrition estimate.</Text>
-          </View>
-          <Icon name="chevronRight" size={16} color={colors.mute} />
-        </Pressable>
-
-        <Pressable style={styles.actionCard} onPress={() => navigation.navigate("FoodSelector")}>
-          <View style={styles.actionIcon}>
-            <Icon name="edit" size={18} color={colors.green} />
-          </View>
-          <View style={styles.actionBody}>
-            <Text style={styles.actionTitle}>Manual food search</Text>
-            <Text style={styles.actionSub}>Search the food database and log exact servings.</Text>
           </View>
           <Icon name="chevronRight" size={16} color={colors.mute} />
         </Pressable>

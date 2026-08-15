@@ -70,7 +70,7 @@ export default function NextMoveScreen() {
           {alternatives.length > 0 && (
             <>
               <Text style={styles.altHead}>Swap options</Text>
-              {alternatives.slice(0, 3).map((alt) => (
+              {alternatives.map((alt) => (
                 <Pressable key={alt.name} style={styles.altRow} onPress={() => setSelected(alt)}>
                   <Text style={styles.altName}>{alt.name}</Text>
                   <Text style={styles.altMeta}>~{Math.round(alt.kcal)} kcal</Text>

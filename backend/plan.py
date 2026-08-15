@@ -39,6 +39,7 @@ import json
 import time
 import random
 import logging
+import threading
 from typing import Callable, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -50,6 +51,8 @@ import entitlements
 
 log = logging.getLogger("gofit.plan")
 router = APIRouter(tags=["plan"])
+_ai_plan_stats = {"ok": 0, "fail": 0}
+_ai_plan_stats_lock = threading.Lock()
 
 # Injected by main.py at startup (see configure()). Kept as module globals so the
 # route handlers can reach the food DB + Gemini without importing main.
@@ -74,6 +77,19 @@ def configure(
     _pick_meal_for_slot = pick_meal_for_slot
     _build_day_plan = build_day_plan
     _ai_full_plan = ai_full_plan
+
+
+def _mark_ai_plan(event: str, **ctx) -> None:
+    with _ai_plan_stats_lock:
+        if event == "ok":
+            _ai_plan_stats["ok"] += 1
+        elif event == "fail":
+            _ai_plan_stats["fail"] += 1
+        snap = dict(_ai_plan_stats)
+    if ctx:
+        log.info("ai_plan event=%s stats=%s ctx=%s", event, snap, ctx)
+    else:
+        log.info("ai_plan event=%s stats=%s", event, snap)
 
 
 def init_db() -> None:
@@ -776,7 +792,9 @@ def plan_today(body: PlanBody, request: Request):
 
     # Always build a fresh plan on each call (no persisted read-cache).
 
-    if body.ai_mode and _ai_full_plan is not None:
+    if body.ai_mode:
+        if _ai_full_plan is None:
+            raise HTTPException(status_code=503, detail="AI planner unavailable")
         try:
             ai_plan = _ai_full_plan(
                 targets=targets,
@@ -791,9 +809,13 @@ def plan_today(body: PlanBody, request: Request):
             if isinstance(ai_plan, dict) and ai_plan.get("slots"):
                 ai_plan["signature"] = sig
                 ai_plan["date"] = date_key
+                _mark_ai_plan("ok", account_id=acct["id"], date=date_key)
                 return _respond(ai_plan, False)
+            raise RuntimeError("AI plan response was empty or invalid")
         except Exception as ex:
-            log.info("plan: AI full planner failed (%s) -- falling back to deterministic planner", ex)
+            log.info("plan: AI full planner failed (%s)", ex)
+            _mark_ai_plan("fail", account_id=acct["id"], date=date_key)
+            raise HTTPException(status_code=503, detail="AI planner unavailable")
 
     best_plan = None
     best_score = 1e18

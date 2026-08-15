@@ -191,6 +191,11 @@ export function RootNavigator() {
         options={{ presentation: "card", animation: "slide_from_right" }}
       />
       <Stack.Screen
+        name="ManualSearch"
+        component={FoodSelectorScreen}
+        options={{ presentation: "card", animation: "slide_from_right" }}
+      />
+      <Stack.Screen
         name="Scan"
         component={ScanScreen}
         options={{ presentation: "card", animation: "slide_from_bottom" }}

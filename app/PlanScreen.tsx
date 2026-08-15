@@ -36,6 +36,7 @@ export default function PlanScreen() {
     alternatives: MoveMeal[];
   } | null>(null);
   const [nextMoveChoice, setNextMoveChoice] = useState(0);
+  const [planNextMealName, setPlanNextMealName] = useState("");
   const recoSig = useRef<string | null>(null);
   const notifyRecoSig = useRef<string | null>(null);
   const notifyPlanSig = useRef<string | null>(null);
@@ -118,9 +119,15 @@ export default function PlanScreen() {
     };
   }, [account?.id, profile.diet, profile.goal, remKcal, remP, remC, remF, goal.kcal, goal.protein_g, goal.carbs_g, goal.fat_g, dayKcal, dm.protein_g, dm.carbs_g, dm.fat_g, today]);
 
-  const options = nextMove ? [nextMove.meal, ...(nextMove.alternatives ?? [])] : [];
+  const optionsRaw = nextMove ? [nextMove.meal, ...(nextMove.alternatives ?? [])] : [];
+  const options = useMemo(() => {
+    if (!optionsRaw.length || !planNextMealName) return optionsRaw;
+    const ban = planNextMealName.trim().toLowerCase();
+    const filtered = optionsRaw.filter((m) => m.name.trim().toLowerCase() !== ban);
+    return filtered.length > 0 ? filtered : optionsRaw;
+  }, [optionsRaw, planNextMealName]);
   const selected = options.length > 0 ? options[nextMoveChoice % options.length] : null;
-  const alternatives = options.filter((_, idx) => idx !== (nextMoveChoice % Math.max(1, options.length))).slice(0, 3);
+  const alternatives = options.filter((_, idx) => idx !== (nextMoveChoice % Math.max(1, options.length)));
 
   useEffect(() => {
     if (!selected) return;
@@ -131,6 +138,7 @@ export default function PlanScreen() {
   }, [today, selected?.name, selected?.kcal, selected?.protein_g, selected?.carbs_g, selected?.fat_g]);
 
   function onPlanResolved(plan: DayPlan) {
+    setPlanNextMealName((plan.next_meal || "").trim());
     const slot = plan.slots.find((s) => s.items.length > 0 && s.upcoming !== false) ?? plan.slots.find((s) => s.items.length > 0);
     const item = slot?.items[0];
     if (!slot || !item) return;

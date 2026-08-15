@@ -29,6 +29,7 @@ export default function BarcodeLookupScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [liveScan, setLiveScan] = useState(false);
+  const [scanTimedOut, setScanTimedOut] = useState(false);
   const lockedRef = useRef(false);
 
   const canUseCamera = Platform.OS !== "web";
@@ -40,6 +41,20 @@ export default function BarcodeLookupScreen() {
     }
   }, [permission, canUseCamera, requestPermission]);
 
+  useEffect(() => {
+    const scannerActive = (canUseCamera && !!permission?.granted && !notFound) || (canLiveScan && liveScan && !notFound);
+    if (!scannerActive || busy) {
+      setScanTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => {
+      setScanTimedOut(true);
+      setError("Scan taking too long. Enter the barcode manually below for a faster result.");
+      if (canLiveScan) setLiveScan(false);
+    }, 12000);
+    return () => clearTimeout(t);
+  }, [canUseCamera, permission?.granted, canLiveScan, liveScan, busy, notFound]);
+
   async function lookup(code: string) {
     const digits = code.replace(/\D/g, "");
     if (digits.length < 8 || digits.length > 14) {
@@ -50,6 +65,7 @@ export default function BarcodeLookupScreen() {
     setBusy(true);
     setError(null);
     setNotFound(false);
+    setScanTimedOut(false);
     try {
       const result = await analyzeBarcode(digits);
       navigation.replace("Scan", { mode: "review", presetResult: result });
@@ -191,6 +207,7 @@ export default function BarcodeLookupScreen() {
         )}
 
         {error && <Text style={styles.error}>{error}</Text>}
+        {scanTimedOut && <Text style={styles.muted}>Manual entry is usually quickest for hard-to-focus labels.</Text>}
 
         {notFound && (
           <PressableScale style={styles.primaryBtn} onPress={() => navigation.replace("Scan", { mode: "camera" })}>
@@ -235,4 +252,3 @@ const styles = StyleSheet.create({
   muted: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
   error: { color: colors.red, fontSize: 12.5, fontWeight: "700", textAlign: "center", marginTop: 8 },
 });
-

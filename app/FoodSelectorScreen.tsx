@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -10,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { FoodSuggestion, searchFoods, AuthRequiredError } from "./api";
+import { FoodSuggestion, searchFoods, AuthRequiredError, saveRecipeTemplate } from "./api";
 import { Meal } from "./storage";
 import { colors, radius, elevation, type as T } from "./theme";
 import Icon from "./Icon";
@@ -39,6 +40,36 @@ function mealFromSuggestion(s: FoodSuggestion, count: number): Meal {
   };
 }
 
+type PlannedDishItem = { food: FoodSuggestion; count: number };
+
+function mealFromDishPlan(name: string, rows: PlannedDishItem[]): Meal {
+  const totals = rows.reduce(
+    (acc, row) => {
+      acc.kcal += row.food.kcal_per_unit * row.count;
+      acc.protein_g += row.food.protein_g_per_unit * row.count;
+      acc.carbs_g += row.food.carbs_g_per_unit * row.count;
+      acc.fat_g += row.food.fat_g_per_unit * row.count;
+      if (row.food.micros) {
+        for (const [k, v] of Object.entries(row.food.micros)) {
+          acc.micros[k] = (acc.micros[k] || 0) + v * row.count;
+        }
+      }
+      return acc;
+    },
+    { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, micros: {} as Record<string, number> }
+  );
+  const dish = name.trim() || "Planned dish";
+  return {
+    dish,
+    kcal: Math.round(totals.kcal),
+    protein_g: Math.round(totals.protein_g),
+    carbs_g: Math.round(totals.carbs_g),
+    fat_g: Math.round(totals.fat_g),
+    at: Date.now(),
+    micros: Object.keys(totals.micros).length > 0 ? totals.micros : undefined,
+  };
+}
+
 function MacroPill({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <View style={styles.macroPill}>
@@ -64,6 +95,10 @@ export default function FoodSelectorScreen() {
   const [selected, setSelected] = useState<FoodSuggestion | null>(null);
   const [count, setCount] = useState(1);
   const [added, setAdded] = useState<string | null>(null);
+  const [dishName, setDishName] = useState("");
+  const [dishItems, setDishItems] = useState<PlannedDishItem[]>([]);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateMsg, setTemplateMsg] = useState<string | null>(null);
 
   // Debounced search — one request after typing settles, not per keystroke.
   useEffect(() => {
@@ -102,6 +137,10 @@ export default function FoodSelectorScreen() {
     () => (selected ? mealFromSuggestion(selected, count) : null),
     [selected, count]
   );
+  const plannedPreview = useMemo(
+    () => (dishItems.length > 0 ? mealFromDishPlan(dishName, dishItems) : null),
+    [dishName, dishItems]
+  );
 
   function openPortion(food: FoodSuggestion) {
     setSelected(food);
@@ -117,6 +156,71 @@ export default function FoodSelectorScreen() {
     setTimeout(() => setAdded((cur) => (cur === selected.name ? null : cur)), 1800);
   }
 
+  function addToDishPlan() {
+    if (!selected) return;
+    setDishItems((prev) => {
+      const idx = prev.findIndex((row) => row.food.key === selected.key);
+      if (idx === -1) return [...prev, { food: selected, count }];
+      const next = [...prev];
+      next[idx] = { ...next[idx], count: Math.min(40, next[idx].count + count) };
+      return next;
+    });
+    setSelected(null);
+  }
+
+  function removeFromDishPlan(foodKey: string) {
+    setDishItems((prev) => prev.filter((row) => row.food.key !== foodKey));
+  }
+
+  function logDishPlan() {
+    if (!plannedPreview || dishItems.length === 0) return;
+    logMeal(plannedPreview);
+    setAdded(plannedPreview.dish);
+    setDishItems([]);
+    setDishName("");
+    setTimeout(() => setAdded((cur) => (cur === plannedPreview.dish ? null : cur)), 1800);
+  }
+
+  function makeRecipeCode(name: string): string {
+    const base = (name || "planned_dish")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 40) || "planned_dish";
+    const suffix = Date.now().toString(36).slice(-6);
+    return `${base}_${suffix}`;
+  }
+
+  async function saveDishTemplate() {
+    if (dishItems.length === 0) return;
+    setSavingTemplate(true);
+    setTemplateMsg(null);
+    try {
+      const name = dishName.trim() || "Planned dish";
+      await saveRecipeTemplate({
+        recipe_code: makeRecipeCode(name),
+        name,
+        servings: 1,
+        ingredients: dishItems.map((row) => ({
+          food_key: row.food.key,
+          quantity: row.count,
+          quantity_unit: row.food.unit || "serving",
+        })),
+      });
+      setTemplateMsg("Saved as dish template.");
+      setTimeout(() => setTemplateMsg((cur) => (cur === "Saved as dish template." ? null : cur)), 1800);
+    } catch (e: any) {
+      if (e instanceof AuthRequiredError) {
+        requireAuth();
+        goBackOrTabs(navigation);
+        return;
+      }
+      setTemplateMsg(e?.message || "Couldn't save template right now.");
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
   return (
     <Screen edgeTop background={colors.bg}>
       {/* Header */}
@@ -124,7 +228,7 @@ export default function FoodSelectorScreen() {
         <Pressable style={styles.iconBtn} onPress={() => goBackOrTabs(navigation)} hitSlop={8}>
           <Icon name="chevronLeft" size={22} color={colors.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Add food</Text>
+        <Text style={styles.headerTitle}>Manual search</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -157,6 +261,50 @@ export default function FoodSelectorScreen() {
         </View>
       )}
 
+      <View style={styles.planCard}>
+        <View style={styles.planHead}>
+          <Icon name="sparkles" size={14} color={colors.green} />
+          <Text style={styles.planHeadText}>Plan a dish</Text>
+        </View>
+        <TextInput
+          style={styles.planNameInput}
+          value={dishName}
+          onChangeText={setDishName}
+          placeholder="Dish name (optional)"
+          placeholderTextColor={colors.faint}
+        />
+        {dishItems.length === 0 ? (
+          <Text style={styles.planEmpty}>Pick items from search results, then add them here to build one dish.</Text>
+        ) : (
+          <>
+            {dishItems.map((row) => (
+              <View key={row.food.key} style={styles.planItemRow}>
+                <Text style={styles.planItemText}>
+                  {row.food.name} ×{row.count}
+                </Text>
+                <Pressable onPress={() => removeFromDishPlan(row.food.key)} hitSlop={8}>
+                  <Icon name="close" size={16} color={colors.mute} />
+                </Pressable>
+              </View>
+            ))}
+            {!!plannedPreview && (
+              <Text style={styles.planTotals}>
+                ~{plannedPreview.kcal} kcal · P {plannedPreview.protein_g}g · C {plannedPreview.carbs_g}g · F {plannedPreview.fat_g}g
+              </Text>
+            )}
+            <Pressable style={styles.planLogBtn} onPress={logDishPlan}>
+              <Icon name="check" size={16} color={colors.white} />
+              <Text style={styles.planLogBtnText}>Add planned dish</Text>
+            </Pressable>
+            <Pressable style={[styles.planSaveBtn, savingTemplate && styles.planSaveBtnBusy]} onPress={saveDishTemplate} disabled={savingTemplate}>
+              {savingTemplate ? <ActivityIndicator size="small" color={colors.green} /> : <Icon name="plus" size={16} color={colors.green} />}
+              <Text style={styles.planSaveBtnText}>{savingTemplate ? "Saving…" : "Save as template"}</Text>
+            </Pressable>
+            {!!templateMsg && <Text style={styles.planMsg}>{templateMsg}</Text>}
+          </>
+        )}
+      </View>
+
       {error && <Text style={styles.error}>{error}</Text>}
 
       {/* Results */}
@@ -173,9 +321,22 @@ export default function FoodSelectorScreen() {
             </Text>
           </View>
         ) : results.length === 0 ? (
-          <Text style={styles.empty}>
-            No matches. Try a simpler name (e.g. “dal” instead of “yellow moong dal fry”).
-          </Text>
+          <View style={styles.emptyWrap}>
+            <Text style={styles.empty}>
+              No matches in our food database. Try a simpler name, or run a web search.
+            </Text>
+            <Pressable
+              style={styles.webSearchBtn}
+              onPress={() => {
+                const query = q.trim();
+                if (!query) return;
+                void Linking.openURL(`https://www.google.com/search?q=${encodeURIComponent(query + " nutrition")}`);
+              }}
+            >
+              <Icon name="search" size={14} color={colors.green} />
+              <Text style={styles.webSearchText}>Search on web</Text>
+            </Pressable>
+          </View>
         ) : (
           <FlatList
             data={results}
@@ -251,7 +412,11 @@ export default function FoodSelectorScreen() {
 
             <Pressable style={styles.addBtn} onPress={confirmAdd}>
               <Icon name="check" size={18} color={colors.white} />
-              <Text style={styles.addBtnText}>Add to today</Text>
+              <Text style={styles.addBtnText}>Log this item now</Text>
+            </Pressable>
+            <Pressable style={styles.addToPlanBtn} onPress={addToDishPlan}>
+              <Icon name="plus" size={18} color={colors.green} />
+              <Text style={styles.addToPlanBtnText}>Add item to dish plan</Text>
             </Pressable>
           </View>
         </View>
@@ -299,6 +464,66 @@ const styles = StyleSheet.create({
     ...elevation.sm,
   },
   addedText: { color: colors.white, fontWeight: "800", fontSize: 13 },
+  planCard: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 12,
+    gap: 8,
+    ...elevation.sm,
+  },
+  planHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  planHeadText: { color: colors.ink, fontSize: 13.5, fontWeight: "800" },
+  planNameInput: {
+    backgroundColor: colors.cardMuted,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    color: colors.ink,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    fontSize: 13.5,
+    fontWeight: "600",
+  },
+  planEmpty: { color: colors.mute, fontSize: 12.5, fontWeight: "600", lineHeight: 18 },
+  planItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.cardMuted,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  planItemText: { color: colors.ink, fontSize: 12.5, fontWeight: "700", flex: 1, paddingRight: 8 },
+  planTotals: { color: colors.mute, fontSize: 12, fontWeight: "700" },
+  planLogBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    backgroundColor: colors.green,
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  planLogBtnText: { color: colors.white, fontSize: 13.5, fontWeight: "800" },
+  planSaveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    backgroundColor: colors.greenTint,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.green,
+    paddingVertical: 9,
+  },
+  planSaveBtnBusy: { opacity: 0.7 },
+  planSaveBtnText: { color: colors.green, fontSize: 13, fontWeight: "800" },
+  planMsg: { color: colors.mute, fontSize: 12, fontWeight: "700", textAlign: "center" },
 
   error: { color: colors.red, fontSize: 12.5, marginTop: 10, paddingHorizontal: 16 },
 
@@ -309,10 +534,22 @@ const styles = StyleSheet.create({
     color: colors.mute,
     fontSize: 13,
     textAlign: "center",
-    paddingTop: 40,
     lineHeight: 20,
     paddingHorizontal: 24,
   },
+  emptyWrap: { alignItems: "center", gap: 10, paddingTop: 40, paddingHorizontal: 12 },
+  webSearchBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.green,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  webSearchText: { color: colors.green, fontSize: 12.5, fontWeight: "800" },
 
   row: {
     flexDirection: "row",
@@ -427,4 +664,17 @@ const styles = StyleSheet.create({
     ...elevation.md,
   },
   addBtnText: { color: colors.white, fontWeight: "800", fontSize: 16 },
+  addToPlanBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.green,
+  },
+  addToPlanBtnText: { color: colors.green, fontWeight: "800", fontSize: 15 },
 });

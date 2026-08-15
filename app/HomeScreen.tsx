@@ -89,7 +89,7 @@ type AddOptionKey =
   | "camera"
   | "gallery"
   | "barcode"
-  | "describe"
+  | "manual"
   | "voice"
   | "exercise"
   | "water"
@@ -100,7 +100,7 @@ const HOME_ADD_OPTIONS: Array<{ key: AddOptionKey; label: string; icon: IconName
   { key: "voice", label: "Voice log", icon: "mic" },
   { key: "gallery", label: "Gallery", icon: "gallery" },
   { key: "barcode", label: "Barcode", icon: "barcode" },
-  { key: "describe", label: "Manual", icon: "edit" },
+  { key: "manual", label: "Manual", icon: "edit" },
   { key: "exercise", label: "Workout", icon: "dumbbell" },
   { key: "water", label: "Water", icon: "water" },
   { key: "weight", label: "Weight", icon: "scale" },
@@ -245,6 +245,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }[];
   } | null>(null);
   const [nextMoveChoice, setNextMoveChoice] = useState(0);
+  const [planNextMealName, setPlanNextMealName] = useState("");
   const [nextMealExpanded, setNextMealExpanded] = useState(true);
   const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
   const [previewPlan, setPreviewPlan] = useState<DayPlan | null>(null);
@@ -705,6 +706,10 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       navigation.navigate("BarcodeLookup");
       return;
     }
+    if (option === "manual") {
+      navigation.navigate("ManualSearch");
+      return;
+    }
     // Non-meal trackers -- each routes to a real, already-implemented flow.
     if (option === "exercise") {
       navigation.navigate("ExerciseLog");
@@ -718,7 +723,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       navigation.navigate("WeightLog");
       return;
     }
-    // describe / voice -- shared full-screen flow.
+    // Voice logging flow.
     navigation.navigate("DescribeMeal");
   }
 
@@ -1079,6 +1084,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
             training={training}
             aiMode={AI_PLANNER_FULL_MODE}
             profileContext={plannerProfile}
+            onPlanResolved={(p) => setPlanNextMealName((p.next_meal || "").trim())}
             fiberTarget={fibreRow?.target}
             consumed={{
               kcal: dayKcal,
@@ -1117,7 +1123,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         );
       case "nextMeal":
-        const options = nextMove
+        const optionsRaw = nextMove
           ? [nextMove.meal, ...(nextMove.alternatives ?? [])]
           : nextPlan.options.map((o) => ({
               name: o.name,
@@ -1127,9 +1133,17 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               fat_g: 0,
               items: [],
             }));
+        const options = nextMove
+          ? (() => {
+              if (!planNextMealName) return optionsRaw;
+              const ban = planNextMealName.trim().toLowerCase();
+              const filtered = optionsRaw.filter((m) => m.name.trim().toLowerCase() !== ban);
+              return filtered.length > 0 ? filtered : optionsRaw;
+            })()
+          : optionsRaw;
         const selected = options[Math.max(0, nextMove ? (nextMoveChoice % options.length) : 0)];
         const alternatives = nextMove
-          ? options.filter((_, idx) => idx !== (nextMoveChoice % options.length)).slice(0, 3)
+          ? options.filter((_, idx) => idx !== (nextMoveChoice % options.length))
           : nextPlan.options.slice(1).map((o) => ({
               name: o.name,
               kcal: o.kcal,
@@ -1275,9 +1289,9 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                 <Icon name="barcode" size={14} color={colors.green} />
                 <Text style={styles.addHubChipText}>Barcode</Text>
               </Pressable>
-              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("describe")}>
+              <Pressable style={styles.addHubChip} onPress={() => handleAddOption("manual")}>
                 <Icon name="edit" size={14} color={colors.green} />
-                <Text style={styles.addHubChipText}>Manual</Text>
+                <Text style={styles.addHubChipText}>Manual search</Text>
               </Pressable>
               <Pressable style={styles.addHubChip} onPress={() => handleAddOption("exercise")}>
                 <Icon name="dumbbell" size={14} color={colors.green} />

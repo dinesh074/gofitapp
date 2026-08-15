@@ -29,11 +29,13 @@ const EXAMPLES = [
   "Masala dosa with sambar and chutney",
 ];
 
-const VOICE_LOCALES = [
-  { key: "en", label: "English", lang: "en-IN" },
-  { key: "hi", label: "Hindi", lang: "hi-IN" },
-  { key: "hinglish", label: "Hinglish", lang: "hi-IN" },
-] as const;
+function autoVoiceLang(): string {
+  if (Platform.OS !== "web") return "en-IN";
+  const w = window as any;
+  const nav = w?.navigator;
+  const lang = String(nav?.languages?.[0] || nav?.language || "en-IN").trim();
+  return lang || "en-IN";
+}
 
 export default function DescribeMealScreen() {
   const navigation = useNavigation<any>();
@@ -42,7 +44,6 @@ export default function DescribeMealScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
-  const [voiceLang, setVoiceLang] = useState<(typeof VOICE_LOCALES)[number]["lang"]>("en-IN");
   const recognitionRef = useRef<any>(null);
   const keepListeningRef = useRef(false);
   const voiceSupported = !!getSpeechRecognition();
@@ -65,7 +66,7 @@ export default function DescribeMealScreen() {
     if (!SpeechRecognition) return;
     setError(null);
     const rec = new SpeechRecognition();
-    rec.lang = voiceLang;
+    rec.lang = autoVoiceLang();
     rec.interimResults = true;
     rec.continuous = true;
     rec.maxAlternatives = 1;
@@ -82,7 +83,7 @@ export default function DescribeMealScreen() {
     rec.onerror = (e: any) => {
       const code = String(e?.error ?? "");
       if (code !== "no-speech" && code !== "aborted") {
-        setError("Voice input stopped. Check mic permission and try again.");
+        setError("Voice input isn't available right now. You can type your meal below.");
       }
     };
     rec.onend = () => {
@@ -114,15 +115,6 @@ export default function DescribeMealScreen() {
     }
     keepListeningRef.current = true;
     startVoice();
-  }
-
-  function changeVoiceLang(lang: (typeof VOICE_LOCALES)[number]["lang"]) {
-    setVoiceLang(lang);
-    if (keepListeningRef.current || listening) {
-      stopVoice();
-      keepListeningRef.current = true;
-      startVoice();
-    }
   }
 
   async function submit() {
@@ -164,18 +156,10 @@ export default function DescribeMealScreen() {
 
       <View style={styles.body}>
         <Text style={styles.sub}>No photo needed - tell us what you ate in your own words.</Text>
-        {voiceSupported && (
-          <View style={styles.langRow}>
-            {VOICE_LOCALES.map((opt) => (
-              <Pressable
-                key={opt.key}
-                style={[styles.langChip, voiceLang === opt.lang && styles.langChipActive]}
-                onPress={() => changeVoiceLang(opt.lang)}
-              >
-                <Text style={[styles.langText, voiceLang === opt.lang && styles.langTextActive]}>{opt.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+        {!voiceSupported && (
+          <Text style={styles.voiceFallbackHint}>
+            Voice auto-detect works where the browser supports speech recognition. On this device, type your meal here.
+          </Text>
         )}
 
         <View style={styles.inputWrap}>
@@ -223,18 +207,7 @@ const styles = StyleSheet.create({
   headerTitle: { color: colors.ink, fontSize: 20, fontWeight: "900" },
   body: { padding: 16, paddingBottom: 24 },
   sub: { color: colors.mute, fontSize: 13, fontWeight: "600", marginBottom: 12, lineHeight: 18 },
-  langRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
-  langChip: {
-    backgroundColor: colors.card,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  langChipActive: { backgroundColor: colors.greenTint, borderColor: colors.green },
-  langText: { color: colors.mute, fontSize: 12.5, fontWeight: "700" },
-  langTextActive: { color: colors.green },
+  voiceFallbackHint: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: -4, marginBottom: 10, lineHeight: 17 },
   inputWrap: { position: "relative" },
   input: {
     backgroundColor: colors.card,
