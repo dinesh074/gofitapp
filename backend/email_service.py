@@ -29,12 +29,16 @@ RESEND_URL = "https://api.resend.com/emails"
 
 def _reason_from_resend_error(status: int, body: str) -> str:
     text = (body or "").lower()
-    if status in (401, 403):
-        return "invalid_api_key"
     if "domain" in text and "verify" in text:
         return "from_domain_not_verified"
+    if "from" in text and "verified" in text:
+        return "from_domain_not_verified"
+    if "invalid" in text and "api" in text and "key" in text:
+        return "invalid_api_key"
     if "onboarding@resend.dev" in text or ("test" in text and "recipient" in text):
         return "recipient_not_allowed_in_test_mode"
+    if status in (401, 403):
+        return "invalid_api_key"
     return "provider_rejected_request"
 
 
