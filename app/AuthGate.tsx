@@ -58,6 +58,33 @@ const LANDING_SECTIONS: { icon: IconName; title: string; desc: string }[] = [
   },
 ];
 
+const GOALS: string[] = [
+  "Weight loss",
+  "Muscle gain",
+  "Better daily nutrition",
+  "Exercise consistency",
+  "Health-focused eating",
+];
+
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "How do I log meals?",
+    a: "Use camera, gallery, voice, or manual search. The app estimates calories and macros and stores your logs for daily tracking.",
+  },
+  {
+    q: "What makes this different from a simple calorie tracker?",
+    a: "It does more than counting calories. It suggests what to eat next, shows nutrient balance, and connects food with exercise and consistency.",
+  },
+  {
+    q: "Can beginners use this easily?",
+    a: "Yes. Start with one meal, follow the next recommendation, and improve gradually day by day.",
+  },
+  {
+    q: "Will my progress sync across devices?",
+    a: "Yes, after sign-in your logs and profile sync so you can continue from any device.",
+  },
+];
+
 // Google "G" mark drawn with SVG (official four-colour logo).
 function GoogleG() {
   return (
@@ -305,6 +332,17 @@ export default function AuthGate({ onAuthed }: Props) {
             </View>
 
             <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>Popular goals</Text>
+              <View style={styles.goalWrap}>
+                {GOALS.map((goal) => (
+                  <View key={goal} style={styles.goalChip}>
+                    <Text style={styles.goalChipText}>{goal}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.sectionCard}>
               <Text style={styles.sectionLabel}>What you get</Text>
               <View style={styles.previewList}>
                 {LANDING_SECTIONS.map((item) => (
@@ -327,6 +365,18 @@ export default function AuthGate({ onAuthed }: Props) {
                 Start with one meal log, check your suggested next meal, and build daily consistency gradually.
                 You do not need to be perfect on day one.
               </Text>
+            </View>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>Frequently asked</Text>
+              <View style={styles.faqWrap}>
+                {FAQS.map((f, idx) => (
+                  <View key={f.q} style={[styles.faqItem, idx > 0 && styles.faqDivider]}>
+                    <Text style={styles.faqQ}>{f.q}</Text>
+                    <Text style={styles.faqA}>{f.a}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
 
             <Pressable style={styles.startBtn} onPress={() => setShowSignIn(true)}>
@@ -552,6 +602,14 @@ const styles = StyleSheet.create({
   },
   stepDotText: { color: colors.green, fontSize: 11, fontWeight: "900" },
   stepText: { color: colors.ink, fontSize: 13, fontWeight: "700", flex: 1 },
+  goalWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  goalChip: {
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  goalChipText: { color: colors.green, fontSize: 11.5, fontWeight: "800" },
   previewList: { gap: 10, marginBottom: 18 },
   previewRow: {
     flexDirection: "row",
@@ -574,6 +632,11 @@ const styles = StyleSheet.create({
   },
   previewTitle: { color: colors.ink, fontSize: 13.5, fontWeight: "800" },
   previewSub: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 2, lineHeight: 16 },
+  faqWrap: { gap: 0 },
+  faqItem: { paddingVertical: 8 },
+  faqDivider: { borderTopWidth: 1, borderTopColor: colors.hairline },
+  faqQ: { color: colors.ink, fontSize: 13, fontWeight: "800" },
+  faqA: { color: colors.inkSoft, fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
   startBtn: {
     backgroundColor: colors.green,
     borderRadius: radius.md,
