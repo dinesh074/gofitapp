@@ -206,22 +206,6 @@ export default function PlanScreen() {
                     <Icon name="plus" size={15} color="#fff" />
                     <Text style={styles.logBtnText}>Log this now</Text>
                   </PressableScale>
-                  <Pressable
-                    style={styles.openBtn}
-                    onPress={() =>
-                      navigation.navigate("NextMove", {
-                        category: nextMove?.category ?? "",
-                        slot: nextMove?.slot ?? "",
-                        reason: nextMove?.reason ?? "",
-                        biggestGap,
-                        selected,
-                        alternatives,
-                      })
-                    }
-                  >
-                    <Icon name="chevronRight" size={13} color={colors.green} />
-                    <Text style={styles.openBtnText}>Open full screen</Text>
-                  </Pressable>
                 </View>
               </>
             ) : (

@@ -1326,7 +1326,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
               <Text style={styles.addHubTitle}>Add / Track</Text>
             </View>
             <Text style={styles.addHubSub}>
-              {addHubExpanded ? "All add and tracking options." : "Quick actions: scan, gallery, voice, weight."}
+              {addHubExpanded ? "All add and tracking options." : "Quick actions. Tap More for all options."}
             </Text>
             <View style={styles.addHubChipWrap}>
               {chipKeys.map((k) => {
@@ -1341,18 +1341,24 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
                     accessibilityLabel={m.label}
                   >
                     <Icon name={m.icon} size={quickOnly ? 18 : 14} color={colors.green} />
-                    {addHubExpanded ? <Text style={styles.addHubChipText}>{m.label}</Text> : null}
+                    {quickOnly ? <Text style={styles.addHubChipQuickText}>{m.label.split(" ")[0]}</Text> : <Text style={styles.addHubChipText}>{m.label}</Text>}
                   </Pressable>
                 );
               })}
+              {!addHubExpanded && (
+                <Pressable
+                  style={[styles.addHubChip, styles.addHubChipQuick]}
+                  onPress={() => setAddHubExpanded(true)}
+                  accessibilityLabel="More options"
+                >
+                  <Icon name="chevronDown" size={18} color={colors.green} />
+                  <Text style={styles.addHubChipQuickText}>More</Text>
+                </Pressable>
+              )}
             </View>
             <Pressable style={styles.addHubSwitchBtn} onPress={() => setAddHubExpanded((v) => !v)}>
               <Icon name="swap" size={13} color={colors.green} />
               <Text style={styles.addHubSwitchText}>{addHubExpanded ? "Switch to quick" : "Switch to all options"}</Text>
-            </Pressable>
-            <Pressable style={styles.addHubOpenBtn} onPress={() => navigation.navigate("ScanHub")}>
-              <Icon name="chevronRight" size={14} color={colors.green} />
-              <Text style={styles.addHubOpenText}>Open full Add / Track page</Text>
             </Pressable>
           </View>
         );
@@ -1989,27 +1995,17 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  addHubChipQuickText: { color: colors.green, fontSize: 10.5, fontWeight: "800", marginTop: 2, textAlign: "center" },
   addHubChipQuick: {
     width: 44,
-    height: 44,
+    height: 54,
     paddingVertical: 0,
     paddingHorizontal: 0,
-    borderRadius: 22,
+    borderRadius: 14,
     justifyContent: "center",
     gap: 0,
+    flexDirection: "column",
   },
-  addHubOpenBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: colors.greenTint,
-    borderRadius: 999,
-    alignSelf: "flex-start",
-    paddingVertical: 8,
-    paddingHorizontal: 11,
-    marginTop: 2,
-  },
-  addHubOpenText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   addHubSwitchBtn: {
     flexDirection: "row",
     alignItems: "center",

@@ -61,7 +61,16 @@ function AppTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <TabBar
       active={active}
-      onChange={(t) => navigation.navigate(TAB_TO_ROUTE[t])}
+      onChange={(t) => {
+        if (t === "scan") {
+          const parent = navigation.getParent();
+          if (parent) {
+            parent.navigate("Scan", { mode: "camera" });
+            return;
+          }
+        }
+        navigation.navigate(TAB_TO_ROUTE[t]);
+      }}
     />
   );
 }
