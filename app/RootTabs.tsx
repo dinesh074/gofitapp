@@ -68,8 +68,15 @@ function AppTabBar({ state, navigation }: BottomTabBarProps) {
             parent.navigate("Scan", { mode: "camera" });
             return;
           }
+          (navigation as any).navigate("Scan", { mode: "camera" });
+          return;
         }
         navigation.navigate(TAB_TO_ROUTE[t]);
+      }}
+      onScanPress={() => {
+        const parent = navigation.getParent();
+        if (parent) parent.navigate("Scan", { mode: "camera" });
+        else (navigation as any).navigate("Scan", { mode: "camera" });
       }}
     />
   );
@@ -152,6 +159,7 @@ function ProfileTab() {
         onSignOut={signOut}
         onRequireAuth={requireAuth}
         onOpenCommunity={() => navigation.navigate("Community")}
+        onOpenSubscription={() => navigation.navigate("Payment")}
       />
     </Screen>
   );

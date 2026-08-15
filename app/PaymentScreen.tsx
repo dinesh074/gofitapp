@@ -91,13 +91,13 @@ export default function PaymentScreen() {
           <Text style={styles.price}>
             ₹299<Text style={styles.priceUnit}> / month</Text>
           </Text>
-          <Text style={styles.priceNote}>Auto-renews monthly at ₹299 - cancel anytime</Text>
+          <Text style={styles.priceNote}>Auto-renews every 30 days at ₹299 - cancel anytime</Text>
         </View>
 
         <View style={styles.terms}>
-          <Text style={styles.termLine}>• Billed ₹299/month via Razorpay. Renews automatically until cancelled.</Text>
+          <Text style={styles.termLine}>• Billed ₹299 every 30 days via Razorpay. Renews automatically until cancelled.</Text>
           <Text style={styles.termLine}>• No free trial — your free plan stays free forever.</Text>
-          <Text style={styles.termLine}>• Cancel anytime; Pro stays active until month-end.</Text>
+          <Text style={styles.termLine}>• Cancel anytime; Pro stays active for the current 30-day cycle.</Text>
         </View>
 
         {error && <Text style={styles.error}>{error}</Text>}
@@ -134,4 +134,3 @@ const styles = StyleSheet.create({
   ctaBusy: { opacity: 0.8 },
   ctaText: { color: "#fff", fontWeight: "900", fontSize: 16 },
 });
-

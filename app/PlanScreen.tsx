@@ -290,16 +290,5 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  openBtn: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: colors.cardMuted,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  openBtnText: { color: colors.green, fontSize: 12, fontWeight: "800" },
   emptyText: { color: colors.mute, fontSize: 12.5, fontWeight: "600", lineHeight: 17 },
 });

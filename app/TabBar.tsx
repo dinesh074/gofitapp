@@ -24,6 +24,7 @@ const SCAN_TAB: { key: TabKey; icon: IconName; iconOff: IconName; label: string 
 type Props = {
   active: TabKey;
   onChange: (t: TabKey) => void;
+  onScanPress?: () => void;
 };
 
 function TabButton({
@@ -46,7 +47,7 @@ function TabButton({
   );
 }
 
-export default function TabBar({ active, onChange }: Props) {
+export default function TabBar({ active, onChange, onScanPress }: Props) {
   return (
     <View style={styles.bar}>
       {LEFT_TABS.map((t) => (
@@ -54,7 +55,7 @@ export default function TabBar({ active, onChange }: Props) {
       ))}
 
       <View style={styles.centerSlot}>
-        <Pressable style={styles.centerBtn} onPress={() => onChange("scan")} hitSlop={8}>
+        <Pressable style={styles.centerBtn} onPress={() => (onScanPress ? onScanPress() : onChange("scan"))} hitSlop={8}>
           <LinearGradient
             colors={gradients.brand}
             start={{ x: 0, y: 0 }}

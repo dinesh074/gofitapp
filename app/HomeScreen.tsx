@@ -109,7 +109,6 @@ const HOME_ADD_OPTIONS: Array<{ key: AddOptionKey; label: string; icon: IconName
   { key: "weight", label: "Weight", icon: "scale" },
 ];
 const HOME_ADD_QUICK: AddOptionKey[] = ["camera", "gallery", "voice", "weight"];
-const HOME_ADD_ALL: AddOptionKey[] = ["camera", "gallery", "voice", "barcode", "template", "manual", "exercise", "water", "weight"];
 
 function itemTotal(it: FoodItem): number {
   return Math.round(it.count * it.kcal_per_unit);
@@ -250,7 +249,6 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     }[];
   } | null>(null);
   const [nextMoveChoice, setNextMoveChoice] = useState(0);
-  const [addHubExpanded, setAddHubExpanded] = useState(false);
   const [planNextMealName, setPlanNextMealName] = useState("");
   const [nextMealExpanded, setNextMealExpanded] = useState(true);
   const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
@@ -1317,49 +1315,35 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           </View>
         );
       case "addHub":
-        const chipKeys = addHubExpanded ? HOME_ADD_ALL : HOME_ADD_QUICK;
         const addMeta = Object.fromEntries(HOME_ADD_OPTIONS.map((o) => [o.key, o]));
+        const quickItems: Array<{ key: AddOptionKey | "more"; label: string; icon: IconName }> = [
+          ...HOME_ADD_QUICK.map((k) => ({
+            key: k,
+            label: k === "camera" ? "Scan" : k === "gallery" ? "Gallery" : k === "voice" ? "Voice" : "Weight",
+            icon: addMeta[k]?.icon ?? "plus",
+          })),
+          { key: "more", label: "More", icon: "chevronDown" },
+        ];
         return (
           <View style={styles.addHubCard}>
             <View style={styles.addHubHead}>
               <Icon name="plus" size={15} color={colors.green} />
               <Text style={styles.addHubTitle}>Add / Track</Text>
             </View>
-            <Text style={styles.addHubSub}>
-              {addHubExpanded ? "All add and tracking options." : "Quick actions. Tap More for all options."}
-            </Text>
-            <View style={styles.addHubChipWrap}>
-              {chipKeys.map((k) => {
-                const m = addMeta[k];
-                if (!m) return null;
-                const quickOnly = !addHubExpanded;
-                return (
-                  <Pressable
-                    key={k}
-                    style={[styles.addHubChip, quickOnly && styles.addHubChipQuick]}
-                    onPress={() => handleAddOption(k)}
-                    accessibilityLabel={m.label}
-                  >
-                    <Icon name={m.icon} size={quickOnly ? 18 : 14} color={colors.green} />
-                    {quickOnly ? <Text style={styles.addHubChipQuickText}>{m.label.split(" ")[0]}</Text> : <Text style={styles.addHubChipText}>{m.label}</Text>}
-                  </Pressable>
-                );
-              })}
-              {!addHubExpanded && (
+            <Text style={styles.addHubSub}>Five quick actions. Tap More for scan hub and all options.</Text>
+            <View style={styles.addHubQuickRow}>
+              {quickItems.map((item) => (
                 <Pressable
-                  style={[styles.addHubChip, styles.addHubChipQuick]}
-                  onPress={() => setAddHubExpanded(true)}
-                  accessibilityLabel="More options"
+                  key={item.key}
+                  style={styles.addHubQuickBtn}
+                  onPress={() => (item.key === "more" ? navigation.navigate("ScanHub") : handleAddOption(item.key))}
+                  accessibilityLabel={item.key === "more" ? "Open more options" : addMeta[item.key]?.label}
                 >
-                  <Icon name="chevronDown" size={18} color={colors.green} />
-                  <Text style={styles.addHubChipQuickText}>More</Text>
+                  <Icon name={item.icon} size={18} color={colors.green} />
+                  <Text style={styles.addHubChipQuickText}>{item.label}</Text>
                 </Pressable>
-              )}
+              ))}
             </View>
-            <Pressable style={styles.addHubSwitchBtn} onPress={() => setAddHubExpanded((v) => !v)}>
-              <Icon name="swap" size={13} color={colors.green} />
-              <Text style={styles.addHubSwitchText}>{addHubExpanded ? "Switch to quick" : "Switch to all options"}</Text>
-            </Pressable>
           </View>
         );
       case "calendar":
@@ -1983,40 +1967,19 @@ const styles = StyleSheet.create({
   addHubHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   addHubTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
   addHubSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600" },
-  addHubChipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 2 },
-  addHubChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  addHubQuickRow: { flexDirection: "row", alignItems: "stretch", gap: 8, marginTop: 2 },
+  addHubQuickBtn: {
+    flex: 1,
+    minHeight: 58,
     backgroundColor: colors.greenTint,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    minHeight: 36,
-  },
-  addHubChipText: { color: colors.green, fontSize: 12, fontWeight: "800" },
-  addHubChipQuickText: { color: colors.green, fontSize: 10.5, fontWeight: "800", marginTop: 2, textAlign: "center" },
-  addHubChipQuick: {
-    width: 44,
-    height: 54,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
     borderRadius: 14,
-    justifyContent: "center",
-    gap: 0,
-    flexDirection: "column",
-  },
-  addHubSwitchBtn: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    alignSelf: "flex-start",
-    backgroundColor: colors.greenTint,
-    borderRadius: 999,
-    paddingVertical: 7,
-    paddingHorizontal: 11,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    gap: 2,
   },
-  addHubSwitchText: { color: colors.green, fontSize: 12, fontWeight: "800" },
+  addHubChipQuickText: { color: colors.green, fontSize: 10.5, fontWeight: "800", textAlign: "center" },
   calendarCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 8, ...elevation.sm },
   calendarHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   calendarTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },

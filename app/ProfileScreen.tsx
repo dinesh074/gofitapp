@@ -34,6 +34,7 @@ type Props = {
   bestStreak: number | null;
   onEditProfile: () => void;
   onOpenCommunity: () => void;
+  onOpenSubscription: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onRequireAuth: () => void;
@@ -72,6 +73,7 @@ export default function ProfileScreen({
   bestStreak: serverBestStreak,
   onEditProfile,
   onOpenCommunity,
+  onOpenSubscription,
   onSignIn,
   onSignOut,
   onRequireAuth,
@@ -136,6 +138,9 @@ export default function ProfileScreen({
                 <Text style={styles.acctBadgeText}>Synced</Text>
               </View>
             </View>
+            <Text style={styles.planMeta}>
+              {account.isPro ? "Pro active - billed monthly (30-day cycle)." : "Free plan - upgrade to Pro for unlimited scans."}
+            </Text>
             <Pressable style={styles.signOutBtn} onPress={onSignOut}>
               <Text style={styles.signOutText}>Sign out</Text>
             </Pressable>
@@ -187,6 +192,7 @@ export default function ProfileScreen({
         {/* Actions */}
         <Text style={styles.section}>Settings</Text>
         <View style={styles.card}>
+          <MenuItem icon="star" label="Subscription & Pro" onPress={onOpenSubscription} />
           <MenuItem icon="group" label="Community" onPress={onOpenCommunity} />
           <MenuItem icon="edit" label="Edit profile & goal" onPress={onEditProfile} />
           <MenuItem icon="settings" label="Settings & data" onPress={onEditProfile} last />
@@ -308,6 +314,7 @@ const styles = StyleSheet.create({
   acctHandle: { fontSize: 13, color: colors.mute, marginTop: 1 },
   acctBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.greenTint, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   acctBadgeText: { color: colors.green, fontWeight: "800", fontSize: 12 },
+  planMeta: { color: colors.mute, fontSize: 12, fontWeight: "600", paddingTop: 10 },
   signOutBtn: { paddingVertical: 15, alignItems: "center" },
   signOutText: { color: colors.red, fontWeight: "800", fontSize: 15 },
 
