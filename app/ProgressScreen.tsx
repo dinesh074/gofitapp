@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,17 +17,14 @@ import Icon, { IconName } from "./Icon";
 import { GoalTargets, Profile } from "./nutrition";
 import {
   AuthRequiredError,
-  DayPlan,
   DaySummary,
   ExerciseSummary,
-  fetchTodayPlan,
   getExerciseSummary,
   getLogDays,
   getServerWeights,
   getSummary,
 } from "./api";
-import { LogMap, WeightEntry, bestStreak as computeBestStreak, dayMacros, dayTotal, monthStreak, prettyDate } from "./storage";
-import { AI_PLANNER_FULL_MODE } from "./config";
+import { LogMap, WeightEntry, bestStreak as computeBestStreak, monthStreak } from "./storage";
 import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
 
 type Props = {
@@ -86,27 +82,12 @@ export default function ProgressScreen({
   const [loadingRangeData, setLoadingRangeData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWeightSheet, setShowWeightSheet] = useState(false);
-  const [previewDateKey, setPreviewDateKey] = useState<string | null>(null);
-  const [previewPlan, setPreviewPlan] = useState<DayPlan | null>(null);
-  const [previewPlanLoading, setPreviewPlanLoading] = useState(false);
 
   const chartWidth = Math.max(260, Math.round(width - sp(16)));
   const weightChartWidth = Math.max(240, chartWidth - sp(6));
   const macroChartWidth = Math.max(240, chartWidth - sp(6));
   const today = useMemo(() => startOfDay(new Date()), []);
   const best = bestStreak ?? computeBestStreak(logs);
-  const plannerProfile = {
-    age: profile.age,
-    gender: profile.gender || undefined,
-    height_cm: profile.heightCm,
-    weight_kg: profile.weightKg,
-    target_weight_kg: profile.targetWeightKg,
-    activity: profile.activity,
-    goal_pace: profile.goalPace,
-    goal_kind: profile.goalKind,
-    diet: profile.diet,
-    goal: profile.goal,
-  };
   const streakWindow = useMemo(() => monthStreak(logs, goal.kcal, new Date(), 30), [logs, goal.kcal]);
 
   const refreshWeights = useCallback(async () => {
@@ -248,39 +229,6 @@ export default function ProgressScreen({
       : `Last ${range} days`;
 
   const loggedCount = selectedDates.filter((date) => loggedDaySet.has(date)).length;
-
-  useEffect(() => {
-    if (!previewDateKey || !accountId) {
-      setPreviewPlan(null);
-      setPreviewPlanLoading(false);
-      return;
-    }
-    let alive = true;
-    setPreviewPlanLoading(true);
-    const day = dayMacros(logs, previewDateKey);
-    fetchTodayPlan({
-      targets: { kcal: goal.kcal, protein_g: goal.protein_g, carbs_g: goal.carbs_g, fat_g: goal.fat_g },
-      diet: profile.diet,
-      goal: profile.goal,
-      date: previewDateKey,
-      consumed: { kcal: dayTotal(logs, previewDateKey), protein_g: day.protein_g, carbs_g: day.carbs_g, fat_g: day.fat_g },
-      hour: new Date().getHours(),
-      aiMode: AI_PLANNER_FULL_MODE,
-      profile: plannerProfile,
-    })
-      .then((p) => {
-        if (alive) setPreviewPlan(p);
-      })
-      .catch(() => {
-        if (alive) setPreviewPlan(null);
-      })
-      .finally(() => {
-        if (alive) setPreviewPlanLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [previewDateKey, accountId, logs, goal.kcal, goal.protein_g, goal.carbs_g, goal.fat_g, profile.diet, profile.goal, plannerProfile]);
 
   return (
     <Screen edgeTop background={colors.bg}>
@@ -509,7 +457,7 @@ export default function ProgressScreen({
           <SectionCard
             icon="time"
             title="Calendar consistency"
-            subtitle="Last 30 days with tap-to-open day plan"
+            subtitle="Last 30 days with tap-to-open logged day"
           >
             {loadingRangeData ? (
               <LoadingBlock />
@@ -542,7 +490,7 @@ export default function ProgressScreen({
                               ? styles.progressCalendarCellUnder
                               : styles.progressCalendarCellEmpty,
                       ]}
-                      onPress={() => setPreviewDateKey(c.date)}
+                      onPress={() => navigation.navigate("DayLog", { dateKey: c.date })}
                     >
                       <Text style={styles.progressCalendarCellDay}>{c.day}</Text>
                     </Pressable>
@@ -554,13 +502,7 @@ export default function ProgressScreen({
                   <LegendItem color={colors.red} text="Under" compact />
                   <LegendItem color={colors.track} text="No log" compact />
                 </View>
-                {!!previewDateKey && (
-                  <View style={styles.progressCalendarHintRow}>
-                    <Icon name="time" size={12} color={colors.mute} />
-                    <Text style={styles.progressCalendarHint}>Selected: {prettyDate(previewDateKey)}</Text>
-                  </View>
-                )}
-                <Text style={styles.footnote}>Tap any day to load its plan preview with your current targets and logged meals.</Text>
+                <Text style={styles.footnote}>Tap any day to open what you actually logged for that date.</Text>
               </>
             )}
           </SectionCard>
@@ -585,71 +527,6 @@ export default function ProgressScreen({
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
-
-        {previewDateKey && (
-          <Modal
-            visible={!!previewDateKey}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setPreviewDateKey(null)}
-          >
-            <View style={styles.previewOverlay}>
-              <Pressable style={styles.previewBackdrop} onPress={() => setPreviewDateKey(null)} />
-              <View style={styles.previewSheet}>
-                <View style={styles.previewHeadRow}>
-                  <View>
-                    <Text style={styles.previewHead}>Day plan preview</Text>
-                    <Text style={styles.previewSub}>{prettyDate(previewDateKey)}</Text>
-                  </View>
-                  <Pressable onPress={() => setPreviewDateKey(null)} style={styles.previewCloseBtn}>
-                    <Icon name="close" size={15} color={colors.mute} />
-                  </Pressable>
-                </View>
-                {previewPlanLoading ? (
-                  <View style={styles.previewLoadingRow}>
-                    <ActivityIndicator size="small" color={colors.green} />
-                    <Text style={styles.previewLoadingText}>Loading plan…</Text>
-                  </View>
-                ) : previewPlan ? (
-                  <>
-                    {!!previewPlan.next_meal && (
-                      <View style={styles.previewNextPill}>
-                        <Icon name="time" size={12} color={colors.green} />
-                        <Text style={styles.previewNextText}>Next meal: {previewPlan.next_meal}</Text>
-                      </View>
-                    )}
-                    <View style={styles.previewSlotsWrap}>
-                      {previewPlan.slots.map((slot) => (
-                        <View key={slot.slot} style={styles.previewSlotRow}>
-                          <Text style={styles.previewSlotName}>{slot.label}</Text>
-                          <Text style={styles.previewSlotMeal} numberOfLines={1}>
-                            {slot.items[0]?.name ?? "No items"}
-                          </Text>
-                          <Text style={styles.previewSlotKcal}>{slot.kcal} kcal</Text>
-                        </View>
-                      ))}
-                    </View>
-                    <Pressable
-                      style={styles.previewOpenBtn}
-                      onPress={() => {
-                        const dateKey = previewDateKey;
-                        setPreviewDateKey(null);
-                        if (dateKey) navigation.navigate("DayLog", { dateKey });
-                      }}
-                    >
-                      <Icon name="time" size={15} color="#fff" />
-                      <Text style={styles.previewOpenBtnText}>Open day details</Text>
-                    </Pressable>
-                  </>
-                ) : (
-                  <Text style={styles.previewEmpty}>
-                    Couldn&apos;t load a plan for this date right now.
-                  </Text>
-                )}
-              </View>
-            </View>
-          </Modal>
-        )}
 
         <WeightSheet
           visible={showWeightSheet}
