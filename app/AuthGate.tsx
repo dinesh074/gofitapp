@@ -345,9 +345,16 @@ export default function AuthGate({ onAuthed }: Props) {
   }, []);
 
   // Web only: Google Identity Services (no popup, no COOP issue).
+  //
+  // Gated on `showSignIn`: the button's container view only mounts once the
+  // user leaves the landing page and reaches the sign-in card, so this must
+  // re-run when that happens — otherwise `webBtnRef.current` is still null
+  // the one time this effect fires (at initial mount, while the landing page
+  // is showing) and the button never renders.
   useEffect(() => {
     if (AUTH_BYPASS) return;
     if (!isWeb) return;
+    if (!showSignIn) return;
     if (!GOOGLE_CONFIGURED) {
       setError("Google login isn't set up yet — add your OAuth client ID in config.ts.");
       return;
@@ -367,7 +374,7 @@ export default function AuthGate({ onAuthed }: Props) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [showSignIn]);
 
   async function handleGoogle(idToken: string) {
     setError(null);
