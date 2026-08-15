@@ -9,6 +9,7 @@ import json
 import os
 import re
 import time
+import zlib
 from typing import Callable
 
 import db
@@ -159,6 +160,12 @@ def combo_fingerprint(keys: list[str]) -> str:
 
 def init_db() -> None:
     with db.write_lock(), db.connect() as c:
+        # Render starts multiple Uvicorn workers; on Postgres they can run this
+        # seed path concurrently and deadlock on template upserts/deletes. Use a
+        # transaction-scoped advisory lock so only one worker seeds at a time.
+        if db.IS_POSTGRES:
+            lock_id = zlib.crc32(b"gofit.recipe_combo_engine.init_db")
+            c.execute("SELECT pg_advisory_xact_lock(?)", (lock_id,))
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS gofit_recipes (
