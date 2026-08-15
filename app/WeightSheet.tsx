@@ -21,12 +21,31 @@ type Props = {
 // weight_logs table (addServerWeight), then it tells the app so every dependent
 // target recalculates.
 export default function WeightSheet({ visible, initialKg, onClose, onLogged, onRequireAuth }: Props) {
-  const [entry, setEntry] = useState<number>(Math.round(initialKg));
+  const STEP_KG = 0.1;
+  const round1 = (n: number) => Math.round(n * 10) / 10;
+  const clampWeight = (n: number) => round1(clamp(n, LIMITS.weightKg.min, LIMITS.weightKg.max));
+  const [entry, setEntry] = useState<number>(clampWeight(initialKg));
+  const [draft, setDraft] = useState<string>(clampWeight(initialKg).toFixed(1));
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (visible) setEntry(Math.round(initialKg));
+    if (!visible) return;
+    const next = clampWeight(initialKg);
+    setEntry(next);
+    setDraft(next.toFixed(1));
   }, [visible, initialKg]);
+
+  function applyDraft(text: string) {
+    const cleaned = text.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
+    const normalized =
+      parts.length <= 1
+        ? cleaned
+        : `${parts[0]}.${parts.slice(1).join("")}`;
+    setDraft(normalized);
+    const n = Number(normalized);
+    if (Number.isFinite(n)) setEntry(clampWeight(n));
+  }
 
   async function save() {
     setBusy(true);
@@ -56,26 +75,31 @@ export default function WeightSheet({ visible, initialKg, onClose, onLogged, onR
           <View style={styles.inputRow}>
             <Pressable
               style={styles.btn}
-              onPress={() => setEntry((v) => clamp(v - 1, LIMITS.weightKg.min, LIMITS.weightKg.max))}
+              onPress={() => {
+                const next = clampWeight(entry - STEP_KG);
+                setEntry(next);
+                setDraft(next.toFixed(1));
+              }}
             >
               <Icon name="minus" size={22} color={colors.green} />
             </Pressable>
             <View style={styles.center}>
               <TextInput
                 style={styles.input}
-                keyboardType="numeric"
-                value={String(entry)}
-                onChangeText={(t) => {
-                  const n = parseInt(t.replace(/[^0-9]/g, ""), 10);
-                  if (!isNaN(n)) setEntry(clamp(n, LIMITS.weightKg.min, LIMITS.weightKg.max));
-                  else if (t === "") setEntry(LIMITS.weightKg.min);
-                }}
+                keyboardType="decimal-pad"
+                value={draft}
+                onChangeText={applyDraft}
+                onBlur={() => setDraft(entry.toFixed(1))}
               />
               <Text style={styles.unit}>kg</Text>
             </View>
             <Pressable
               style={styles.btn}
-              onPress={() => setEntry((v) => clamp(v + 1, LIMITS.weightKg.min, LIMITS.weightKg.max))}
+              onPress={() => {
+                const next = clampWeight(entry + STEP_KG);
+                setEntry(next);
+                setDraft(next.toFixed(1));
+              }}
             >
               <Icon name="plus" size={22} color={colors.green} />
             </Pressable>

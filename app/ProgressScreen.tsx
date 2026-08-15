@@ -198,6 +198,23 @@ export default function ProgressScreen({
     const startMs = selectedStart.getTime();
     return weights.filter((w) => w.at >= startMs);
   }, [range, selectedStart, weights]);
+  const thirtyDayWeightDelta = useMemo(() => {
+    const endAt = today.getTime();
+    const startAt = endAt - 29 * DAY_MS;
+    const window = weights.filter((w) => w.at >= startAt && w.at <= endAt).sort((a, b) => a.at - b.at);
+    if (window.length < 2) return null;
+    const delta = Math.round((window[window.length - 1].kg - window[0].kg) * 10) / 10;
+    return {
+      delta,
+      label:
+        delta > 0.05
+          ? "rising"
+          : delta < -0.05
+            ? "falling"
+            : "steady",
+      days: Math.max(1, Math.round((window[window.length - 1].at - window[0].at) / DAY_MS)),
+    };
+  }, [today, weights]);
 
   const weightTrend = useMemo(() => buildWeightTrend(filteredWeights, weightChartWidth), [filteredWeights, weightChartWidth]);
   const projection = useMemo(() => buildProjection(weights, profile), [profile, weights]);
@@ -310,6 +327,11 @@ export default function ProgressScreen({
                     <Text style={styles.weightMeta}>
                       {filteredWeights.length} weigh-ins · last entry {formatWeight(weightTrend.latestActualKg)} kg
                     </Text>
+                    {thirtyDayWeightDelta && (
+                      <Text style={styles.weightTrendMeta}>
+                        Last 30 days: {formatSigned(thirtyDayWeightDelta.delta)} kg ({thirtyDayWeightDelta.label})
+                      </Text>
+                    )}
                   </View>
                   <Pressable style={styles.secondaryButton} onPress={() => setShowWeightSheet(true)}>
                     <Icon name="plus" size={16} color={colors.green} />
@@ -993,6 +1015,7 @@ const styles = StyleSheet.create({
   weightHeadlineBlock: { flex: 1, paddingRight: sp(3) },
   weightHeadline: { ...T.h1, color: colors.ink },
   weightMeta: { ...T.caption, color: colors.mute, marginTop: sp(0.5) },
+  weightTrendMeta: { ...T.caption, color: colors.inkSoft, marginTop: sp(0.5), fontWeight: "700" },
   axisRow: { flexDirection: "row", justifyContent: "space-between", marginTop: -sp(1) },
   axisLabel: { ...T.tiny, color: colors.mute },
   footnote: { ...T.tiny, color: colors.faint, lineHeight: 16 },

@@ -230,12 +230,12 @@ export default function AuthGate({ onAuthed }: Props) {
           <Logo size={60} tone="light" />
         </View>
         <Text style={styles.brand}>{APP_NAME}</Text>
-        <Text style={styles.tagline}>Snap Indian food. Get calories & macros.</Text>
+        <Text style={styles.tagline}>Indian food tracking with a personalized daily plan.</Text>
 
         <View style={styles.perks}>
-          <Perk icon="camera" text="AI photo calorie & macro tracking" />
-          <Perk icon="flame" text="Streaks, progress & community" />
-          <Perk icon="target" text="Your goal follows you on any device" />
+          <Perk icon="camera" text="Photo-based meal logging with calories and macros" />
+          <Perk icon="sparkles" text="Next-meal guidance and day planning from your targets" />
+          <Perk icon="target" text="Progress and goals synced across your devices" />
         </View>
       </View>
 
@@ -248,9 +248,7 @@ export default function AuthGate({ onAuthed }: Props) {
       ) : (
         <View style={styles.card}>
         <Text style={styles.cardTitle}>Sign in to get started</Text>
-        <Text style={styles.cardSub}>
-          gofit.today uses Google to keep your account secure — one tap, one account.
-        </Text>
+        <Text style={styles.cardSub}>Sign in once to keep your plan, logs, and progress synced securely.</Text>
 
         {isWeb ? (
           <View style={styles.webBtnWrap}>
