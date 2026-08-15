@@ -270,6 +270,77 @@ export default function ProgressScreen({
           ) : null}
 
           <SectionCard
+            icon="time"
+            title="Calendar consistency"
+            subtitle="Last 30 days with tap-to-open logged day"
+          >
+            {loadingRangeData ? (
+              <LoadingBlock />
+            ) : (
+              <>
+                <Text style={styles.progressCalendarSub}>
+                  {streakWindow.hits} on target · {streakWindow.logged} logged · tap a day to view
+                </Text>
+                <View style={styles.progressCalendarWeekRow}>
+                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                    <Text key={`${d}-${i}`} style={styles.progressCalendarWeekText}>
+                      {d}
+                    </Text>
+                  ))}
+                </View>
+                <View style={styles.progressCalendarGrid}>
+                  {Array.from({ length: streakWindow.leading }).map((_, i) => (
+                    <View key={`lead-${i}`} style={styles.progressCalendarCellBlank} />
+                  ))}
+                  {streakWindow.cells.map((c) => (
+                    <Pressable
+                      key={c.date}
+                      style={[
+                        styles.progressCalendarCell,
+                        c.state === "hit"
+                          ? styles.progressCalendarCellHit
+                          : c.state === "over"
+                            ? styles.progressCalendarCellOver
+                            : c.state === "under"
+                              ? styles.progressCalendarCellUnder
+                              : styles.progressCalendarCellEmpty,
+                      ]}
+                      onPress={() => navigation.navigate("DayLog", { dateKey: c.date })}
+                    >
+                      <Text style={styles.progressCalendarCellDay}>{c.day}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View style={styles.legendRow}>
+                  <LegendItem color={colors.green} text="On target" compact />
+                  <LegendItem color={colors.orange} text="Over" compact />
+                  <LegendItem color={colors.red} text="Under" compact />
+                  <LegendItem color={colors.track} text="No log" compact />
+                </View>
+                <Text style={styles.footnote}>Tap any day to open what you actually logged for that date.</Text>
+              </>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            icon="dumbbell"
+            title="Exercise Summary"
+            subtitle={`Real activity totals for ${range === "all" ? "the last 365 days" : `the last ${range} days`}`}
+          >
+            {loadingRangeData ? (
+              <LoadingBlock />
+            ) : exerciseSummary ? (
+              <View style={styles.exerciseGrid}>
+                <MetricTile label="Active days" value={`${exerciseSummary.activeDays}`} accent={colors.green} />
+                <MetricTile label="Minutes" value={`${Math.round(exerciseSummary.totalMinutes)}`} accent={colors.protein} />
+                <MetricTile label="Calories burned" value={`${Math.round(exerciseSummary.totalKcal)}`} accent={colors.orange} />
+              </View>
+            ) : (
+              <EmptyState icon="dumbbell" title="No exercise data yet" detail="Logged workouts will appear here automatically." />
+            )}
+          </SectionCard>
+
+          <SectionCard
             icon="target"
             title="Consistency Score"
             subtitle="Days where both calorie and protein targets landed in range"
@@ -451,77 +522,6 @@ export default function ProgressScreen({
                 <Text style={styles.projectionHeadline}>Not enough data yet for an honest ETA.</Text>
                 <Text style={styles.projectionSub}>You need at least 14 days of weight history and 2 weigh-ins to project a target date.</Text>
               </>
-            )}
-          </SectionCard>
-
-          <SectionCard
-            icon="time"
-            title="Calendar consistency"
-            subtitle="Last 30 days with tap-to-open logged day"
-          >
-            {loadingRangeData ? (
-              <LoadingBlock />
-            ) : (
-              <>
-                <Text style={styles.progressCalendarSub}>
-                  {streakWindow.hits} on target · {streakWindow.logged} logged · tap a day to view
-                </Text>
-                <View style={styles.progressCalendarWeekRow}>
-                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                    <Text key={`${d}-${i}`} style={styles.progressCalendarWeekText}>
-                      {d}
-                    </Text>
-                  ))}
-                </View>
-                <View style={styles.progressCalendarGrid}>
-                  {Array.from({ length: streakWindow.leading }).map((_, i) => (
-                    <View key={`lead-${i}`} style={styles.progressCalendarCellBlank} />
-                  ))}
-                  {streakWindow.cells.map((c) => (
-                    <Pressable
-                      key={c.date}
-                      style={[
-                        styles.progressCalendarCell,
-                        c.state === "hit"
-                          ? styles.progressCalendarCellHit
-                          : c.state === "over"
-                            ? styles.progressCalendarCellOver
-                            : c.state === "under"
-                              ? styles.progressCalendarCellUnder
-                              : styles.progressCalendarCellEmpty,
-                      ]}
-                      onPress={() => navigation.navigate("DayLog", { dateKey: c.date })}
-                    >
-                      <Text style={styles.progressCalendarCellDay}>{c.day}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <View style={styles.legendRow}>
-                  <LegendItem color={colors.green} text="On target" compact />
-                  <LegendItem color={colors.orange} text="Over" compact />
-                  <LegendItem color={colors.red} text="Under" compact />
-                  <LegendItem color={colors.track} text="No log" compact />
-                </View>
-                <Text style={styles.footnote}>Tap any day to open what you actually logged for that date.</Text>
-              </>
-            )}
-          </SectionCard>
-
-          <SectionCard
-            icon="dumbbell"
-            title="Exercise Summary"
-            subtitle={`Real activity totals for ${range === "all" ? "the last 365 days" : `the last ${range} days`}`}
-          >
-            {loadingRangeData ? (
-              <LoadingBlock />
-            ) : exerciseSummary ? (
-              <View style={styles.exerciseGrid}>
-                <MetricTile label="Active days" value={`${exerciseSummary.activeDays}`} accent={colors.green} />
-                <MetricTile label="Minutes" value={`${Math.round(exerciseSummary.totalMinutes)}`} accent={colors.protein} />
-                <MetricTile label="Calories burned" value={`${Math.round(exerciseSummary.totalKcal)}`} accent={colors.orange} />
-              </View>
-            ) : (
-              <EmptyState icon="dumbbell" title="No exercise data yet" detail="Logged workouts will appear here automatically." />
             )}
           </SectionCard>
 

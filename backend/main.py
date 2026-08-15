@@ -26,6 +26,9 @@ import hashlib
 import logging
 import threading
 import itertools
+import urllib.request
+import urllib.error
+import urllib.parse
 from collections import Counter, defaultdict, deque
 from typing import Optional
 
@@ -925,6 +928,152 @@ def _search_score(query: str, food: dict) -> int:
     return best
 
 
+_OFF_SEARCH_HOSTS = ("world.openfoodfacts.net", "world.openfoodfacts.org")
+_OFF_SEARCH_TIMEOUT = 8
+_OFF_SEARCH_UA = "gofit.today/1.0 (manual food search; contact: info@buiild.in)"
+
+
+def _off_num(nutriments: dict, *keys: str) -> float:
+    for k in keys:
+        v = nutriments.get(k)
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, str):
+            try:
+                return float(v)
+            except ValueError:
+                continue
+    return 0.0
+
+
+def _off_search_one_host(host: str, query: str, limit: int) -> list[dict]:
+    params = urllib.parse.urlencode(
+        {
+            "search_terms": query,
+            "search_simple": 1,
+            "action": "process",
+            "json": 1,
+            "page_size": limit,
+            "fields": "code,product_name,brands,nutriments,serving_quantity,serving_size",
+        }
+    )
+    url = f"https://{host}/cgi/search.pl?{params}"
+    req = urllib.request.Request(url, headers={"User-Agent": _OFF_SEARCH_UA})
+    with urllib.request.urlopen(req, timeout=_OFF_SEARCH_TIMEOUT) as resp:
+        body = json.loads(resp.read().decode("utf-8"))
+    rows = body.get("products") if isinstance(body, dict) else None
+    return rows if isinstance(rows, list) else []
+
+
+def _off_search_foods(query: str, limit: int) -> list[dict]:
+    for host in _OFF_SEARCH_HOSTS:
+        try:
+            rows = _off_search_one_host(host, query, limit=max(1, min(50, limit * 2)))
+            break
+        except urllib.error.HTTPError as ex:
+            log.warning("OFF search HTTP error on %s: %s", host, ex)
+            continue
+        except Exception as ex:
+            log.warning("OFF search error on %s: %s", host, ex)
+            continue
+    else:
+        return []
+
+    out: list[dict] = []
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("product_name") or "").strip()
+        if not name:
+            continue
+        brand = str(row.get("brands") or "").split(",")[0].strip()
+        title = f"{brand} {name}".strip() if brand and brand.lower() not in name.lower() else name
+
+        n = row.get("nutriments") if isinstance(row.get("nutriments"), dict) else {}
+        kcal_100 = _off_num(n, "energy-kcal_100g")
+        protein_100 = _off_num(n, "proteins_100g")
+        carbs_100 = _off_num(n, "carbohydrates_100g")
+        fat_100 = _off_num(n, "fat_100g")
+        fiber_100 = _off_num(n, "fiber_100g")
+        sugar_100 = _off_num(n, "sugars_100g")
+        sodium_100 = _off_num(n, "sodium_100g")
+        potassium_100 = _off_num(n, "potassium_100g")
+        calcium_100 = _off_num(n, "calcium_100g")
+        iron_100 = _off_num(n, "iron_100g")
+
+        serving_q = row.get("serving_quantity")
+        try:
+            serving_g = float(serving_q) if serving_q not in (None, "") else 0.0
+        except (TypeError, ValueError):
+            serving_g = 0.0
+        if serving_g > 0:
+            factor = serving_g / 100.0
+            unit = f"serving ({serving_g:g} g)"
+            kcal = _off_num(n, "energy-kcal_serving") or (kcal_100 * factor)
+            protein = _off_num(n, "proteins_serving") or (protein_100 * factor)
+            carbs = _off_num(n, "carbohydrates_serving") or (carbs_100 * factor)
+            fat = _off_num(n, "fat_serving") or (fat_100 * factor)
+            fiber = _off_num(n, "fiber_serving") or (fiber_100 * factor)
+            sugar = _off_num(n, "sugars_serving") or (sugar_100 * factor)
+            sodium_g = _off_num(n, "sodium_serving") or (sodium_100 * factor)
+            potassium_g = _off_num(n, "potassium_serving") or (potassium_100 * factor)
+            calcium_g = _off_num(n, "calcium_serving") or (calcium_100 * factor)
+            iron_g = _off_num(n, "iron_serving") or (iron_100 * factor)
+        else:
+            unit = "100 g"
+            kcal = kcal_100
+            protein = protein_100
+            carbs = carbs_100
+            fat = fat_100
+            fiber = fiber_100
+            sugar = sugar_100
+            sodium_g = sodium_100
+            potassium_g = potassium_100
+            calcium_g = calcium_100
+            iron_g = iron_100
+
+        # No useful nutrition -> skip noisy rows.
+        if kcal <= 0 and protein <= 0 and carbs <= 0 and fat <= 0:
+            continue
+
+        code = str(row.get("code") or "").strip()
+        key = f"off_{code}" if code else _norm(title).replace(" ", "_")
+        if not key or key in seen:
+            continue
+        seen.add(key)
+
+        micros = {}
+        if fiber > 0:
+            micros["fiber_g"] = round(fiber, 2)
+        if sugar > 0:
+            micros["sugar_g"] = round(sugar, 2)
+        if sodium_g > 0:
+            micros["sodium_mg"] = round(sodium_g * 1000.0, 1)
+        if potassium_g > 0:
+            micros["potassium_mg"] = round(potassium_g * 1000.0, 1)
+        if calcium_g > 0:
+            micros["calcium_mg"] = round(calcium_g * 1000.0, 1)
+        if iron_g > 0:
+            micros["iron_mg"] = round(iron_g * 1000.0, 1)
+
+        out.append(
+            {
+                "key": key,
+                "name": title,
+                "unit": unit,
+                "kcal_per_unit": round(kcal, 1),
+                "protein_g_per_unit": round(protein, 1),
+                "carbs_g_per_unit": round(carbs, 1),
+                "fat_g_per_unit": round(fat, 1),
+                **({"micros": micros} if micros else {}),
+            }
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
 @app.get("/foods/search")
 def foods_search(q: str, request: Request, limit: int = 20):
     """Search the curated FOOD_DB (food_db.json / _load_db()) by key + alias.
@@ -949,7 +1098,12 @@ def foods_search(q: str, request: Request, limit: int = 20):
         if s > 0:
             scored.append((s, -len(food["key"]), food))
     scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    return {"results": [_food_suggestion(f) for _, _, f in scored[:limit]]}
+    local = [_food_suggestion(f) for _, _, f in scored[:limit]]
+    if local:
+        return {"results": local}
+    # Web-backed fallback for out-of-catalog/manual queries. Response shape stays
+    # identical to normal DB search so the app UI remains the same.
+    return {"results": _off_search_foods(query, limit)}
 
 
 @app.get("/foods/combos")

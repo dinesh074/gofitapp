@@ -15,8 +15,6 @@ import {
   searchFoods,
   AuthRequiredError,
   saveRecipeTemplate,
-  analyzeText,
-  PaywallError,
   searchRecipeTemplates,
   getRecipeTemplate,
   RecipeTemplateSummary,
@@ -111,9 +109,6 @@ export default function FoodSelectorScreen() {
   const [dishItems, setDishItems] = useState<PlannedDishItem[]>([]);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateMsg, setTemplateMsg] = useState<string | null>(null);
-  const [estimateLoading, setEstimateLoading] = useState(false);
-  const [estimatedMeal, setEstimatedMeal] = useState<Meal | null>(null);
-  const lastEstimateQuery = useRef("");
   const [templateQ, setTemplateQ] = useState("");
   const [templateLoading, setTemplateLoading] = useState(false);
   const [templateError, setTemplateError] = useState<string | null>(null);
@@ -160,59 +155,6 @@ export default function FoodSelectorScreen() {
     () => (dishItems.length > 0 ? mealFromDishPlan(dishName, dishItems) : null),
     [dishName, dishItems]
   );
-
-  useEffect(() => {
-    const query = q.trim();
-    if (!searched || loading || results.length > 0 || query.length < 2) {
-      setEstimateLoading(false);
-      if (results.length > 0 || query.length < 2) setEstimatedMeal(null);
-      return;
-    }
-    if (lastEstimateQuery.current === query) return;
-    lastEstimateQuery.current = query;
-    let alive = true;
-    setEstimateLoading(true);
-    setEstimatedMeal(null);
-    analyzeText(query)
-      .then((res) => {
-        if (!alive) return;
-        const t = res.totals;
-        setEstimatedMeal({
-          dish: (res.dish || query).trim() || query,
-          kcal: Math.round(t?.kcal ?? res.calories_kcal ?? 0),
-          protein_g: Math.round(t?.protein_g ?? 0),
-          carbs_g: Math.round(t?.carbs_g ?? 0),
-          fat_g: Math.round(t?.fat_g ?? 0),
-          at: Date.now(),
-          micros: t?.micros,
-          microsEstimated: !!t?.micros_estimated,
-        });
-      })
-      .catch((e: any) => {
-        if (!alive) return;
-        if (e instanceof AuthRequiredError) {
-          requireAuth();
-          goBackOrTabs(navigation);
-          return;
-        }
-        if (e instanceof PaywallError) {
-          setError("AI estimate needs Pro scans. Upgrade to estimate foods not in the DB.");
-          return;
-        }
-        const msg = String(e?.message || "");
-        if (msg.toLowerCase().includes("can't reach the server")) {
-          setError("Network issue while estimating nutrition. Please check your connection and try again.");
-          return;
-        }
-        setError(msg || "Couldn't estimate nutrition right now.");
-      })
-      .finally(() => {
-        if (alive) setEstimateLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [q, searched, loading, results, requireAuth, navigation]);
 
   useEffect(() => {
     const query = templateQ.trim();
@@ -290,13 +232,6 @@ export default function FoodSelectorScreen() {
     setDishItems([]);
     setDishName("");
     setTimeout(() => setAdded((cur) => (cur === plannedPreview.dish ? null : cur)), 1800);
-  }
-
-  function addEstimatedMeal() {
-    if (!estimatedMeal) return;
-    logMeal(estimatedMeal);
-    setAdded(estimatedMeal.dish);
-    setTimeout(() => setAdded((cur) => (cur === estimatedMeal.dish ? null : cur)), 1800);
   }
 
   function makeRecipeCode(name: string): string {
@@ -518,28 +453,7 @@ export default function FoodSelectorScreen() {
           </View>
         ) : results.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Text style={styles.empty}>
-              No direct DB match. Pulling an automatic nutrition estimate now.
-            </Text>
-            {estimateLoading ? (
-              <View style={styles.centerEstimate}>
-                <ActivityIndicator color={colors.green} />
-                <Text style={styles.estimateHint}>Estimating nutrients…</Text>
-              </View>
-            ) : estimatedMeal ? (
-              <View style={styles.estimateCard}>
-                <Text style={styles.estimateTitle}>{estimatedMeal.dish}</Text>
-                <Text style={styles.estimateMeta}>
-                  ~{estimatedMeal.kcal} kcal · P {estimatedMeal.protein_g}g · C {estimatedMeal.carbs_g}g · F {estimatedMeal.fat_g}g
-                </Text>
-                <Pressable style={styles.estimateAddBtn} onPress={addEstimatedMeal}>
-                  <Icon name="plus" size={15} color={colors.white} />
-                  <Text style={styles.estimateAddText}>Add estimated meal</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text style={styles.estimateHint}>Couldn't estimate this right now. Try another query.</Text>
-            )}
+            <Text style={styles.empty}>No database matches yet. Try broader keywords like dal, paneer, dosa, or rice.</Text>
           </View>
         ) : (
           <FlatList
@@ -797,31 +711,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyWrap: { alignItems: "center", gap: 10, paddingTop: 40, paddingHorizontal: 12 },
-  centerEstimate: { alignItems: "center", gap: 8 },
-  estimateHint: { color: colors.mute, fontSize: 12.5, fontWeight: "600", textAlign: "center" },
-  estimateCard: {
-    width: "100%",
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    padding: 12,
-    gap: 6,
-    ...elevation.sm,
-  },
-  estimateTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
-  estimateMeta: { color: colors.mute, fontSize: 12, fontWeight: "700" },
-  estimateAddBtn: {
-    marginTop: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    backgroundColor: colors.green,
-    borderRadius: 10,
-    paddingVertical: 10,
-  },
-  estimateAddText: { color: colors.white, fontSize: 13, fontWeight: "800" },
 
   row: {
     flexDirection: "row",

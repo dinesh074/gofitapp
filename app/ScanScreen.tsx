@@ -122,9 +122,7 @@ export default function ScanScreen() {
         base64: false,
       } as const;
       const res = fromCamera
-        ? Platform.OS === "web"
-          ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
-          : await ImagePicker.launchCameraAsync(pickerOptions)
+        ? await ImagePicker.launchCameraAsync(pickerOptions)
         : await ImagePicker.launchImageLibraryAsync(pickerOptions);
       if (res.canceled || !res.assets?.length) {
         captureBusy.current = false;

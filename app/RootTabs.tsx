@@ -159,7 +159,11 @@ function ProfileTab() {
         onSignOut={signOut}
         onRequireAuth={requireAuth}
         onOpenCommunity={() => navigation.navigate("Community")}
-        onOpenSubscription={() => navigation.navigate("Payment")}
+        onOpenSubscription={() => {
+          const parent = navigation.getParent();
+          if (parent) parent.navigate("Payment");
+          else (navigation as any).navigate("Payment");
+        }}
       />
     </Screen>
   );

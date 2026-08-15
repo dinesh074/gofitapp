@@ -725,7 +725,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     runAnalyze(uri);
   }
 
-  // Single dispatcher for every Add / Track option so auth/paywall/navigation
+  // Single dispatcher for every Quick Actions option so auth/paywall/navigation
   // checks stay consistent across Home and the dedicated Scan hub.
   function handleAddOption(option: AddOptionKey) {
     if (!account) {
@@ -1328,7 +1328,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           <View style={styles.addHubCard}>
             <View style={styles.addHubHead}>
               <Icon name="plus" size={15} color={colors.green} />
-              <Text style={styles.addHubTitle}>Add / Track</Text>
+              <Text style={styles.addHubTitle}>Quick actions</Text>
             </View>
             <Text style={styles.addHubSub}>Five quick actions. Tap More for scan hub and all options.</Text>
             <View style={styles.addHubQuickRow}>

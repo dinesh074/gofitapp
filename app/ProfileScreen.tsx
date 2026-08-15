@@ -194,8 +194,7 @@ export default function ProfileScreen({
         <View style={styles.card}>
           <MenuItem icon="star" label="Subscription & Pro" onPress={onOpenSubscription} />
           <MenuItem icon="group" label="Community" onPress={onOpenCommunity} />
-          <MenuItem icon="edit" label="Edit profile & goal" onPress={onEditProfile} />
-          <MenuItem icon="settings" label="Settings & data" onPress={onEditProfile} last />
+          <MenuItem icon="settings" label="Edit profile, settings & data" onPress={onEditProfile} last />
         </View>
 
         <Text style={styles.section}>Help us improve</Text>
