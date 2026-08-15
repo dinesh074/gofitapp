@@ -6,7 +6,7 @@ import Icon from "./Icon";
 import { colors, radius, elevation } from "./theme";
 import { useApp } from "./AppContext";
 import { deleteServerLog, AuthRequiredError } from "./api";
-import { deleteMeal, LogMap, Meal, MEAL_TYPE_LABEL, MealType, prettyDate } from "./storage";
+import { deleteMeal, LogMap, Meal, MEAL_TYPE_LABEL, MealType, prettyDate, todayKey } from "./storage";
 import { dayMicros } from "./micros";
 import { goBackOrTabs } from "./nav";
 
@@ -39,6 +39,7 @@ export default function DayLogScreen() {
   const { logs, setLogs, goal, requireAuth } = useApp();
 
   const day = logs[dateKey];
+  const isToday = dateKey === todayKey();
   const rawMeals: (Meal & { _idx: number })[] = (day?.meals ?? []).map((m, i) => ({ ...m, _idx: i }));
 
   const kcal = rawMeals.reduce((s, m) => s + m.kcal, 0);
@@ -63,6 +64,7 @@ export default function DayLogScreen() {
   }, [dateKey, day]);
 
   function handleDelete(index: number) {
+    if (!isToday) return;
     setLogs((prev: LogMap) => {
       const next = deleteMeal(prev, dateKey, index);
       return next;
@@ -140,6 +142,12 @@ export default function DayLogScreen() {
             <Text style={styles.emptyText}>No meals logged this day.</Text>
           </View>
         )}
+        {!isToday && rawMeals.length > 0 && (
+          <View style={styles.readOnlyCard}>
+            <Icon name="time" size={14} color={colors.mute} />
+            <Text style={styles.readOnlyText}>Past days are read-only. You can edit or delete only today's logs.</Text>
+          </View>
+        )}
 
         {SLOT_ORDER.filter((slot) => bySlot[slot]?.length).map((slot) => (
           <View key={slot}>
@@ -169,9 +177,13 @@ export default function DayLogScreen() {
                     </Text>
                   </View>
                   <Text style={styles.mealKcal}>{m.kcal}</Text>
-                  <Pressable style={styles.delBtn} onPress={() => handleDelete(m._idx)} hitSlop={8}>
-                    <Icon name="trash" size={16} color={colors.red} />
-                  </Pressable>
+                  {isToday ? (
+                    <Pressable style={styles.delBtn} onPress={() => handleDelete(m._idx)} hitSlop={8}>
+                      <Icon name="trash" size={16} color={colors.red} />
+                    </Pressable>
+                  ) : (
+                    <View style={styles.delBtnPlaceholder} />
+                  )}
                 </Pressable>
               ))}
             </View>
@@ -227,6 +239,18 @@ const styles = StyleSheet.create({
 
   emptyCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 28, alignItems: "center", gap: 8 },
   emptyText: { color: colors.mute, fontSize: 13, fontWeight: "600" },
+  readOnlyCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    ...elevation.sm,
+  },
+  readOnlyText: { color: colors.mute, fontSize: 12, fontWeight: "700", flex: 1 },
 
   section: { fontSize: 13, fontWeight: "800", color: colors.mute, marginBottom: 8, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.3 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, marginBottom: 14, ...elevation.sm },
@@ -240,4 +264,5 @@ const styles = StyleSheet.create({
   mealSub: { fontSize: 12, color: colors.mute, marginTop: 2 },
   mealKcal: { fontSize: 15, fontWeight: "900", color: colors.green },
   delBtn: { padding: 6 },
+  delBtnPlaceholder: { width: 28, height: 28 },
 });

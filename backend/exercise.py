@@ -233,6 +233,40 @@ def get_summary(request: Request, days: int = 30):
     }
 
 
+@router.get("/history")
+def get_history(request: Request, days: int = 14):
+    """Recent exercise entries grouped by date (most recent first)."""
+    acct = auth.require_account(request)
+    days = max(1, min(60, int(days)))
+    start_key = (_date.today() - timedelta(days=days - 1)).isoformat()
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT id, date, exercise_key, name, minutes, kcal, at FROM exercise_logs "
+            "WHERE account_id=? AND date>=? ORDER BY date DESC, at DESC",
+            (acct["id"], start_key),
+        ).fetchall()
+    by_date: dict[str, dict] = {}
+    for r in rows:
+        dk = r["date"]
+        day = by_date.get(dk)
+        if not day:
+            day = {"date": dk, "entries": [], "totalKcal": 0.0, "totalMinutes": 0.0}
+            by_date[dk] = day
+        day["entries"].append(
+            {
+                "id": r["id"],
+                "key": r["exercise_key"],
+                "name": r["name"],
+                "minutes": r["minutes"],
+                "kcal": r["kcal"],
+                "at": r["at"],
+            }
+        )
+        day["totalKcal"] = round(float(day["totalKcal"]) + float(r["kcal"] or 0), 1)
+        day["totalMinutes"] = round(float(day["totalMinutes"]) + float(r["minutes"] or 0), 1)
+    return {"days": [by_date[k] for k in sorted(by_date.keys(), reverse=True)]}
+
+
 class ExerciseBody(BaseModel):
     date: str = Field(..., min_length=10, max_length=10)  # "YYYY-MM-DD"
     key: str = Field(..., min_length=1, max_length=64)
@@ -247,6 +281,8 @@ class ExerciseBody(BaseModel):
 @router.post("/log")
 def add_log(body: ExerciseBody, request: Request):
     acct = auth.require_account(request)
+    if body.date != _date.today().isoformat():
+        raise HTTPException(status_code=403, detail="You can add exercise entries only for today.")
     entry = _CATALOG.get(body.key)
     if entry:
         name, met = entry
@@ -282,5 +318,7 @@ def delete_log(entry_id: int, request: Request):
         # (same guard as progress.py / community.py).
         if row["account_id"] != acct["id"]:
             raise HTTPException(status_code=404, detail="Not found")
+        if row["date"] != _date.today().isoformat():
+            raise HTTPException(status_code=403, detail="Only today's exercise logs can be edited or deleted.")
         c.execute("DELETE FROM exercise_logs WHERE id=?", (entry_id,))
         return _day(c, acct["id"], row["date"])

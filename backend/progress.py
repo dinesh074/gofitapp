@@ -38,6 +38,7 @@ Endpoints (all Bearer-authenticated):
 import json
 import time
 import logging
+from datetime import date as _date
 from typing import Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -550,6 +551,10 @@ class MealBody(BaseModel):
 _MEAL_TYPES = {"breakfast", "morning_snack", "lunch", "afternoon_snack", "evening_snack", "dinner"}
 
 
+def _today_key() -> str:
+    return _date.today().isoformat()
+
+
 def _infer_meal_type(at_epoch: float) -> str:
     """Best-effort fallback bucket when the client didn't send meal_type.
     Uses server local time -- imperfect across timezones, which is exactly
@@ -665,6 +670,8 @@ def get_logs(request: Request):
 @router.post("/logs")
 def add_log(body: MealBody, request: Request):
     acct = auth.require_account(request)
+    if body.date != _today_key():
+        raise HTTPException(status_code=403, detail="You can log meals only for today.")
     at = time.time()
     meal_type = body.meal_type if body.meal_type in _MEAL_TYPES else _infer_meal_type(at)
     micros_json = json.dumps(body.micros) if body.micros else None
@@ -705,6 +712,8 @@ def delete_log(log_id: int, request: Request):
             # caller act on another account's rows just because they guessed
             # an id.
             raise HTTPException(status_code=404, detail="Not found")
+        if row["date"] != _today_key():
+            raise HTTPException(status_code=403, detail="Only today's meal logs can be edited or deleted.")
         c.execute("DELETE FROM meal_logs WHERE id=?", (log_id,))
         _refresh_daily_summary(c, acct["id"], row["date"])
         _untouch_log_day_if_empty(c, acct["id"], row["date"])

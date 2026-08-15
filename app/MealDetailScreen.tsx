@@ -15,7 +15,7 @@ import Icon from "./Icon";
 import { colors, radius, elevation } from "./theme";
 import { useApp } from "./AppContext";
 import { deleteServerLog, AuthRequiredError } from "./api";
-import { deleteMeal, LogMap, MEAL_TYPE_LABEL, MealType } from "./storage";
+import { deleteMeal, LogMap, MEAL_TYPE_LABEL, MealType, todayKey } from "./storage";
 import { MICRO_REFS } from "./micros";
 import { goBackOrTabs } from "./nav";
 
@@ -40,6 +40,7 @@ export default function MealDetailScreen() {
   const { logs, setLogs, requireAuth } = useApp();
 
   const meal = logs[dateKey]?.meals?.[idx];
+  const isToday = dateKey === todayKey();
 
   const kcalFromMacros = useMemo(() => {
     if (!meal) return { p: 0, c: 0, f: 0, total: 0 };
@@ -50,7 +51,7 @@ export default function MealDetailScreen() {
   }, [meal]);
 
   function handleDelete() {
-    if (!meal) return;
+    if (!meal || !isToday) return;
     setLogs((prev: LogMap) => deleteMeal(prev, dateKey, idx));
     if (meal.id) {
       deleteServerLog(meal.id).catch((e) => {
@@ -91,9 +92,13 @@ export default function MealDetailScreen() {
             {label} · {mealDate(meal.at)} · {mealTime(meal.at)}
           </Text>
         </View>
-        <Pressable style={styles.delBtn} onPress={handleDelete} hitSlop={10}>
-          <Icon name="trash" size={18} color={colors.red} />
-        </Pressable>
+        {isToday ? (
+          <Pressable style={styles.delBtn} onPress={handleDelete} hitSlop={10}>
+            <Icon name="trash" size={18} color={colors.red} />
+          </Pressable>
+        ) : (
+          <View style={styles.delBtn} />
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -110,6 +115,12 @@ export default function MealDetailScreen() {
           <Text style={styles.kcalValue}>{Math.round(meal.kcal)}</Text>
           <Text style={styles.kcalLabel}>calories</Text>
         </View>
+        {!isToday && (
+          <View style={styles.readOnlyCard}>
+            <Icon name="time" size={14} color={colors.mute} />
+            <Text style={styles.readOnlyText}>Past meal logs are read-only. You can edit or delete only today's logs.</Text>
+          </View>
+        )}
 
         <View style={styles.macroCard}>
           <Text style={styles.sectionHead}>Macros</Text>
@@ -222,6 +233,18 @@ const styles = StyleSheet.create({
   kcalCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 18, alignItems: "center", marginBottom: 14, ...elevation.sm },
   kcalValue: { fontSize: 34, fontWeight: "900", color: colors.ink },
   kcalLabel: { fontSize: 12, color: colors.mute, fontWeight: "700", marginTop: 2 },
+  readOnlyCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    ...elevation.sm,
+  },
+  readOnlyText: { color: colors.mute, fontSize: 12, fontWeight: "700", flex: 1 },
 
   macroCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 14, ...elevation.sm },
   sectionHead: { fontSize: 14, fontWeight: "800", color: colors.ink, marginBottom: 12 },

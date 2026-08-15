@@ -1090,7 +1090,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   // Each dashboard module rendered on demand in the user's chosen order. These
   // are the exact sections that were previously hard-coded top-to-bottom in the
   // scroll; order + visibility now come from the synced layout.
-  function renderModule(key: HomeModuleKey): React.ReactNode {
+  function renderModule(key: HomeModuleKey | "calendar"): React.ReactNode {
     switch (key) {
       case "summary":
         return (

@@ -4,13 +4,29 @@ import { useNavigation } from "@react-navigation/native";
 import Screen from "./Screen";
 import Icon from "./Icon";
 import { colors, elevation } from "./theme";
-import { addExerciseLog, AuthRequiredError, deleteExerciseLog, ExerciseCatalog, ExerciseDay, getExerciseCatalog, getExerciseLogs } from "./api";
+import {
+  addExerciseLog,
+  AuthRequiredError,
+  deleteExerciseLog,
+  ExerciseCatalog,
+  ExerciseDay,
+  ExerciseHistoryDay,
+  getExerciseCatalog,
+  getExerciseHistory,
+  getExerciseLogs,
+} from "./api";
 import { todayKey } from "./storage";
 import { useApp } from "./AppContext";
 import { goBackOrTabs } from "./nav";
 import WorkoutLibrary from "./WorkoutLibrary";
 
 const DURATIONS = [10, 20, 30, 45, 60];
+const HISTORY_DAYS = 14;
+
+function shortDate(dateKey: string): string {
+  const d = new Date(`${dateKey}T00:00:00`);
+  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
 
 export default function ExerciseLogScreen() {
   const navigation = useNavigation<any>();
@@ -18,6 +34,7 @@ export default function ExerciseLogScreen() {
   const date = todayKey();
   const [catalog, setCatalog] = useState<ExerciseCatalog | null>(null);
   const [day, setDay] = useState<ExerciseDay | null>(null);
+  const [history, setHistory] = useState<ExerciseHistoryDay[]>([]);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -30,10 +47,11 @@ export default function ExerciseLogScreen() {
       setLoading(true);
       setError(null);
       try {
-        const [c, d] = await Promise.all([getExerciseCatalog(), getExerciseLogs(date)]);
+        const [c, d, h] = await Promise.all([getExerciseCatalog(), getExerciseLogs(date), getExerciseHistory(HISTORY_DAYS)]);
         if (!alive) return;
         setCatalog(c);
         setDay(d);
+        setHistory(h.days ?? []);
       } catch (e: any) {
         if (!alive) return;
         if (e instanceof AuthRequiredError) {
@@ -55,8 +73,9 @@ export default function ExerciseLogScreen() {
     setBusy(true);
     setError(null);
     try {
-      const d = await addExerciseLog(date, key, minutes);
+      const [d, h] = await Promise.all([addExerciseLog(date, key, minutes), getExerciseHistory(HISTORY_DAYS)]);
       setDay(d);
+      setHistory(h.days ?? []);
       setPendingKey(null);
     } catch (e: any) {
       if (e instanceof AuthRequiredError) {
@@ -73,8 +92,9 @@ export default function ExerciseLogScreen() {
   async function remove(id: number) {
     setBusy(true);
     try {
-      const d = await deleteExerciseLog(id);
+      const [d, h] = await Promise.all([deleteExerciseLog(id), getExerciseHistory(HISTORY_DAYS)]);
       setDay(d);
+      setHistory(h.days ?? []);
     } catch (e: any) {
       if (e instanceof AuthRequiredError) {
         requireAuth();
@@ -125,6 +145,29 @@ export default function ExerciseLogScreen() {
                   ))}
                 </View>
               )}
+              <View style={styles.card}>
+                <Text style={styles.section}>Exercise history · last {HISTORY_DAYS} days</Text>
+                <Text style={styles.historyHint}>Past entries are view-only. Add/edit/delete is available for today only.</Text>
+                {(history ?? []).filter((h) => h.date !== date).length === 0 ? (
+                  <Text style={styles.emptyHistory}>No past exercise entries in this window.</Text>
+                ) : (
+                  (history ?? [])
+                    .filter((h) => h.date !== date)
+                    .map((h) => (
+                      <View key={h.date} style={styles.historyDay}>
+                        <Text style={styles.historyTitle}>
+                          {shortDate(h.date)} · {Math.round(h.totalMinutes)} min · {Math.round(h.totalKcal)} kcal
+                        </Text>
+                        {h.entries.map((e, i) => (
+                          <View key={e.id} style={[styles.historyRow, i > 0 && styles.historyRowDivider]}>
+                            <Text style={styles.historyName}>{e.name}</Text>
+                            <Text style={styles.historyMeta}>{Math.round(e.minutes)} min · {Math.round(e.kcal)} kcal</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))
+                )}
+              </View>
 
               {(catalog?.categories ?? []).map((cat) => (
                 <View key={cat.key} style={styles.card}>
@@ -204,6 +247,14 @@ const styles = StyleSheet.create({
   loggedRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.line },
   loggedName: { color: colors.ink, fontSize: 14, fontWeight: "700" },
   loggedSub: { color: colors.mute, fontSize: 12, fontWeight: "600", marginTop: 1 },
+  historyHint: { color: colors.faint, fontSize: 11.5, fontWeight: "600", marginTop: -2, marginBottom: 2 },
+  emptyHistory: { color: colors.mute, fontSize: 12.5, fontWeight: "600", paddingVertical: 4 },
+  historyDay: { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 8, marginTop: 2 },
+  historyTitle: { color: colors.ink, fontSize: 12.5, fontWeight: "800", marginBottom: 5 },
+  historyRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingVertical: 5 },
+  historyRowDivider: { borderTopWidth: 1, borderTopColor: colors.hairline },
+  historyName: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "700", flex: 1 },
+  historyMeta: { color: colors.mute, fontSize: 11.5, fontWeight: "700" },
   itemRow: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.cardMuted, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 10, marginTop: 2 },
   itemRowActive: { borderWidth: 1, borderColor: colors.greenTint },
   itemName: { flex: 1, color: colors.ink, fontSize: 13, fontWeight: "700" },

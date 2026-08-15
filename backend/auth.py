@@ -674,6 +674,18 @@ def _norm_email(e: str) -> str:
     return e.strip().lower()
 
 
+def _otp_send_error_detail(reason: Optional[str]) -> str:
+    if reason == "missing_api_key":
+        return "OTP email is unavailable: RESEND_API_KEY is missing on the server."
+    if reason == "invalid_api_key":
+        return "OTP email is unavailable: RESEND_API_KEY is invalid or rejected."
+    if reason == "from_domain_not_verified":
+        return "OTP email is unavailable: RESEND_FROM sender domain is not verified in Resend."
+    if reason == "recipient_not_allowed_in_test_mode":
+        return "OTP email is unavailable: Resend test mode allows only approved recipient addresses."
+    return "OTP email is unavailable right now. Please contact support."
+
+
 @router.post("/otp/request")
 def otp_request(body: OtpRequestBody, request: Request):
     email = _norm_email(body.email)
@@ -699,14 +711,15 @@ def otp_request(body: OtpRequestBody, request: Request):
             """,
             (email, code_hash, now, now + _OTP_TTL_SECONDS),
         )
-    sent = email_service.send_otp_email(email, code)
-    audit.record("otp_request", status="success" if sent else "email_not_configured", detail=email, request=request)
+    sent, reason = email_service.send_otp_email_result(email, code)
+    status = "success" if sent else f"email_failed:{reason or 'unknown'}"
+    audit.record("otp_request", status=status, detail=email, request=request)
     # In dev (no email provider configured yet) surface the code directly so
     # the flow is still testable end-to-end without Resend set up.
     if not sent and not ALLOW_DEV_LOGIN:
         raise HTTPException(
             status_code=503,
-            detail="OTP email is not configured on the server yet. Please contact support.",
+            detail=_otp_send_error_detail(reason),
         )
     resp = {"ok": True, "sent": sent}
     if not sent and ALLOW_DEV_LOGIN:

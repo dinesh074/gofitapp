@@ -1207,6 +1207,12 @@ export type ExerciseDay = {
   totalKcal: number;
   totalMinutes: number;
 };
+export type ExerciseHistoryDay = {
+  date: string;
+  entries: ExerciseEntry[];
+  totalKcal: number;
+  totalMinutes: number;
+};
 
 export async function getExerciseCatalog(): Promise<ExerciseCatalog> {
   return getJson<ExerciseCatalog>("/exercise/catalog");
@@ -1228,6 +1234,10 @@ export type ExerciseSummary = {
 // Range rollup (7/30/90 days) for the Progress/Reports section.
 export async function getExerciseSummary(days: number): Promise<ExerciseSummary> {
   return getJson<ExerciseSummary>(`/exercise/summary?days=${days}`);
+}
+
+export async function getExerciseHistory(days: number): Promise<{ days: ExerciseHistoryDay[] }> {
+  return getJson<{ days: ExerciseHistoryDay[] }>(`/exercise/history?days=${days}`);
 }
 
 // Logs one activity for the day; returns the updated day (with computed kcal).
