@@ -166,6 +166,33 @@ def init_db() -> None:
         c.execute("CREATE INDEX IF NOT EXISTS idx_gofit_scan_account_time ON gofit_ai_scan_results(account_id, created_at)")
         _seed_sources(c)
         _seed_from_current_foods(c)
+        renamed = _apply_display_name_overrides(c)
+        if renamed:
+            log.info("food_graph: applied %d curated display-name override(s)", renamed)
+
+
+def _apply_display_name_overrides(c) -> int:
+    """Correct a small set of auto-generated display names that don't match
+    how the dish is actually eaten/described in India. `_seed_from_current_foods`
+    auto-derives most display names via `key.replace('_', ' ').title()`, which
+    got "cooked_rice" -> "Cooked Rice" -- and separately, our vision-model
+    matcher was leaving the AI's raw guess (often "steamed rice") on screen
+    instead of this canonical name at all. Indian home-style rice is
+    boiled/cooked in water, not steamed, so the canonical name should read
+    "Cooked rice" (sentence case, matching sibling entries like "Boiled rice",
+    "Lemon rice"). Idempotent -- only updates rows that don't already match,
+    so this is cheap to run on every boot and safe to extend with more
+    overrides later."""
+    overrides = {
+        "cooked_rice": "Cooked rice",
+    }
+    n = 0
+    for key, name in overrides.items():
+        row = c.execute("SELECT display_name FROM gofit_food_entities WHERE food_key=?", (key,)).fetchone()
+        if row is not None and row["display_name"] != name:
+            c.execute("UPDATE gofit_food_entities SET display_name=? WHERE food_key=?", (name, key))
+            n += 1
+    return n
 
 
 def _seed_sources(c) -> None:

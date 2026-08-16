@@ -504,6 +504,15 @@ def _init_foods_table(c) -> None:
         c.execute("ALTER TABLE foods ADD COLUMN source_name TEXT")
     if "source" not in cols:
         c.execute("ALTER TABLE foods ADD COLUMN source TEXT")
+    # Curated display-name override -- most keys read fine as Title Case
+    # (see the "name" or key.title() fallback used across /foods/search etc.),
+    # but a few need an explicit correction (e.g. our rice entry's aliases
+    # include "steamed rice" because that's what vision models often say, but
+    # Indian home-style rice is boiled/cooked in water, not steamed -- so we
+    # want the item shown to the user to read "Cooked rice" regardless of
+    # which alias the model happened to use).
+    if "name" not in cols:
+        c.execute("ALTER TABLE foods ADD COLUMN name TEXT")
 
 
 # --- Jain / Sattvic classification -------------------------------------------
@@ -588,6 +597,30 @@ def _backfill_diet_tags(c) -> int:
     return n
 
 
+def _backfill_display_names(c) -> int:
+    """One-off backfill of the curated `name` override from indian_food_db.json
+    for rows seeded before this column existed. Only fills rows whose `name`
+    doesn't already match the JSON (so re-running is cheap/idempotent), and
+    only for keys that actually have a curated override in the JSON -- most
+    foods have none and keep using the key.title() fallback at read time."""
+    try:
+        with open(DB_PATH, "r", encoding="utf-8") as f:
+            foods = json.load(f)["foods"]
+    except Exception as ex:
+        log.warning("Could not read %s to backfill food display names: %s", DB_PATH, ex)
+        return 0
+    n = 0
+    for food in foods:
+        name = food.get("name")
+        if not name:
+            continue
+        row = c.execute("SELECT name FROM foods WHERE key=?", (food["key"],)).fetchone()
+        if row is not None and row["name"] != name:
+            c.execute("UPDATE foods SET name=? WHERE key=?", (name, food["key"]))
+            n += 1
+    return n
+
+
 def _seed_foods_if_empty(c) -> int:
     """Load indian_food_db.json into the `foods` table, but only if it's
     currently empty -- never overwrites rows someone has since edited by hand
@@ -614,14 +647,15 @@ def _seed_foods_if_empty(c) -> int:
             json.dumps(food["micros"]) if food.get("micros") else None,
             json.dumps(food.get("aliases", [])),
             food.get("_source_name"), food.get("_source"),
+            food.get("name"),
         ))
     c.executemany(
         """INSERT OR IGNORE INTO foods
            (key, unit, kcal_per_unit, protein_g, carbs_g, fat_g, fiber_g, sugar_g,
             sodium_mg, potassium_mg, calcium_mg, iron_mg, health_score,
             benefits_json, watch_outs_json, micros_json, aliases_json,
-            source_name, source)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            source_name, source, name)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         rows,
     )
     return len(rows)
@@ -633,7 +667,7 @@ def _row_to_food(r) -> dict:
         "protein_g": r["protein_g"], "carbs_g": r["carbs_g"], "fat_g": r["fat_g"],
     }
     for col in ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg", "health_score",
-                "jain_status", "sattvic_status"):
+                "jain_status", "sattvic_status", "name"):
         v = r[col]
         if v is not None:
             d[col] = v
@@ -666,6 +700,9 @@ def _load_db():
             tagged = _backfill_diet_tags(c)
             if tagged:
                 log.info("classified jain/sattvic status for %d foods missing it", tagged)
+            renamed = _backfill_display_names(c)
+            if renamed:
+                log.info("applied %d curated food display-name override(s)", renamed)
         with db.connect() as c:
             rows = c.execute("SELECT * FROM foods").fetchall()
         foods = [_row_to_food(r) for r in rows]
@@ -815,6 +852,17 @@ def anchor_items(data: dict) -> dict:
         if food:
             if food.get("key"):
                 it["key"] = food["key"]
+            # Only override the displayed name when the DB has an explicit
+            # curated override (food["name"]) -- e.g. our rice entry matches
+            # on "steamed rice" (a common vision-model guess) but Indian
+            # home-style rice is boiled/cooked, not steamed, so we show
+            # "Cooked rice" regardless of which alias matched. We do NOT fall
+            # back to key.title() here (unlike /foods/search) because the
+            # AI's original text is often MORE specific than the matched key
+            # (e.g. "chicken biryani" matching the generic "biryani" alias) --
+            # renaming those would lose detail, not add clarity.
+            if food.get("name"):
+                it["item"] = food["name"]
             it["kcal_per_unit"] = food["kcal_per_unit"]
             for m in macros:
                 it[m + "_per_unit"] = food.get(m, 0)

@@ -23,6 +23,8 @@ import {
   isCompleteProfile,
   LIMITS,
   Profile,
+  projectPlan,
+  fmtPlanDate,
 } from "./nutrition";
 import { APP_NAME } from "./config";
 import { getProfile } from "./api";
@@ -31,7 +33,7 @@ import { setRemindersEnabled } from "./push";
 import Icon from "./Icon";
 import PaceSlider from "./PaceSlider";
 import NumberStepper from "./NumberStepper";
-import { colors } from "./theme";
+import { colors, radius, sp, type as T } from "./theme";
 
 // Aliased to the shared design system (theme.ts) so this screen stays in sync
 // with the rest of the app instead of drifting with its own near-duplicate values.
@@ -84,6 +86,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
   const edited = useRef(false);
 
   const goal = useMemo(() => computeGoal(d), [d]);
+  const plan = useMemo(() => projectPlan(d), [d]);
 
   useEffect(() => {
     loadRemindersEnabled().then(setReminders);
@@ -255,6 +258,13 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
               value={resolveGoalPace(d)}
               onChange={(v) => update({ goalPace: v })}
             />
+            {plan.weeks > 0 && (
+              <View style={styles.planGrid}>
+                <PlanStat label="Timeline" value={`~${plan.weeks} wk`} />
+                <PlanStat label="Reach around" value={plan.targetDate ? fmtPlanDate(plan.targetDate) : "—"} />
+                <PlanStat label="Rate" value={`${Math.abs(plan.ratePerWeekKg).toFixed(2)} kg/wk`} />
+              </View>
+            )}
           </Field>
         )}
 
@@ -355,6 +365,15 @@ function Pill({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PlanStat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.planStat}>
+      <Text style={styles.planStatLabel}>{label}</Text>
+      <Text style={styles.planStatValue}>{value}</Text>
+    </View>
+  );
+}
+
 function Segmented<T extends string>({
   options,
   value,
@@ -426,6 +445,19 @@ const styles = StyleSheet.create({
   pill: { flex: 1, backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 12, paddingVertical: 10, alignItems: "center" },
   pillVal: { color: "#fff", fontSize: 16, fontWeight: "800" },
   pillKey: { color: "#CDEBD9", fontSize: 11, marginTop: 2 },
+  planGrid: { flexDirection: "row", gap: sp(2.5), marginTop: sp(3) },
+  planStat: {
+    flex: 1,
+    backgroundColor: colors.cardMuted,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingVertical: sp(3),
+    paddingHorizontal: sp(2),
+    alignItems: "center",
+  },
+  planStatLabel: { ...T.tiny, color: colors.mute, textAlign: "center", marginBottom: sp(1) },
+  planStatValue: { ...T.h2, color: colors.ink, textAlign: "center" },
 
   field: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10 },
   fieldLabel: { color: MUTE, fontSize: 12, fontWeight: "700", letterSpacing: 0.5, marginBottom: 12, textTransform: "uppercase" },

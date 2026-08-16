@@ -18,6 +18,7 @@ import {
   lbToKg,
   cmToIn,
   inToCm,
+  fmtPlanDate,
   formatHeight,
   HeightUnit,
   LIMITS,
@@ -34,8 +35,7 @@ import PaceSlider from "./PaceSlider";
 import NumberStepper from "./NumberStepper";
 import Screen from "./Screen";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const fmtDate = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const fmtDate = fmtPlanDate;
 const fmtKg = (n: number) => `${Math.round(n * 10) / 10}`;
 
 type Props = { onComplete: (p: Profile) => void };

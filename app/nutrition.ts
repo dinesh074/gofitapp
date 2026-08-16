@@ -279,6 +279,17 @@ export function projectPlan(p: Profile, now: Date = new Date()): GoalProjection 
   };
 }
 
+// Formats a plan's projected target date for display, e.g. "12 Mar 2027".
+// Always includes the year -- a multi-month/slow-pace plan can easily cross
+// into next year, and showing just "12 Mar" for that case reads as "this
+// month" and is misleading about how far out the goal actually is.
+const PLAN_DATE_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+export function fmtPlanDate(d: Date): string {
+  return `${d.getDate()} ${PLAN_DATE_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 // Water + step goals -- both used to be flat constants (2500 ml / 10,000
 // steps) shown to every account regardless of what onboarding actually
 // collected. That's not "real data personalized to you", it's a guess with

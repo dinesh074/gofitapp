@@ -464,6 +464,7 @@
   },
   {
    "key": "cooked_rice",
+   "name": "Cooked rice",
    "unit": "katori",
    "kcal_per_unit": 135,
    "protein_g": 2.7,
