@@ -1773,6 +1773,7 @@ class RecommendBody(BaseModel):
     training: str = ""
     ai_mode: bool = False
     profile: RecommendProfile | None = None
+    hour: Optional[int] = None  # device-local hour (0-23); makes slot picking time-aware
 
 
 def _init_recommendation_history_table(c) -> None:
@@ -1807,7 +1808,28 @@ def _core_slot(meal_type: str) -> str:
     return "snack"
 
 
-def _next_slot_from_logs(account_id: int, date_key: str, asked_slot: str) -> str:
+# Rough Indian meal-time windows used to make "what's next" feel aware of the
+# actual time of day, instead of always defaulting to whichever slot happens
+# to be chronologically first and unlogged (which made the home-screen "next
+# best move" card show the same breakfast suggestion all day long).
+_SLOT_HOUR_WINDOWS = [
+    ("breakfast", 4, 11),
+    ("lunch", 11, 16),
+    ("snack", 16, 19),
+    ("dinner", 19, 23),
+]
+_SLOT_ORDER = ["breakfast", "lunch", "snack", "dinner"]
+
+
+def _slot_for_hour(hour: int) -> str:
+    h = hour % 24
+    for slot, start, end in _SLOT_HOUR_WINDOWS:
+        if start <= h < end:
+            return slot
+    return "dinner"  # late night (23:00-04:00) -- still dinner/late-dinner territory
+
+
+def _next_slot_from_logs(account_id: int, date_key: str, asked_slot: str, hour: Optional[int] = None) -> str:
     asked = (asked_slot or "").strip().lower()
     if asked in ("breakfast", "lunch", "snack", "dinner"):
         return asked
@@ -1821,6 +1843,25 @@ def _next_slot_from_logs(account_id: int, date_key: str, asked_slot: str) -> str
             rows = []
     seen = [_core_slot(r["meal_type"]) for r in rows if r["meal_type"]]
     seen_set = set(seen)
+
+    if hour is not None:
+        # Prefer whatever slot matches the current time of day if it hasn't
+        # been logged yet -- e.g. at 8pm, suggest dinner even if breakfast
+        # was skipped, rather than nagging about a meal that's long past.
+        current = _slot_for_hour(hour)
+        if current not in seen_set:
+            return current
+        idx = _SLOT_ORDER.index(current)
+        # Current slot already logged: look for an earlier missed meal first...
+        for s in _SLOT_ORDER[:idx]:
+            if s not in seen_set:
+                return s
+        # ...then anything still ahead today.
+        for s in _SLOT_ORDER[idx + 1 :]:
+            if s not in seen_set:
+                return s
+        return "snack"
+
     if "breakfast" not in seen_set:
         return "breakfast"
     if "lunch" not in seen_set:
@@ -2378,7 +2419,7 @@ def foods_recommend(body: RecommendBody, request: Request):
     diet = (body.diet or "veg").strip().lower()
     limit = max(1, min(24, body.limit))
     date_key = (body.date or "").strip()[:10] or time.strftime("%Y-%m-%d")
-    slot = _next_slot_from_logs(acct["id"], date_key, body.slot)
+    slot = _next_slot_from_logs(acct["id"], date_key, body.slot, body.hour)
     training = (body.training or "").strip().lower()
     # If targets are present, align slot budget to a realistic day share.
     if body.targets is not None:

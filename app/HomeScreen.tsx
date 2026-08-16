@@ -420,8 +420,15 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
       recoSig.current = null;
       return;
     }
-    // Coarse signature -- refetch only when it shifts (100 kcal / 10 g buckets).
-    const sig = `${profile.diet}|${profile.goal}|${Math.round(remKcal / 100)}|${Math.round(remP / 10)}|${Math.round(remC / 10)}`;
+    // Bucket the hour into the same rough meal windows the backend uses
+    // (breakfast/lunch/snack/dinner) so the "next best move" card refreshes
+    // when the time of day crosses into a new meal window, not just when
+    // remaining macros happen to shift -- otherwise it can look "stuck" on
+    // the same suggestion all day even though it's now dinner time.
+    const hour = new Date().getHours();
+    const slotBucket = hour < 4 ? "dinner" : hour < 11 ? "breakfast" : hour < 16 ? "lunch" : hour < 19 ? "snack" : "dinner";
+    // Coarse signature -- refetch only when it shifts (100 kcal / 10 g buckets, or the meal-time window changes).
+    const sig = `${profile.diet}|${profile.goal}|${Math.round(remKcal / 100)}|${Math.round(remP / 10)}|${Math.round(remC / 10)}|${slotBucket}`;
     if (sig === recoSig.current) return;
     let alive = true;
     const timer = setTimeout(() => {
@@ -438,6 +445,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
           training: training ?? "",
           aiMode: AI_PLANNER_FULL_MODE,
           profile: plannerProfile,
+          hour,
         },
       )
         .then(({ candidates, suggestion, nextMove: move }) => {

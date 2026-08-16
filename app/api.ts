@@ -452,6 +452,7 @@ export async function recommendMeals(
     training?: string;
     aiMode?: boolean;
     profile?: PlannerProfileContext;
+    hour?: number;
   } = {},
   limit = 12,
 ): Promise<{
@@ -498,6 +499,7 @@ export async function recommendMeals(
         ...(options.training ? { training: options.training } : {}),
         ...(options.aiMode ? { ai_mode: true } : {}),
         ...(options.profile ? { profile: options.profile } : {}),
+        ...(options.hour !== undefined ? { hour: options.hour } : {}),
       }),
     });
   } catch {

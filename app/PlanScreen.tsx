@@ -74,7 +74,11 @@ export default function PlanScreen() {
       recoSig.current = null;
       return;
     }
-    const sig = `${profile.diet}|${profile.goal}|${Math.round(remKcal / 100)}|${Math.round(remP / 10)}|${Math.round(remC / 10)}`;
+    // Same time-aware bucketing as HomeScreen -- refetch when the meal-time
+    // window changes (breakfast/lunch/snack/dinner), not just remaining macros.
+    const hour = new Date().getHours();
+    const slotBucket = hour < 4 ? "dinner" : hour < 11 ? "breakfast" : hour < 16 ? "lunch" : hour < 19 ? "snack" : "dinner";
+    const sig = `${profile.diet}|${profile.goal}|${Math.round(remKcal / 100)}|${Math.round(remP / 10)}|${Math.round(remC / 10)}|${slotBucket}`;
     if (sig === recoSig.current) return;
     let alive = true;
     const timer = setTimeout(() => {
@@ -90,6 +94,7 @@ export default function PlanScreen() {
           date: today,
           aiMode: AI_PLANNER_FULL_MODE,
           profile: plannerProfile,
+          hour,
         },
       )
         .then(({ nextMove: move }) => {
