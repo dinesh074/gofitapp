@@ -29,6 +29,37 @@ COMMUNITY_BUCKET = "community-photos"
 # posts), so this bucket is private -- reads go through short-lived signed
 # URLs (see signed_url()) instead of a public URL.
 MEAL_BUCKET = "meal-photos"
+# Public downloads (e.g. the sideloadable Android APK linked from the landing
+# page) -- a small, generic public bucket, separate from the photo buckets
+# above since its content/lifecycle is completely different (a handful of
+# large static build artifacts instead of many small user photos).
+DOWNLOADS_BUCKET = "app-downloads"
+
+
+def _ensure_public_bucket(bucket: str) -> None:
+    """Idempotently create a PUBLIC bucket if it doesn't already exist.
+    Supabase's create-bucket endpoint 400s if the bucket already exists --
+    that's treated as success here so this is safe to call on every upload."""
+    url = f"{SUPABASE_URL}/storage/v1/bucket"
+    body = json.dumps({"id": bucket, "name": bucket, "public": True}).encode()
+    req = urllib.request.Request(
+        url,
+        data=body,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp.read()
+    except urllib.error.HTTPError as e:
+        # Already exists (or a race with another worker creating it) -- fine.
+        if e.code not in (400, 409):
+            raise RuntimeError(f"Supabase Storage bucket create failed: {e.code} {e.read().decode('utf-8', 'ignore')}") from e
+    except Exception:
+        pass  # best-effort; the actual upload below will surface any real problem
 
 
 def configured() -> bool:
@@ -150,3 +181,33 @@ def upload_community_photo(name: str, data: bytes, content_type: str = "image/jp
     except Exception as ex:
         raise RuntimeError(f"Supabase Storage upload failed: {ex}") from ex
     return f"{SUPABASE_URL}/storage/v1/object/public/{COMMUNITY_BUCKET}/{name}"
+
+
+def upload_public_file(name: str, data: bytes, content_type: str, bucket: str = DOWNLOADS_BUCKET) -> str:
+    """Upload (upsert) an arbitrary file to a PUBLIC bucket and return its
+    permanent public URL. Used for the sideloadable Android APK linked from
+    the landing page -- unlike EAS's own build-artifact links, this URL never
+    expires. Raises RuntimeError on failure."""
+    if not configured():
+        raise RuntimeError("Supabase Storage is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY unset)")
+    _ensure_public_bucket(bucket)
+    url = f"{SUPABASE_URL}/storage/v1/object/{bucket}/{name}"
+    req = urllib.request.Request(
+        url,
+        data=data,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            "Content-Type": content_type,
+            "x-upsert": "true",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            resp.read()
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "ignore")
+        raise RuntimeError(f"Supabase Storage upload failed: {e.code} {detail}") from e
+    except Exception as ex:
+        raise RuntimeError(f"Supabase Storage upload failed: {ex}") from ex
+    return f"{SUPABASE_URL}/storage/v1/object/public/{bucket}/{name}"

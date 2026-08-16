@@ -329,6 +329,29 @@ app.include_router(barcode.router)
 wellness.init_db()
 app.include_router(wellness.router)
 
+
+@app.post("/admin/upload-apk")
+async def admin_upload_apk(request: Request, file: UploadFile = File(...)):
+    """One-off admin utility: upload a sideloadable Android APK build to a
+    PUBLIC Supabase Storage bucket and return its permanent URL, for linking
+    from the marketing landing page's "Download for Android" button. Unlike
+    EAS's own build-artifact links (which expire after a couple weeks on the
+    free tier), this URL is stable for as long as the object exists.
+    Gated by X-Admin-Key exactly like the other /admin/* endpoints -- 404s
+    (not 401) when ADMIN_KEY is unset, so its existence isn't advertised."""
+    if not audit.ADMIN_KEY:
+        raise HTTPException(status_code=404, detail="Not found")
+    if request.headers.get("x-admin-key", "").strip() != audit.ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+    data = await file.read()
+    try:
+        url = blob_storage.upload_public_file(
+            "gofit-today.apk", data, content_type="application/vnd.android.package-archive"
+        )
+    except RuntimeError as ex:
+        raise HTTPException(status_code=503, detail=str(ex))
+    return {"url": url, "bytes": len(data)}
+
 # Exercise catalog + daily activity logging (GET /exercise/catalog,
 # GET/POST /exercise/logs, DELETE /exercise/log/{id}). Calories burned are
 # computed from the account's saved weight via MET values -- part of the one
