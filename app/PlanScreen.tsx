@@ -1,15 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Screen from "./Screen";
 import Icon from "./Icon";
 import PressableScale from "./PressableScale";
 import TodayPlanCard from "./TodayPlanCard";
+import CalorieRing from "./CalorieRing";
 import { useApp } from "./AppContext";
 import { dayMacros, dayTotal, todayKey } from "./storage";
 import { dayMicros } from "./micros";
 import { recommendMeals, DayPlan, PlannerProfileContext } from "./api";
 import { AI_PLANNER_FULL_MODE } from "./config";
-import { colors, elevation } from "./theme";
+import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
 import { notifyNextMealRecommendation, notifyPlanUpdate } from "./push";
 
 type MoveMeal = {
@@ -19,6 +21,18 @@ type MoveMeal = {
   carbs_g: number;
   fat_g: number;
 };
+
+function GlanceStat({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <View style={styles.glanceStatRow}>
+      <View style={[styles.glanceStatDot, { backgroundColor: color }]} />
+      <View>
+        <Text style={styles.glanceStatValue}>{value}</Text>
+        <Text style={styles.glanceStatLabel}>{label}</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function PlanScreen() {
   const { profile, goal, logs, account, requireAuth, logMeal } = useApp();
@@ -194,16 +208,28 @@ export default function PlanScreen() {
   return (
     <Screen edgeTop>
       <View style={styles.root}>
-        <View style={styles.header}>
+        <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <Text style={styles.headTitle}>Plan</Text>
           <Text style={styles.headSub}>Daily plan and next best meal in one place.</Text>
-        </View>
+        </LinearGradient>
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+          <View style={styles.glanceCard}>
+            <CalorieRing value={dayKcal} goal={goal.kcal} size={92} stroke={11} />
+            <View style={styles.glanceStats}>
+              <GlanceStat label="Protein left" value={`${Math.round(remP)}g`} color={colors.protein} />
+              <GlanceStat label="Carbs left" value={`${Math.round(remC)}g`} color={colors.gold} />
+              <GlanceStat label="Fat left" value={`${Math.round(remF)}g`} color={colors.fat} />
+            </View>
+          </View>
+
           <View style={styles.nextCard}>
             <View style={styles.nextHeadRow}>
-              <View style={styles.nextHeadTitle}>
-                <Icon name="sparkles" size={15} color={colors.green} />
-                <Text style={styles.nextHeadText}>Your next best move</Text>
+              <View style={styles.cardIcon}>
+                <Icon name="sparkles" size={17} color={colors.green} />
+              </View>
+              <View style={styles.nextHeadText}>
+                <Text style={styles.nextHeadTitle}>Your next best move</Text>
+                <Text style={styles.nextHeadSubtitle}>AI-picked to close today&apos;s biggest gap</Text>
               </View>
               {options.length > 1 && (
                 <Pressable style={styles.swapBtn} onPress={() => setNextMoveChoice((n) => n + 1)}>
@@ -280,14 +306,44 @@ export default function PlanScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10, backgroundColor: colors.bg },
-  headTitle: { color: colors.ink, fontSize: 24, fontWeight: "900" },
-  headSub: { color: colors.mute, fontSize: 12.5, fontWeight: "600", marginTop: 2 },
+  header: {
+    paddingTop: sp(10),
+    paddingHorizontal: sp(5),
+    paddingBottom: sp(4),
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+  },
+  headTitle: { ...T.h1, color: colors.white },
+  headSub: { ...T.caption, color: `${colors.white}CC`, marginTop: sp(0.5) },
   body: { padding: 16, paddingBottom: 28 },
+  glanceCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: sp(4),
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: sp(4),
+    ...elevation.sm,
+  },
+  glanceStats: { flex: 1, gap: sp(2.5) },
+  glanceStatRow: { flexDirection: "row", alignItems: "center", gap: sp(2) },
+  glanceStatDot: { width: 8, height: 8, borderRadius: 4 },
+  glanceStatValue: { ...T.body, color: colors.ink, fontWeight: "800" },
+  glanceStatLabel: { ...T.caption, color: colors.mute },
   nextCard: { backgroundColor: colors.card, borderRadius: 18, padding: 16, marginBottom: 16, gap: 9, ...elevation.sm },
-  nextHeadRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  nextHeadTitle: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
-  nextHeadText: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  nextHeadRow: { flexDirection: "row", alignItems: "flex-start", gap: sp(3) },
+  cardIcon: {
+    width: sp(10),
+    height: sp(10),
+    borderRadius: radius.md,
+    backgroundColor: colors.greenTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nextHeadText: { flex: 1 },
+  nextHeadTitle: { color: colors.ink, fontSize: 14, fontWeight: "900" },
+  nextHeadSubtitle: { ...T.tiny, color: colors.mute, marginTop: sp(0.5) },
   swapBtn: {
     flexDirection: "row",
     alignItems: "center",
