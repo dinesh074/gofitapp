@@ -463,9 +463,9 @@ export default function ScanScreen() {
                       {it.countable ? "" : "  (size)"}
                     </Text>
                     <Text style={styles.itemMacros}>
-                      P {Math.round(it.count * it.protein_g_per_unit)}g · C{" "}
-                      {Math.round(it.count * it.carbs_g_per_unit)}g · F{" "}
-                      {Math.round(it.count * it.fat_g_per_unit)}g
+                      P {Math.round(it.protein_g_per_unit)}g · C{" "}
+                      {Math.round(it.carbs_g_per_unit)}g · F{" "}
+                      {Math.round(it.fat_g_per_unit)}g <Text style={styles.itemMacrosUnit}>per {it.unit}</Text>
                     </Text>
                     <View style={styles.itemActions}>
                       <Pressable onPress={() => setSwapIndex(i)} style={styles.swapLink}>
@@ -544,7 +544,13 @@ export default function ScanScreen() {
             )}
 
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Meal total</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.totalLabel}>Meal total</Text>
+                <Text style={styles.itemMacros}>
+                  P {Math.round(mealMacros.protein_g)}g · C {Math.round(mealMacros.carbs_g)}g · F{" "}
+                  {Math.round(mealMacros.fat_g)}g
+                </Text>
+              </View>
               <Text style={styles.totalKcal}>{mealTotal} kcal</Text>
             </View>
 
@@ -628,6 +634,7 @@ const styles = StyleSheet.create({
   itemName: { color: colors.ink, fontWeight: "800", fontSize: 15 },
   itemSub: { color: colors.mute, fontWeight: "600", fontSize: 11.5, marginTop: 2 },
   itemMacros: { color: colors.mute, fontWeight: "600", fontSize: 11, marginTop: 3 },
+  itemMacrosUnit: { color: colors.faint, fontWeight: "500" },
   itemActions: { flexDirection: "row", gap: 14, marginTop: 8, flexWrap: "wrap" },
   swapLink: { flexDirection: "row", alignItems: "center", gap: 4 },
   swapLinkText: { color: colors.green, fontSize: 11.5, fontWeight: "800", textDecorationLine: "underline" },
