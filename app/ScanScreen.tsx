@@ -17,6 +17,7 @@ import {
   FoodItem,
   FoodSuggestion,
   Pairing,
+  PortionQuestion,
   getCombos,
   PaywallError,
   AuthRequiredError,
@@ -213,6 +214,56 @@ export default function ScanScreen() {
       return { ...prev, items };
     });
     setPortionIndex(null);
+  }
+
+  // Clarifying-question answers (e.g. "how much ghee on the roti?", "what
+  // size was the katori?") -- things a photo genuinely can't tell, prepared
+  // server-side (see main.py's ANALYSIS_PROMPT "QUESTIONS" section). Each
+  // question's baseline option is always factor 1.0 and already reflected in
+  // the AI's initial estimate, so answering nothing changes nothing.
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!result?.questions?.length) return;
+    const init: Record<string, number> = {};
+    for (const q of result.questions) init[q.id] = q.default_index;
+    setQuestionAnswers(init);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.questions]);
+
+  function answerQuestion(q: PortionQuestion, optionIndex: number) {
+    const prevIndex = questionAnswers[q.id] ?? q.default_index;
+    const prevFactor = q.options[prevIndex]?.factor ?? 1;
+    const nextFactor = q.options[optionIndex]?.factor ?? 1;
+    const ratio = prevFactor > 0 ? nextFactor / prevFactor : nextFactor;
+    setQuestionAnswers((s) => ({ ...s, [q.id]: optionIndex }));
+    if (ratio === 1) return;
+    setResult((prev) => {
+      if (!prev || !prev.items[q.target_item]) return prev;
+      const items = prev.items.map((it, idx) => {
+        if (idx !== q.target_item) return it;
+        const kcal_per_unit = it.kcal_per_unit * ratio;
+        const protein_g_per_unit = it.protein_g_per_unit * ratio;
+        const carbs_g_per_unit = it.carbs_g_per_unit * ratio;
+        const fat_g_per_unit = it.fat_g_per_unit * ratio;
+        const micros_per_unit = it.micros_per_unit
+          ? Object.fromEntries(Object.entries(it.micros_per_unit).map(([k, v]) => [k, v * ratio]))
+          : it.micros_per_unit;
+        return {
+          ...it,
+          kcal_per_unit,
+          protein_g_per_unit,
+          carbs_g_per_unit,
+          fat_g_per_unit,
+          micros_per_unit,
+          kcal_total: Math.round(it.count * kcal_per_unit),
+          protein_g: Math.round(it.count * protein_g_per_unit),
+          carbs_g: Math.round(it.count * carbs_g_per_unit),
+          fat_g: Math.round(it.count * fat_g_per_unit),
+        };
+      });
+      return { ...prev, items };
+    });
   }
 
   function removeItem(index: number) {
@@ -447,6 +498,37 @@ export default function ScanScreen() {
               </View>
             ))}
 
+            {result.questions && result.questions.filter((q) => result.items[q.target_item]).length > 0 && (
+              <View style={styles.questionsBlock}>
+                <Text style={styles.pairTitle}>Help us get this right</Text>
+                {result.questions
+                  .filter((q) => result.items[q.target_item])
+                  .map((q) => (
+                    <View key={q.id} style={styles.questionRow}>
+                      <Text style={styles.questionPrompt}>
+                        {q.prompt} <Text style={styles.questionTarget}>({result.items[q.target_item].item})</Text>
+                      </Text>
+                      <View style={styles.mealTypeRow}>
+                        {q.options.map((opt, oi) => {
+                          const active = (questionAnswers[q.id] ?? q.default_index) === oi;
+                          return (
+                            <Pressable
+                              key={oi}
+                              style={[styles.mealTypeChip, active && styles.mealTypeChipActive]}
+                              onPress={() => answerQuestion(q, oi)}
+                            >
+                              <Text style={[styles.mealTypeChipText, active && styles.mealTypeChipTextActive]}>
+                                {opt.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ))}
+              </View>
+            )}
+
             {pairings.length > 0 && (
               <View style={styles.pairBlock}>
                 <Text style={styles.pairTitle}>Goes well with</Text>
@@ -567,6 +649,10 @@ const styles = StyleSheet.create({
 
   pairBlock: { marginTop: 6, marginBottom: 8 },
   pairTitle: { color: colors.ink, fontWeight: "800", fontSize: 13, marginBottom: 8 },
+  questionsBlock: { marginTop: 6, marginBottom: 8 },
+  questionRow: { marginBottom: 12 },
+  questionPrompt: { color: colors.ink, fontWeight: "700", fontSize: 12.5, marginBottom: 8, lineHeight: 17 },
+  questionTarget: { color: colors.mute, fontWeight: "500" },
   pairRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pairChip: {
     flexDirection: "row",
