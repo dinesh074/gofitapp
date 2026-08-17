@@ -619,11 +619,33 @@ class Targets(BaseModel):
         return None if info.field_name == "fiber_g" else 0  # f == f is False for NaN
 
 
-# The clock hour (local) by which each meal is assumed to be over. Used to decide
-# which slots are still AHEAD of the user so only those get re-portioned to the
-# calories/macros they have left -- meals already behind them are left as they
-# were (a record of what was suggested), never resized retroactively.
-_SLOT_END_HOUR = {"breakfast": 10, "lunch": 15, "snack": 18, "dinner": 24}
+# Which slot is "current" for a given clock hour. Used to decide which slots are
+# still AHEAD of the user so only those get re-portioned to the calories/macros
+# they have left -- meals already behind them are left as they were (a record of
+# what was suggested), never resized retroactively.
+#
+# Mirrors main.py's _slot_for_hour(): late night (23:00-04:00) is still counted as
+# dinner/late-dinner territory rather than a fresh new day where breakfast hasn't
+# happened yet. Keeping this convention in sync with main.py avoids the Plan
+# screen's "Next Best Move" card (backed by main.py) and Today Plan's "Next meal"
+# label (backed by this module) disagreeing at post-midnight hours.
+_SLOT_ORDER = ("breakfast", "lunch", "snack", "dinner")
+_SLOT_HOUR_WINDOWS = (
+    ("breakfast", 4, 11),
+    ("lunch", 11, 16),
+    ("snack", 16, 19),
+    ("dinner", 19, 23),
+)
+
+
+def _current_slot_for_hour(hour: int) -> str:
+    h = hour % 24
+    for slot, start, end in _SLOT_HOUR_WINDOWS:
+        if start <= h < end:
+            return slot
+    return "dinner"  # late night (23:00-04:00) -- still dinner/late-dinner territory
+
+
 _CORE_KEYS = ("kcal", "protein_g", "carbs_g", "fat_g")
 _OPTIONAL_KEYS = ("fiber_g",)
 _NUTRIENT_KEYS = _CORE_KEYS + _OPTIONAL_KEYS
@@ -641,7 +663,11 @@ def _slot_actionable(slot: dict, hour: Optional[int]) -> bool:
         return bool(slot.get("upcoming"))
     if hour is None:
         return True
-    return hour < _SLOT_END_HOUR.get(slot.get("slot", ""), 24)
+    slot_key = slot.get("slot", "")
+    if slot_key not in _SLOT_ORDER:
+        return True
+    current = _current_slot_for_hour(hour)
+    return _SLOT_ORDER.index(slot_key) >= _SLOT_ORDER.index(current)
 
 
 def _metric_status(have: float, target: float) -> str:
@@ -718,7 +744,10 @@ def _adapt_plan(plan: dict, targets: dict, consumed: dict, hour: Optional[int]) 
     def _upcoming(slot_key: str) -> bool:
         if hour is None:
             return True  # no clock -> treat the whole day as still ahead
-        return hour < _SLOT_END_HOUR.get(slot_key, 24)
+        if slot_key not in _SLOT_ORDER:
+            return True
+        current = _current_slot_for_hour(hour)
+        return _SLOT_ORDER.index(slot_key) >= _SLOT_ORDER.index(current)
 
     up = [s for s in adapted["slots"] if _upcoming(s["slot"])]
     base_up_kcal = sum(max(0.0, s.get("target_kcal", 0) or 0) for s in up)
