@@ -734,6 +734,14 @@ def _load_db():
         return []
     for food in foods:
         food["_aliases"] = [a.lower().strip() for a in food.get("aliases", [])]
+        # Precomputed for match_food()'s word-boundary regex: the raw alias
+        # may contain punctuation (commas, hyphens, slashes -- e.g. "mutton
+        # biryani/biriyani") that _norm() strips out of the AI's item name
+        # before matching, so comparing against the RAW alias silently never
+        # matches for ~300 such entries. Normalizing the alias the same way
+        # keeps both sides consistent (both become e.g. "mutton
+        # biryanibiriyani") so the match actually fires.
+        food["_aliases_norm"] = [_norm(a) for a in food["_aliases"]]
     return foods
 
 
@@ -835,8 +843,8 @@ def match_food(name: str):
     best = None
     best_len = 0
     for food in FOOD_DB:
-        for alias in food["_aliases"]:
-            if re.search(r"\b" + re.escape(alias) + r"\b", n) and len(alias) > best_len:
+        for alias in food.get("_aliases_norm") or food["_aliases"]:
+            if alias and re.search(r"\b" + re.escape(alias) + r"\b", n) and len(alias) > best_len:
                 best, best_len = food, len(alias)
     return best
 
@@ -914,6 +922,30 @@ def anchor_items(data: dict) -> dict:
                 it["jain_status"] = food["jain_status"]
             if food.get("sattvic_status"):
                 it["sattvic_status"] = food["sattvic_status"]
+            # Plausibility anchor (NOT an override): when the AI's per-unit
+            # calorie estimate is wildly outside a sane multiple of our own
+            # curated reference for this exact matched dish, pull it back
+            # in-band and scale macros by the same ratio so P/C/F stay
+            # internally consistent. This caught a real case where the AI
+            # said "650 kcal" for one plate of mutton biryani while our
+            # INDB-sourced reference for that exact dish is 396 kcal/plate
+            # (~161-190 kcal/100g matches external sources) -- a >1.6x
+            # overestimate that the generic macro-vs-kcal cross-check alone
+            # can't catch when the AI's macros are inflated by a similar
+            # factor. Band is deliberately generous (0.55x-1.5x) since
+            # genuinely richer/leaner recipes of the same dish do exist --
+            # this only clips true outliers, it does not force AI numbers to
+            # match the DB.
+            ref_kcal = food.get("kcal_per_unit")
+            cur_kcal = it.get("kcal_per_unit")
+            if isinstance(ref_kcal, (int, float)) and ref_kcal > 0 and isinstance(cur_kcal, (int, float)) and cur_kcal > 0:
+                lo, hi = ref_kcal * 0.55, ref_kcal * 1.5
+                if cur_kcal > hi or cur_kcal < lo:
+                    bound = hi if cur_kcal > hi else lo
+                    ratio = bound / cur_kcal
+                    it["kcal_per_unit"] = round(bound, 1)
+                    for m in macros:
+                        it[m + "_per_unit"] = round(it.get(m + "_per_unit", 0) * ratio, 1)
         else:
             food_review.record_unmatched(it.get("item", ""), it)
         scaled = nutrition_engine.scale_per_unit_item(it, it.get("count", 1))
