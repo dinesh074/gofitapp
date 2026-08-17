@@ -3128,6 +3128,37 @@ def _sanitize_questions(data: dict) -> list:
     return out
 
 
+_MACRO_EST_CAPS = {
+    # Per-unit ceilings for AI-estimated calories/macros -- guards against a
+    # hallucinated number (e.g. "500g protein in one roti") silently
+    # dominating a day's totals. Generous enough to cover a large thali/plate
+    # as ONE unit, mirroring the existing _EST_CAPS micro-clamp pattern in
+    # anchor_items() below.
+    "kcal_per_unit": 2000,
+    "protein_g": 120,
+    "carbs_g": 300,
+    "fat_g": 150,
+}
+
+
+def _sanitize_macro_estimate(it: dict) -> None:
+    """Clamp per-unit calorie/macro AI estimates to plausible ceilings, and
+    cross-check kcal_per_unit against the macro-implied calories (4*protein +
+    4*carbs + 9*fat). When the two are wildly inconsistent (more than ~2.5x
+    apart), that mismatch itself is a hallucination signal -- pull the stated
+    kcal back toward the macro-derived figure rather than trusting either
+    number blindly. Runs on raw AI output before anchor_items()/scaling."""
+    for field, cap in _MACRO_EST_CAPS.items():
+        v = it.get(field)
+        it[field] = min(float(v), cap) if isinstance(v, (int, float)) and v >= 0 else 0.0
+    macro_kcal = it["protein_g"] * 4 + it["carbs_g"] * 4 + it["fat_g"] * 9
+    stated_kcal = it["kcal_per_unit"]
+    if macro_kcal > 20 and stated_kcal > 0:
+        ratio = stated_kcal / macro_kcal
+        if ratio > 2.5 or ratio < 0.4:
+            it["kcal_per_unit"] = round(macro_kcal)
+
+
 def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str, cache_key: str | None = None) -> dict:
     """Shared retry/anchor/usage/scan-history plumbing for both the image and
     text analysis paths -- media is either a PIL.Image (photo) or omitted
@@ -3166,6 +3197,7 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
                 it.setdefault("fat_g", 0)
                 it.setdefault("countable", True)
                 it.setdefault("unit", "piece")
+                _sanitize_macro_estimate(it)
             # Validate clarifying questions BEFORE anchor_items so target_item
             # indices still line up with the model's original items order.
             data["questions"] = _sanitize_questions(data)
