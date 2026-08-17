@@ -21,11 +21,14 @@ import {
   ExerciseSummary,
   getExerciseSummary,
   getGlp1Doses,
+  getGlp1Symptoms,
   getLogDays,
   getServerWeights,
   getSummary,
+  Glp1Symptom,
   logGlp1Dose,
   deleteGlp1Dose,
+  setGlp1Symptoms,
 } from "./api";
 import { LogMap, WeightEntry, bestStreak as computeBestStreak, monthStreak, todayKey } from "./storage";
 import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
@@ -55,6 +58,14 @@ const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
   { key: 30, label: "30 Days" },
   { key: 90, label: "90 Days" },
   { key: "all", label: "All Time" },
+];
+
+const SYMPTOM_OPTIONS: { key: Glp1Symptom; label: string }[] = [
+  { key: "nausea", label: "Nausea" },
+  { key: "fullness", label: "Fullness" },
+  { key: "low_appetite", label: "Low appetite" },
+  { key: "constipation", label: "Constipation" },
+  { key: "fatigue", label: "Fatigue" },
 ];
 
 const CALORIE_HIT_MIN = 0.85;
@@ -88,6 +99,9 @@ export default function ProgressScreen({
   const [doseDates, setDoseDates] = useState<string[]>([]);
   const [loadingDoses, setLoadingDoses] = useState(false);
   const [logDoseBusy, setLogDoseBusy] = useState(false);
+  const [symptomDays, setSymptomDays] = useState<{ date: string; symptoms: Glp1Symptom[] }[]>([]);
+  const [todaySymptoms, setTodaySymptoms] = useState<Glp1Symptom[]>([]);
+  const [symptomBusy, setSymptomBusy] = useState(false);
 
   const chartWidth = Math.max(260, Math.round(width - sp(16)));
   const weightChartWidth = Math.max(240, chartWidth - sp(6));
@@ -184,6 +198,37 @@ export default function ProgressScreen({
       if (e instanceof AuthRequiredError) onRequireAuth();
     } finally {
       setLogDoseBusy(false);
+    }
+  }
+
+  const refreshGlp1Symptoms = useCallback(async () => {
+    if (!profile.onGlp1) return;
+    try {
+      const days = await getGlp1Symptoms(14);
+      setSymptomDays(days);
+      setTodaySymptoms(days.find((d) => d.date === todayKeyVal)?.symptoms || []);
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    }
+  }, [onRequireAuth, profile.onGlp1, todayKeyVal]);
+
+  useEffect(() => {
+    void refreshGlp1Symptoms();
+  }, [refreshGlp1Symptoms]);
+
+  async function toggleSymptomToday(symptom: Glp1Symptom) {
+    const next = todaySymptoms.includes(symptom)
+      ? todaySymptoms.filter((s) => s !== symptom)
+      : [...todaySymptoms, symptom];
+    setTodaySymptoms(next); // optimistic
+    setSymptomBusy(true);
+    try {
+      await setGlp1Symptoms(todayKeyVal, next);
+      setSymptomDays((s) => [{ date: todayKeyVal, symptoms: next }, ...s.filter((d) => d.date !== todayKeyVal)]);
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    } finally {
+      setSymptomBusy(false);
     }
   }
 
@@ -613,6 +658,35 @@ export default function ProgressScreen({
                     Set your weekly reminder day in Settings -- this log is just for your own reference, not medical advice.
                   </Text>
                 </>
+              )}
+            </SectionCard>
+          )}
+
+          {profile.onGlp1 && (
+            <SectionCard
+              icon="pulse"
+              title="How are you feeling today?"
+              subtitle="Optional -- helps you spot your own patterns, not a diagnosis"
+            >
+              <View style={styles.wrapRow}>
+                {SYMPTOM_OPTIONS.map((o) => {
+                  const active = todaySymptoms.includes(o.key);
+                  return (
+                    <Pressable
+                      key={o.key}
+                      style={[styles.symptomChip, active && styles.symptomChipActive]}
+                      onPress={() => toggleSymptomToday(o.key)}
+                      disabled={symptomBusy}
+                    >
+                      <Text style={[styles.symptomChipText, active && styles.symptomChipTextActive]}>{o.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              {symptomDays.length > 0 && (
+                <Text style={styles.projectionSub}>
+                  Last 14 days: {symptomDays.filter((d) => d.symptoms.length > 0).length} day(s) with a symptom logged.
+                </Text>
               )}
             </SectionCard>
           )}
@@ -1073,6 +1147,18 @@ const styles = StyleSheet.create({
   secondaryButtonText: { ...T.caption, color: colors.green },
   secondaryButtonActive: { backgroundColor: colors.green },
   secondaryButtonTextActive: { color: colors.white },
+  wrapRow: { flexDirection: "row", flexWrap: "wrap", gap: sp(2) },
+  symptomChip: {
+    paddingVertical: sp(1.5),
+    paddingHorizontal: sp(3),
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
+  symptomChipActive: { backgroundColor: colors.green, borderColor: colors.green },
+  symptomChipText: { ...T.caption, color: colors.inkSoft },
+  symptomChipTextActive: { color: colors.white, fontWeight: "700" },
   weightTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   weightHeadlineBlock: { flex: 1, paddingRight: sp(3) },
   weightHeadline: { ...T.h1, color: colors.ink },

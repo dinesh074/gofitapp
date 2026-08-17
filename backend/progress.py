@@ -126,6 +126,18 @@ def init_db() -> None:
         )
         c.execute(
             """
+            CREATE TABLE IF NOT EXISTS glp1_symptoms (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                date       TEXT NOT NULL,
+                symptom    TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                UNIQUE(account_id, date, symptom)
+            )
+            """
+        )
+        c.execute(
+            """
             CREATE TABLE IF NOT EXISTS meal_logs (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 account_id INTEGER NOT NULL,
@@ -600,6 +612,58 @@ def list_glp1_doses(request: Request, days: int = 60):
             (acct["id"], cutoff),
         ).fetchall()
     return {"dates": [r["date"] for r in rows]}
+
+
+# --- GLP-1 symptom check-in --------------------------------------------------- #
+# A few common side-effect chips (nausea/fullness/constipation/fatigue/low
+# appetite) the user can tap for a given day. Purely self-reported and shown
+# back to the user as a simple trend -- NOT used to diagnose or suggest
+# medication changes. (Feeding this into gentler Next Best Move suggestions is
+# a separate follow-up -- see todo glp1-food-suggestions.)
+
+GLP1_SYMPTOMS = {"nausea", "fullness", "constipation", "fatigue", "low_appetite"}
+
+
+class Glp1SymptomsBody(BaseModel):
+    date: str = Field(..., min_length=10, max_length=10)  # "YYYY-MM-DD"
+    symptoms: list[str] = Field(default_factory=list)
+
+
+@router.put("/glp1/symptoms")
+def set_glp1_symptoms(body: Glp1SymptomsBody, request: Request):
+    acct = auth.require_account(request)
+    clean = sorted({s.strip().lower() for s in body.symptoms if s.strip().lower() in GLP1_SYMPTOMS})
+    now = time.time()
+    with db.write_lock(), db.connect() as c:
+        # Replace-for-date semantics: the client always sends the full set of
+        # symptoms selected for that day, so we clear and re-insert rather than
+        # diffing.
+        c.execute(
+            "DELETE FROM glp1_symptoms WHERE account_id=? AND date=?",
+            (acct["id"], body.date),
+        )
+        for s in clean:
+            c.execute(
+                "INSERT INTO glp1_symptoms (account_id, date, symptom, created_at) VALUES (?,?,?,?)",
+                (acct["id"], body.date, s, now),
+            )
+    return {"ok": True, "symptoms": clean}
+
+
+@router.get("/glp1/symptoms")
+def list_glp1_symptoms(request: Request, days: int = 14):
+    acct = auth.require_account(request)
+    days = max(1, min(90, days))
+    cutoff = time.strftime("%Y-%m-%d", time.localtime(time.time() - days * 86400))
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT date, symptom FROM glp1_symptoms WHERE account_id=? AND date>=? ORDER BY date DESC",
+            (acct["id"], cutoff),
+        ).fetchall()
+    by_date: dict[str, list[str]] = {}
+    for r in rows:
+        by_date.setdefault(r["date"], []).append(r["symptom"])
+    return {"days": [{"date": d, "symptoms": sorted(s)} for d, s in sorted(by_date.items(), reverse=True)]}
 
 
 

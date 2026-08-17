@@ -1084,6 +1084,19 @@ export async function getGlp1Doses(days = 60): Promise<string[]> {
   return data.dates || [];
 }
 
+// --- GLP-1 symptom check-in -------------------------------------------------- //
+
+export type Glp1Symptom = "nausea" | "fullness" | "constipation" | "fatigue" | "low_appetite";
+
+export async function setGlp1Symptoms(date: string, symptoms: Glp1Symptom[]): Promise<void> {
+  await postAuth<{ ok: boolean }>("/glp1/symptoms", { date, symptoms }, "PUT");
+}
+
+export async function getGlp1Symptoms(days = 14): Promise<{ date: string; symptoms: Glp1Symptom[] }[]> {
+  const data = await getJson<{ days?: { date: string; symptoms: Glp1Symptom[] }[] }>(`/glp1/symptoms?days=${days}`);
+  return data.days || [];
+}
+
 export async function getServerLogs(): Promise<{ logs: LogMap }> {
   return getJson<{ logs: LogMap }>("/logs");
 }
