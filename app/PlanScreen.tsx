@@ -149,7 +149,6 @@ export default function PlanScreen() {
     return filtered.length > 0 ? filtered : optionsRaw;
   }, [optionsRaw, planNextMealName]);
   const selected = options.length > 0 ? options[nextMoveChoice % options.length] : null;
-  const alternatives = options.filter((_, idx) => idx !== (nextMoveChoice % Math.max(1, options.length)));
 
   useEffect(() => {
     if (!selected) return;
@@ -251,12 +250,21 @@ export default function PlanScreen() {
                     ~{Math.round(selected.kcal)} kcal · P {Math.round(selected.protein_g)}g · C {Math.round(selected.carbs_g)}g · F {Math.round(selected.fat_g)}g
                   </Text>
                 </View>
-                {alternatives.map((alt) => (
-                  <Text key={alt.name} style={styles.altText}>
-                    <Text style={styles.altLabel}>Alternative: </Text>
-                    {alt.name}
-                  </Text>
-                ))}
+                {options.length > 1 && (
+                  <View style={styles.altList}>
+                    {options.map((opt, idx) => {
+                      const isSelected = idx === nextMoveChoice % options.length;
+                      if (isSelected) return null;
+                      return (
+                        <Pressable key={opt.name} style={styles.altRow} onPress={() => setNextMoveChoice(idx)}>
+                          <Icon name="swap" size={13} color={colors.green} />
+                          <Text style={styles.altText}>{opt.name}</Text>
+                          <Text style={styles.altMeta}>~{Math.round(opt.kcal)} kcal</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
                 <Text style={styles.gapText}>{biggestGap}</Text>
                 {!!nextMove?.reason && <Text style={styles.reasonText}>{nextMove.reason}</Text>}
                 <View style={styles.nextActions}>
@@ -365,8 +373,17 @@ const styles = StyleSheet.create({
   mainMeal: { backgroundColor: colors.cardMuted, borderRadius: 12, padding: 10 },
   mainMealName: { color: colors.ink, fontSize: 15, fontWeight: "800" },
   mainMealMeta: { color: colors.mute, fontSize: 12, fontWeight: "700", marginTop: 2 },
-  altText: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "600" },
-  altLabel: { color: colors.mute, fontWeight: "700" },
+  altText: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "700", flex: 1 },
+  altList: { gap: 2 },
+  altRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  altMeta: { color: colors.mute, fontSize: 11.5, fontWeight: "700" },
   gapText: { color: colors.inkSoft, fontSize: 12.5, fontWeight: "700" },
   reasonText: { color: colors.mute, fontSize: 12, fontWeight: "600", lineHeight: 17 },
   nextActions: { gap: 8, marginTop: 2 },
