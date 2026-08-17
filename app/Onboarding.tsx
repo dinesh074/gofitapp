@@ -50,6 +50,7 @@ type Draft = {
   goalPace: GoalPace;
   activity?: Activity;
   diet?: Diet;
+  onGlp1?: boolean;
 };
 
 const STEPS = [
@@ -61,6 +62,7 @@ const STEPS = [
   "target",
   "pace",
   "diet",
+  "medication",
   "summary",
 ] as const;
 
@@ -164,6 +166,7 @@ export default function Onboarding({ onComplete }: Props) {
       goalPace: d.goalPace,
       activity: d.activity!,
       diet: d.diet!,
+      onGlp1: !!d.onGlp1,
       createdAt: Date.now(),
     };
     onComplete(profile);
@@ -293,6 +296,27 @@ export default function Onboarding({ onComplete }: Props) {
                 onPress={() => setD({ ...d, diet: dietKey })}
               />
             ))}
+          </Question>
+        )}
+
+        {key === "medication" && (
+          <Question
+            title="On a GLP-1 medication?"
+            sub="Ozempic, Wegovy, Mounjaro, Zepbound, or similar. This only adjusts your targets -- it's never medical advice, and you should keep following your prescriber's guidance."
+          >
+            <Option
+              icon="check"
+              label="Yes, I'm currently taking one"
+              sublabel="We'll set a higher protein target and a gentler pace to protect muscle."
+              selected={!!d.onGlp1}
+              onPress={() => setD({ ...d, onGlp1: true })}
+            />
+            <Option
+              icon="close"
+              label="No"
+              selected={d.onGlp1 === false}
+              onPress={() => setD({ ...d, onGlp1: false })}
+            />
           </Question>
         )}
 
@@ -816,6 +840,7 @@ function Summary({ draft }: { draft: Draft }) {
     goalPace: draft.goalPace,
     activity: draft.activity!,
     diet: draft.diet!,
+    onGlp1: !!draft.onGlp1,
     createdAt: Date.now(),
   };
   const g = computeGoal(profile);
@@ -854,6 +879,7 @@ function Summary({ draft }: { draft: Draft }) {
 
       <Text style={styles.disclaimer}>
         Estimates for guidance only, not medical advice. You can adjust anytime.
+        {draft.onGlp1 ? " Protein target raised and pace kept gentle for GLP-1 users." : ""}
       </Text>
     </View>
   );

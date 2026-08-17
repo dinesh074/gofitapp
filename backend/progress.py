@@ -100,6 +100,14 @@ def init_db() -> None:
         # back sensibly when absent (see resolveGoalPace / resolveGoalKind).
         _ensure_column(c, "profiles", "goal_pace", "TEXT")
         _ensure_column(c, "profiles", "goal_kind", "TEXT")
+        # GLP-1/weight-loss-medication flag (Ozempic/Wegovy/Mounjaro/Zepbound
+        # etc.). Used to nudge targets safer for this group: a higher protein
+        # floor (muscle-loss risk from suppressed appetite) and a capped
+        # "relaxed" pace (the drug already suppresses intake, so stacking an
+        # aggressive deficit on top risks under-eating). See computeGoal() in
+        # app/nutrition.ts for where this is actually applied. Nullable/0 by
+        # default so it's a no-op for every existing profile.
+        _ensure_column(c, "profiles", "on_glp1", "INTEGER")
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS meal_logs (
@@ -369,6 +377,7 @@ class ProfileBody(BaseModel):
     diet: str
     goalPace: Optional[str] = None
     goalKind: Optional[str] = None
+    onGlp1: Optional[bool] = False
 
 
 _VALID_GENDERS = {"male", "female", "other"}
@@ -453,6 +462,7 @@ def _row_to_profile(row) -> dict:
         "diet": row["diet"],
         "goalPace": (row["goal_pace"] if "goal_pace" in row.keys() else None),
         "goalKind": (row["goal_kind"] if "goal_kind" in row.keys() else None),
+        "onGlp1": bool(row["on_glp1"]) if "on_glp1" in row.keys() and row["on_glp1"] is not None else False,
         "createdAt": row["created_at"],
         # Server's last-write timestamp for this profile row. The client uses
         # this (Profile.updatedAt) to decide whether an incoming server
@@ -499,20 +509,21 @@ def put_profile(body: ProfileBody, request: Request):
             INSERT INTO profiles
                 (account_id, name, gender, age, height_cm, weight_kg,
                  target_weight_kg, goal, activity, diet, goal_pace, goal_kind,
-                 created_at, updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 on_glp1, created_at, updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(account_id) DO UPDATE SET
                 name=excluded.name, gender=excluded.gender, age=excluded.age,
                 height_cm=excluded.height_cm, weight_kg=excluded.weight_kg,
                 target_weight_kg=excluded.target_weight_kg, goal=excluded.goal,
                 activity=excluded.activity, diet=excluded.diet,
                 goal_pace=excluded.goal_pace, goal_kind=excluded.goal_kind,
+                on_glp1=excluded.on_glp1,
                 updated_at=excluded.updated_at
             """,
             (
                 acct["id"], body.name, gender, body.age, body.heightCm,
                 body.weightKg, body.targetWeightKg, goal, activity,
-                diet, goal_pace, goal_kind, created_at, now,
+                diet, goal_pace, goal_kind, int(bool(body.onGlp1)), created_at, now,
             ),
         )
         row = c.execute(

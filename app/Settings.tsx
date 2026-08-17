@@ -295,6 +295,25 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
           </View>
         </Field>
 
+        {/* GLP-1 medication toggle -- targets safety signal only, never medical
+            advice. See computeGoal()/effectiveGoalPace() in nutrition.ts for
+            what this actually changes (higher protein floor, capped pace). */}
+        <View style={styles.reminderCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.reminderTitle}>On a GLP-1 medication?</Text>
+            <Text style={styles.reminderSub}>
+              Ozempic, Wegovy, Mounjaro, Zepbound, or similar. Raises your protein target and keeps pace
+              gentle -- always follow your prescriber's guidance.
+            </Text>
+          </View>
+          <Switch
+            value={!!d.onGlp1}
+            onValueChange={(v) => update({ onGlp1: v })}
+            trackColor={{ false: "#D6DEDA", true: GREEN }}
+            thumbColor="#fff"
+          />
+        </View>
+
         {/* Reminders */}
         <View style={styles.reminderCard}>
           <View style={{ flex: 1 }}>

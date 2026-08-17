@@ -42,6 +42,14 @@ export type Profile = {
   // `goal` when absent (see resolveGoalPace / resolveGoalKind).
   goalPace?: GoalPace;
   goalKind?: GoalKind;
+  // True when the user is currently on a GLP-1/weight-loss medication
+  // (Ozempic/Wegovy/Mounjaro/Zepbound etc.). Purely a targets-safety signal --
+  // never used for medical advice. When set, computeGoal() applies a higher
+  // protein floor (muscle-loss risk from medically suppressed appetite) and
+  // caps the effective pace at "relaxed" (the drug already suppresses
+  // intake, so stacking an aggressive deficit on top risks under-eating).
+  // Optional/omittable; false/absent is a no-op for every existing profile.
+  onGlp1?: boolean;
   createdAt: number;
   updatedAt?: number;
 };
@@ -127,6 +135,12 @@ const KCAL_PER_KG = 7700;
 // benefit from a higher intake (muscle growth / muscle retention in a deficit).
 const PROTEIN_G_PER_KG: Record<Goal, number> = { lose: 1.8, maintain: 1.6, gain: 2.0 };
 
+// Extra protein per kg for GLP-1 users on top of the goal-based value above --
+// medically suppressed appetite means less total food, so protein needs to be
+// prioritized harder to protect lean mass while the calorie intake is already
+// reduced by the medication itself.
+const GLP1_PROTEIN_BONUS_PER_KG = 0.3;
+
 const GOAL_PACE_ALIASES: Record<string, GoalPace> = {
   relaxed: "relaxed",
   recommended: "recommended",
@@ -163,6 +177,17 @@ export function normalizeGoalKind(value: unknown): GoalKind | undefined {
 
 export function resolveGoalPace(p: Pick<Profile, "goalPace">): GoalPace {
   return normalizeGoalPace(p.goalPace) ?? "recommended";
+}
+
+// The pace actually used for calorie math. GLP-1 users are capped at
+// "relaxed" regardless of what they picked in onboarding/settings -- the
+// medication already suppresses appetite/intake, so layering any extra
+// deficit/surplus on top risks eating dangerously little. The UI still
+// shows/lets them adjust the pace slider (useful once they're off the
+// medication), but the actual calorie target is safety-capped here.
+export function effectiveGoalPace(p: Pick<Profile, "goalPace" | "onGlp1">): GoalPace {
+  const pace = resolveGoalPace(p);
+  return p.onGlp1 ? "relaxed" : pace;
 }
 
 // Derive the 4-way UI goal framing from the stored profile. If goalKind was
@@ -204,6 +229,7 @@ export function normalizeProfile(p: Profile | null | undefined): Profile | null 
     goal,
     goalPace: resolveGoalPace(p),
     goalKind,
+    onGlp1: !!(p as any).onGlp1,
   };
 }
 
@@ -218,14 +244,16 @@ export function dailyCalorieDelta(goal: Goal, pace: GoalPace, maintenanceKcal: n
 export function computeGoal(p: Profile): GoalTargets {
   const base = bmr(p);
   const maintenance = tdee(p);
-  const pace = resolveGoalPace(p);
+  const pace = effectiveGoalPace(p);
   const delta = dailyCalorieDelta(p.goal, pace, maintenance);
   // Never recommend eating below resting metabolism, even on an ambitious cut.
   let kcal = Math.round(Math.max(base, maintenance + delta));
 
   // Protein anchored to body weight (clamped so it can't dominate a small
   // budget), fat at 25% of calories, carbs take whatever calories remain.
-  const proteinRaw = Math.round(PROTEIN_G_PER_KG[p.goal] * p.weightKg);
+  // GLP-1 users get a protein bonus per kg -- see GLP1_PROTEIN_BONUS_PER_KG.
+  const proteinPerKg = PROTEIN_G_PER_KG[p.goal] + (p.onGlp1 ? GLP1_PROTEIN_BONUS_PER_KG : 0);
+  const proteinRaw = Math.round(proteinPerKg * p.weightKg);
   const proteinCap = Math.floor((kcal * 0.4) / 4); // protein never > 40% of kcal
   const protein_g = Math.max(0, Math.min(proteinRaw, proteinCap));
   const fat_g = Math.round((kcal * 0.25) / 9);
@@ -257,7 +285,7 @@ export function projectPlan(p: Profile, now: Date = new Date()): GoalProjection 
   }
   const deltaKg = Math.abs(p.weightKg - p.targetWeightKg);
   const maintenance = tdee(p);
-  const rate = (Math.abs(dailyCalorieDelta(p.goal, resolveGoalPace(p), maintenance)) * 7) / KCAL_PER_KG;
+  const rate = (Math.abs(dailyCalorieDelta(p.goal, effectiveGoalPace(p), maintenance)) * 7) / KCAL_PER_KG;
   // If the target doesn't actually move in the goal's direction (e.g. "lose" but
   // target ≥ current), there's no meaningful timeline to show.
   const meaningful =
