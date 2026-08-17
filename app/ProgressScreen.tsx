@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -16,6 +17,7 @@ import WeightSheet from "./WeightSheet";
 import Icon, { IconName } from "./Icon";
 import { GoalTargets, Profile } from "./nutrition";
 import {
+  askHealthQuestion,
   AuthRequiredError,
   DaySummary,
   ExerciseSummary,
@@ -232,6 +234,30 @@ export default function ProgressScreen({
     }
   }
 
+  const [healthQuestion, setHealthQuestion] = useState("");
+  const [healthAnswer, setHealthAnswer] = useState<{ text: string; refused: boolean } | null>(null);
+  const [healthAsking, setHealthAsking] = useState(false);
+  const [healthError, setHealthError] = useState<string | null>(null);
+
+  async function submitHealthQuestion() {
+    const q = healthQuestion.trim();
+    if (!q || healthAsking) return;
+    setHealthAsking(true);
+    setHealthError(null);
+    try {
+      const res = await askHealthQuestion(q);
+      setHealthAnswer({ text: res.answer, refused: res.refused });
+    } catch (e) {
+      if (e instanceof AuthRequiredError) {
+        onRequireAuth();
+        return;
+      }
+      setHealthError("Couldn't get an answer right now -- please try again.");
+    } finally {
+      setHealthAsking(false);
+    }
+  }
+
   const summaryByDate = useMemo(() => {
     const map = new Map<string, DaySummary>();
     for (const day of summaryDays) map.set(day.date, day);
@@ -364,6 +390,44 @@ export default function ProgressScreen({
               <Text style={styles.errorText}>{error}</Text>
             </View>
           ) : null}
+
+          <SectionCard
+            icon="info"
+            title="Ask about your health"
+            subtitle="Grounded in your own logged data -- never a diagnosis, always defers to your doctor"
+          >
+            <View style={styles.askRow}>
+              <TextInput
+                style={styles.askInput}
+                value={healthQuestion}
+                onChangeText={setHealthQuestion}
+                placeholder="e.g. Why hasn't my weight moved this week?"
+                placeholderTextColor={colors.faint}
+                multiline
+                maxLength={500}
+              />
+              <Pressable
+                style={[styles.secondaryButton, (!healthQuestion.trim() || healthAsking) && styles.askButtonDisabled]}
+                onPress={submitHealthQuestion}
+                disabled={!healthQuestion.trim() || healthAsking}
+              >
+                {healthAsking ? (
+                  <ActivityIndicator size="small" color={colors.green} />
+                ) : (
+                  <>
+                    <Icon name="send" size={16} color={colors.green} />
+                    <Text style={styles.secondaryButtonText}>Ask</Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+            {healthError && <Text style={styles.askError}>{healthError}</Text>}
+            {healthAnswer && (
+              <View style={[styles.askAnswerBox, healthAnswer.refused && styles.askAnswerBoxWarn]}>
+                <Text style={styles.askAnswerText}>{healthAnswer.text}</Text>
+              </View>
+            )}
+          </SectionCard>
 
           <SectionCard
             icon="time"
@@ -1192,6 +1256,30 @@ const styles = StyleSheet.create({
   symptomChipActive: { backgroundColor: colors.green, borderColor: colors.green },
   symptomChipText: { ...T.caption, color: colors.inkSoft },
   symptomChipTextActive: { color: colors.white, fontWeight: "700" },
+  askRow: { flexDirection: "row", alignItems: "flex-end", gap: sp(2) },
+  askInput: {
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 90,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.bg,
+    paddingHorizontal: sp(3),
+    paddingVertical: sp(2),
+    ...T.body,
+    color: colors.ink,
+  },
+  askButtonDisabled: { opacity: 0.5 },
+  askError: { ...T.caption, color: colors.red, marginTop: sp(2) },
+  askAnswerBox: {
+    marginTop: sp(3),
+    backgroundColor: colors.greenTint,
+    borderRadius: radius.md,
+    padding: sp(3),
+  },
+  askAnswerBoxWarn: { backgroundColor: colors.redTint },
+  askAnswerText: { ...T.body, color: colors.inkSoft, lineHeight: 20 },
   weightTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   weightHeadlineBlock: { flex: 1, paddingRight: sp(3) },
   weightHeadline: { ...T.h1, color: colors.ink },

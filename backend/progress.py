@@ -666,6 +666,98 @@ def list_glp1_symptoms(request: Request, days: int = 14):
     return {"days": [{"date": d, "symptoms": sorted(s)} for d, s in sorted(by_date.items(), reverse=True)]}
 
 
+# --- Safe AI health explainer ------------------------------------------------- #
+# A deliberately narrow "answer my question using MY logged data" helper --
+# NOT a general chatbot. It never diagnoses, never suggests medication/dosage
+# changes, and always defers anything that sounds clinical to a real doctor.
+# When the user is on GLP-1, the system prompt gets an extra note so answers
+# are relevant to that context (appetite, eating habits, hydration) without
+# ever touching dosing.
+
+_EMERGENCY_KEYWORDS = (
+    "chest pain", "can't breathe", "cannot breathe", "trouble breathing",
+    "suicidal", "suicide", "kill myself", "want to die", "self harm",
+    "self-harm", "overdose", "severe bleeding", "unconscious", "seizure",
+    "stroke", "heart attack", "passed out", "fainted",
+)
+
+
+def _looks_like_emergency(text: str) -> bool:
+    t = text.lower()
+    return any(k in t for k in _EMERGENCY_KEYWORDS)
+
+
+_EMERGENCY_REPLY = (
+    "This sounds like it could be a medical emergency. Please contact a doctor, "
+    "your local emergency number, or go to the nearest hospital right away -- "
+    "I'm not able to help with this here."
+)
+
+_HEALTH_ASK_SYSTEM_PROMPT = """You are a cautious, friendly nutrition/lifestyle explainer inside an Indian
+food-tracking app. You answer the user's question using the context given below
+(their own logged goal/diet/recent trend). Rules you must always follow:
+- NEVER diagnose a condition, NEVER suggest starting/stopping/changing any
+  medication or dosage, and NEVER give clinical/medical advice.
+- If the question is about medication dosing, side-effect severity that sounds
+  concerning, or anything that needs a doctor's judgement, say plainly that
+  this needs their doctor/prescriber and you can't advise on it.
+- Otherwise, answer plainly and briefly (under 90 words), grounded in the
+  context given, focused on food/nutrition/activity/lifestyle habits.
+- Never invent lab values, diagnoses, or numbers not present in the context.
+- Plain language, no medical jargon, no bullet-point walls of text.
+"""
+
+
+class HealthAskBody(BaseModel):
+    question: str = Field(..., min_length=1, max_length=500)
+
+
+@router.post("/health/ask")
+def health_ask(body: HealthAskBody, request: Request):
+    acct = auth.require_account(request)
+    question = body.question.strip()
+    if _looks_like_emergency(question):
+        return {"answer": _EMERGENCY_REPLY, "refused": True}
+
+    with db.connect() as c:
+        prow = c.execute("SELECT * FROM profiles WHERE account_id=?", (acct["id"],)).fetchone()
+        recent_weights = c.execute(
+            "SELECT kg, at FROM weight_logs WHERE account_id=? ORDER BY at DESC LIMIT 3",
+            (acct["id"],),
+        ).fetchall()
+
+    context = {
+        "goal": prow["goal"] if prow else None,
+        "diet": prow["diet"] if prow else None,
+        "activity": prow["activity"] if prow else None,
+        "onGlp1": bool(prow["on_glp1"]) if prow and "on_glp1" in prow.keys() and prow["on_glp1"] is not None else False,
+        "targetWeightKg": prow["target_weight_kg"] if prow else None,
+        "recentWeighInsKg": [round(float(w["kg"]), 1) for w in recent_weights],
+    }
+    if context["onGlp1"]:
+        context["note"] = "User is on a GLP-1 medication (Ozempic/Wegovy/Mounjaro/Zepbound-type). Never discuss dosing -- defer to their prescriber for anything dose-related."
+
+    try:
+        import ai_provider
+
+        prompt = (
+            f"{_HEALTH_ASK_SYSTEM_PROMPT}\n"
+            f"User context (from their own logged profile, not medical records): {json.dumps(context, ensure_ascii=True)}\n\n"
+            f"User's question: {question}\n\n"
+            "Answer now, following all the rules above."
+        )
+        resp = ai_provider.get_provider().generate(prompt)
+        answer = (getattr(resp, "text", "") or "").strip()
+        if not answer:
+            raise RuntimeError("empty AI response")
+    except Exception as ex:
+        log.info("health_ask AI failed (%s)", ex)
+        return {
+            "answer": "I couldn't work out an answer right now -- please try again in a moment, or check with your doctor for anything urgent.",
+            "refused": False,
+        }
+    return {"answer": answer[:1200], "refused": False}
+
 
 
 class MealBody(BaseModel):

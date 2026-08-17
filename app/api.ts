@@ -1097,6 +1097,15 @@ export async function getGlp1Symptoms(days = 14): Promise<{ date: string; sympto
   return data.days || [];
 }
 
+// --- Safe AI health explainer ------------------------------------------------ //
+// Deliberately narrow "answer using my own logged data" helper -- never a
+// diagnosis/prescription tool. See backend/progress.py health_ask() for the
+// safety rules (emergency keyword refusal, no dosing advice, etc).
+
+export async function askHealthQuestion(question: string): Promise<{ answer: string; refused: boolean }> {
+  return postAuth<{ answer: string; refused: boolean }>("/health/ask", { question }, "POST");
+}
+
 export async function getServerLogs(): Promise<{ logs: LogMap }> {
   return getJson<{ logs: LogMap }>("/logs");
 }
