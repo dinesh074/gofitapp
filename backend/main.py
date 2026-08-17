@@ -1710,10 +1710,19 @@ def _normalize_meal_from_ai(meal: dict, fallback_name: str) -> dict:
 
 
 def _ai_next_move(rem: dict, diet: str, goal_name: str, slot: str, training: str, profile: dict) -> Optional[dict]:
+    gentle_note = (
+        "\nThe user is having a rough-appetite day (nausea/fullness from GLP-1 medication) -- "
+        "prefer plain, easy-to-digest options (curd rice, khichdi, dal, boiled/steamed dishes, soup, "
+        "toast, banana) over fried, very spicy, or heavy/rich dishes. This is a food-choice nudge only, "
+        "not medical advice."
+        if profile.get("gentle_day")
+        else ""
+    )
     prompt = (
         "You are a practical Indian nutrition planner. Build ONE realistic next meal and up to six alternatives.\n"
         "Use the user's context and remaining macros.\n"
-        f"Context:\nremaining={json.dumps(rem)}\ndiet={diet}\ngoal={goal_name}\nslot={slot}\ntraining={training}\nprofile={json.dumps(profile or {}, ensure_ascii=True)}\n\n"
+        f"Context:\nremaining={json.dumps(rem)}\ndiet={diet}\ngoal={goal_name}\nslot={slot}\ntraining={training}\nprofile={json.dumps(profile or {}, ensure_ascii=True)}\n"
+        f"{gentle_note}\n\n"
         "Return JSON only with this exact shape:\n"
         '{"category":"protein_gap|energy_gap|fat_cap|balanced","reason":"short user-facing sentence",'
         '"meal":{"name":"...","items":[{"name":"...","count":1,"unit":"serving","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}]},'
@@ -1941,6 +1950,62 @@ def _target_kcal_share(slot: str, on_glp1: bool = False) -> float:
     return 0.14
 
 
+# --- GLP-1 "gentle day" food nudge -------------------------------------------- #
+# Purely a name-keyword heuristic (no schema/DB tagging pass) -- deliberately
+# a SOFT bias applied only to already-valid, already-compatible candidates,
+# never a hard filter. Only activated when the user is on GLP-1 AND has
+# logged a rough-appetite symptom (nausea/fullness/low_appetite) today.
+_GENTLE_FOOD_WORDS = {
+    "khichdi", "khichri", "dahi", "curd", "yogurt", "yoghurt", "curd rice",
+    "moong", "moong dal", "dal", "daliya", "porridge", "poha", "idli",
+    "upma", "boiled", "steamed", "soup", "rasam", "banana", "papaya",
+    "toast", "khakhra", "buttermilk", "chaas", "sabudana khichdi",
+    "roti", "phulka", "plain rice", "steamed rice", "vermicelli",
+}
+_HEAVY_FOOD_WORDS = {
+    "fried", "deep fried", "deep-fried", "pakora", "pakoda", "bhajiya",
+    "vada", "puri", "paratha", "kachori", "samosa", "biryani", "chilli",
+    "chili", "extra spicy", "very spicy", "masala fry", "oily", "greasy",
+    "butter chicken", "makhani", "malai", "cream", "rich gravy", "pickle",
+    "achar", "fritter", "chaat", "bhatura",
+}
+
+
+def _food_gentleness(name: str) -> int:
+    """Returns +1 (gentle), -1 (heavy), or 0 (neutral) based on a simple
+    keyword match against the dish name. Deliberately conservative -- most
+    dishes will be neutral (0), only clear matches move the needle."""
+    n = (name or "").lower()
+    if any(w in n for w in _HEAVY_FOOD_WORDS):
+        return -1
+    if any(w in n for w in _GENTLE_FOOD_WORDS):
+        return 1
+    return 0
+
+
+def _meal_gentleness(items: list[dict]) -> int:
+    total = 0
+    for it in items:
+        total += _food_gentleness(str(it.get("name", "")))
+    return total
+
+
+def _recent_gentle_signal(account_id: int, date_key: str) -> bool:
+    """True if the user logged a rough-appetite GLP-1 symptom today or
+    yesterday. Used to softly bias Next Best Move toward gentler food --
+    never a hard filter, never a medical judgement."""
+    try:
+        rough = {"nausea", "fullness", "low_appetite"}
+        with db.connect() as c:
+            rows = c.execute(
+                "SELECT symptom FROM glp1_symptoms WHERE account_id=? AND date>=date(?, '-1 day') AND date<=?",
+                (account_id, date_key, date_key),
+            ).fetchall()
+        return any(r["symptom"] in rough for r in rows)
+    except Exception:
+        return False
+
+
 _PREP_WORDS = {
     "curry", "masala", "gravy", "dry", "fry", "fried", "sabzi", "sabji", "bhaji",
     "tadka", "tikka", "roasted", "grilled", "steamed", "boiled", "spicy", "hot",
@@ -2081,6 +2146,7 @@ def _build_next_move_candidates(
     goal_name: str,
     training: str,
     limit: int,
+    gentle_mode: bool = False,
 ) -> list[dict]:
     goal = {"goal": goal_name, "protein_g": rem.get("protein_g", 0) * 3}
     rank_debug = _rank_foods_detailed(rem, goal, diet, max(30, limit * 10))
@@ -2167,6 +2233,14 @@ def _build_next_move_candidates(
             continue
         seen_fp.add(fp)
         score, score_parts = _score_candidate_meal(meal_items, slot, rem, goal_name, day_meals, reco_counts)
+        if gentle_mode:
+            # Soft nudge only -- never excludes a candidate, just reorders
+            # among otherwise-valid, already-compatible meals.
+            gentleness = _meal_gentleness(meal_items)
+            if gentleness > 0:
+                score += 0.12
+            elif gentleness < 0:
+                score -= 0.12
         scored.append(
             (
                 score,
@@ -2447,9 +2521,14 @@ def foods_recommend(body: RecommendBody, request: Request):
     date_key = (body.date or "").strip()[:10] or time.strftime("%Y-%m-%d")
     slot = _next_slot_from_logs(acct["id"], date_key, body.slot, body.hour)
     training = (body.training or "").strip().lower()
+    on_glp1 = bool(body.profile.on_glp1) if body.profile else False
+    # Soft "gentle day" bias: only kicks in for GLP-1 users who've logged a
+    # rough-appetite symptom today/yesterday. Never a hard filter -- see
+    # _meal_gentleness/_recent_gentle_signal above.
+    gentle_mode = on_glp1 and _recent_gentle_signal(acct["id"], date_key)
     # If targets are present, align slot budget to a realistic day share.
     if body.targets is not None:
-        share = _target_kcal_share(slot, on_glp1=bool(body.profile.on_glp1) if body.profile else False)
+        share = _target_kcal_share(slot, on_glp1=on_glp1)
         rem["kcal"] = min(rem["kcal"], max(120.0, body.targets.kcal * share))
         rem["protein_g"] = min(rem["protein_g"], max(8.0, body.targets.protein_g * share))
         rem["carbs_g"] = min(rem["carbs_g"], max(10.0, body.targets.carbs_g * share))
@@ -2457,13 +2536,16 @@ def foods_recommend(body: RecommendBody, request: Request):
 
     if body.ai_mode:
         try:
+            ai_profile = body.profile.model_dump() if body.profile else {}
+            if gentle_mode:
+                ai_profile = {**ai_profile, "gentle_day": True}
             ai_move = _ai_next_move(
                 rem=rem,
                 diet=diet,
                 goal_name=goal_name,
                 slot=slot,
                 training=training,
-                profile=(body.profile.model_dump() if body.profile else {}),
+                profile=ai_profile,
             )
             if not ai_move:
                 raise RuntimeError("empty AI next_move")
@@ -2496,6 +2578,7 @@ def foods_recommend(body: RecommendBody, request: Request):
         goal_name=goal_name,
         training=training,
         limit=max(3, min(10, limit)),
+        gentle_mode=gentle_mode,
     )
     if meals:
         primary = meals[0]
