@@ -286,6 +286,13 @@ export default function ProgressScreen({
     [goal, recentSevenDays, summaryByDate]
   );
 
+  // Muscle-preservation signal for GLP-1 users: how many of the last 7 days
+  // hit the protein floor (same threshold used for the weekly bar chart).
+  const proteinDaysHit7 = useMemo(
+    () => macroChartData.filter((d) => d.proteinRatio >= PROTEIN_HIT_MIN).length,
+    [macroChartData]
+  );
+
   const filteredWeights = useMemo(() => {
     if (range === "all") return weights;
     const startMs = selectedStart.getTime();
@@ -428,6 +435,32 @@ export default function ProgressScreen({
               <EmptyState icon="dumbbell" title="No exercise data yet" detail="Logged workouts will appear here automatically." />
             )}
           </SectionCard>
+
+          {profile.onGlp1 && (
+            <SectionCard
+              icon="protein"
+              title="Muscle Preservation"
+              subtitle="Protein + activity together -- both matter for keeping lean mass on GLP-1"
+            >
+              <View style={styles.exerciseGrid}>
+                <MetricTile
+                  label="Protein days (7d)"
+                  value={`${proteinDaysHit7}/7`}
+                  accent={proteinDaysHit7 >= 5 ? colors.green : colors.orange}
+                />
+                <MetricTile
+                  label="Active days"
+                  value={exerciseSummary ? `${exerciseSummary.activeDays}` : "0"}
+                  accent={exerciseSummary && exerciseSummary.activeDays > 0 ? colors.green : colors.orange}
+                />
+              </View>
+              <Text style={styles.projectionSub}>
+                {proteinDaysHit7 >= 5
+                  ? "Solid protein intake this week -- that's what protects muscle while you're eating less."
+                  : "Try to hit your protein target most days -- it's the biggest lever for keeping muscle (not fat) off while appetite is suppressed."}
+              </Text>
+            </SectionCard>
+          )}
 
           <SectionCard
             icon="target"
