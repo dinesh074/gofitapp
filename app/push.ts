@@ -16,6 +16,7 @@ Notifications.setNotificationHandler({
 
 const REMINDER_IDENTIFIER = "gofit-meal-reminders";
 const PLAN_ALERT_IDENTIFIER = "gofit-plan-update";
+const GLP1_DOSE_REMINDER_IDENTIFIER = "gofit-glp1-dose-reminder";
 
 // Daily local reminders (work offline, no server involved). Meal-logging
 // nudges plus two water check-ins spread across the day.
@@ -167,6 +168,45 @@ export async function setRemindersEnabled(on: boolean): Promise<boolean> {
 export async function initNotifications(): Promise<void> {
   await registerForRemotePush();
   await scheduleMealReminders();
+}
+
+/**
+ * Schedule (or clear) a weekly local reminder for the user's GLP-1 injection
+ * day. `weekday` uses expo-notifications' WEEKLY trigger convention
+ * (1=Sunday..7=Saturday); pass undefined/0 to just clear any existing
+ * reminder (e.g. when the user turns GLP-1 mode off or clears the day).
+ * Always cancels the previous reminder first so re-picking a day never
+ * stacks duplicates.
+ */
+export async function scheduleGlp1DoseReminder(weekday: number | undefined | null): Promise<void> {
+  try {
+    if (Platform.OS === "web") return;
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      scheduled
+        .filter((s) => (s.content?.data as any)?.tag === GLP1_DOSE_REMINDER_IDENTIFIER)
+        .map((s) => Notifications.cancelScheduledNotificationAsync(s.identifier))
+    );
+    if (!weekday) return;
+    await ensureAndroidChannel();
+    const granted = await requestNotificationPermission();
+    if (!granted) return;
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Dose day 💉",
+        body: "Today's your GLP-1 dose day -- tap to log it once you've taken it.",
+        data: { tag: GLP1_DOSE_REMINDER_IDENTIFIER, route: "Settings" },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday,
+        hour: 9,
+        minute: 0,
+      },
+    });
+  } catch {
+    // Non-fatal -- reminder just won't be scheduled.
+  }
 }
 
 type PlannedMeal = {

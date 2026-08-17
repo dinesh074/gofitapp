@@ -71,6 +71,7 @@ export const ICONS = {
   nutrition: "nutrition-outline",
   pulse: "pulse-outline",
   refresh: "refresh",
+  medkit: "medkit-outline",
 } as const;
 
 export type IconName = keyof typeof ICONS;

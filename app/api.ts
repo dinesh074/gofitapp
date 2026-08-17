@@ -1061,6 +1061,29 @@ export async function putProfile(profile: Profile): Promise<{ profile: Profile }
   return { profile: normalizeProfile(data.profile)! };
 }
 
+// --- GLP-1 dose log --------------------------------------------------------- //
+// Lightweight "I took my dose today" log -- date only, no dosage/drug detail.
+// Used for a simple dose-history strip and future symptom/appetite correlation.
+
+export async function logGlp1Dose(date: string): Promise<void> {
+  await postAuth<{ ok: boolean }>("/glp1/doses", { date }, "POST");
+}
+
+export async function deleteGlp1Dose(date: string): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/glp1/doses/${date}`, { method: "DELETE", headers: authHeaders(true) });
+  } catch {
+    throw new Error("Can't reach the server. Check your connection and try again.");
+  }
+  if (!res.ok) throw new Error(await authError(res));
+}
+
+export async function getGlp1Doses(days = 60): Promise<string[]> {
+  const data = await getJson<{ dates?: string[] }>(`/glp1/doses?days=${days}`);
+  return data.dates || [];
+}
+
 export async function getServerLogs(): Promise<{ logs: LogMap }> {
   return getJson<{ logs: LogMap }>("/logs");
 }

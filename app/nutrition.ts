@@ -50,6 +50,10 @@ export type Profile = {
   // intake, so stacking an aggressive deficit on top risks under-eating).
   // Optional/omittable; false/absent is a no-op for every existing profile.
   onGlp1?: boolean;
+  // Weekly injection reminder day: 1=Sunday..7=Saturday (matches
+  // expo-notifications' WEEKLY trigger weekday convention). Undefined/0 means
+  // no weekly reminder is scheduled -- only relevant when onGlp1 is true.
+  glp1DoseWeekday?: number;
   createdAt: number;
   updatedAt?: number;
 };
@@ -230,6 +234,7 @@ export function normalizeProfile(p: Profile | null | undefined): Profile | null 
     goalPace: resolveGoalPace(p),
     goalKind,
     onGlp1: !!(p as any).onGlp1,
+    glp1DoseWeekday: (p as any).glp1DoseWeekday || undefined,
   };
 }
 

@@ -29,7 +29,7 @@ import {
 import { APP_NAME } from "./config";
 import { getProfile } from "./api";
 import { loadRemindersEnabled } from "./storage";
-import { setRemindersEnabled } from "./push";
+import { setRemindersEnabled, scheduleGlp1DoseReminder } from "./push";
 import Icon from "./Icon";
 import PaceSlider from "./PaceSlider";
 import NumberStepper from "./NumberStepper";
@@ -76,6 +76,17 @@ const ACTIVITY_SHORT: Record<Activity, string> = {
   active: "Very active",
   very_active: "Extra active",
 };
+
+// Sunday=1..Saturday=7, matching expo-notifications' WEEKLY trigger weekday.
+const WEEKDAYS: { key: number; label: string }[] = [
+  { key: 1, label: "Sun" },
+  { key: 2, label: "Mon" },
+  { key: 3, label: "Tue" },
+  { key: 4, label: "Wed" },
+  { key: 5, label: "Thu" },
+  { key: 6, label: "Fri" },
+  { key: 7, label: "Sat" },
+];
 
 export default function Settings({ profile, onSave, onClose, onResetAll }: Props) {
   const [d, setD] = useState<Profile>({ ...normalizeProfile(profile)! });
@@ -142,6 +153,7 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
 
   function save() {
     onSave(normalizeProfile({ ...d })!);
+    scheduleGlp1DoseReminder(d.onGlp1 ? d.glp1DoseWeekday : undefined).catch(() => {});
   }
 
   return (
@@ -314,6 +326,25 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
           />
         </View>
 
+        {d.onGlp1 && (
+          <Field label="Dose day (weekly reminder)">
+            <View style={styles.wrap}>
+              {WEEKDAYS.map((o) => (
+                <Chip
+                  key={o.key}
+                  label={o.label}
+                  selected={d.glp1DoseWeekday === o.key}
+                  onPress={() => update({ glp1DoseWeekday: d.glp1DoseWeekday === o.key ? undefined : o.key })}
+                />
+              ))}
+            </View>
+            <Text style={styles.hintText}>
+              {d.glp1DoseWeekday
+                ? "We'll nudge you at 9am on your dose day -- tap the day again to clear it."
+                : "Optional -- pick the day you usually take your dose to get a gentle weekly reminder."}
+            </Text>
+          </Field>
+        )}
         {/* Reminders */}
         <View style={styles.reminderCard}>
           <View style={{ flex: 1 }}>

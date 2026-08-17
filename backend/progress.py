@@ -108,6 +108,22 @@ def init_db() -> None:
         # app/nutrition.ts for where this is actually applied. Nullable/0 by
         # default so it's a no-op for every existing profile.
         _ensure_column(c, "profiles", "on_glp1", "INTEGER")
+        # Weekly injection-day reminder (1=Sunday..7=Saturday, matching
+        # expo-notifications' WEEKLY trigger weekday convention). Null/0 means
+        # "not set" -- most GLP-1 drugs are once-weekly; daily-dose drugs can
+        # leave this unset and just use the dose log without a reminder.
+        _ensure_column(c, "profiles", "glp1_dose_weekday", "INTEGER")
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS glp1_doses (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                date       TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                UNIQUE(account_id, date)
+            )
+            """
+        )
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS meal_logs (
@@ -378,6 +394,7 @@ class ProfileBody(BaseModel):
     goalPace: Optional[str] = None
     goalKind: Optional[str] = None
     onGlp1: Optional[bool] = False
+    glp1DoseWeekday: Optional[int] = Field(None, ge=1, le=7)
 
 
 _VALID_GENDERS = {"male", "female", "other"}
@@ -463,6 +480,7 @@ def _row_to_profile(row) -> dict:
         "goalPace": (row["goal_pace"] if "goal_pace" in row.keys() else None),
         "goalKind": (row["goal_kind"] if "goal_kind" in row.keys() else None),
         "onGlp1": bool(row["on_glp1"]) if "on_glp1" in row.keys() and row["on_glp1"] is not None else False,
+        "glp1DoseWeekday": (row["glp1_dose_weekday"] if "glp1_dose_weekday" in row.keys() else None),
         "createdAt": row["created_at"],
         # Server's last-write timestamp for this profile row. The client uses
         # this (Profile.updatedAt) to decide whether an incoming server
@@ -509,8 +527,8 @@ def put_profile(body: ProfileBody, request: Request):
             INSERT INTO profiles
                 (account_id, name, gender, age, height_cm, weight_kg,
                  target_weight_kg, goal, activity, diet, goal_pace, goal_kind,
-                 on_glp1, created_at, updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 on_glp1, glp1_dose_weekday, created_at, updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(account_id) DO UPDATE SET
                 name=excluded.name, gender=excluded.gender, age=excluded.age,
                 height_cm=excluded.height_cm, weight_kg=excluded.weight_kg,
@@ -518,12 +536,14 @@ def put_profile(body: ProfileBody, request: Request):
                 activity=excluded.activity, diet=excluded.diet,
                 goal_pace=excluded.goal_pace, goal_kind=excluded.goal_kind,
                 on_glp1=excluded.on_glp1,
+                glp1_dose_weekday=excluded.glp1_dose_weekday,
                 updated_at=excluded.updated_at
             """,
             (
                 acct["id"], body.name, gender, body.age, body.heightCm,
                 body.weightKg, body.targetWeightKg, goal, activity,
-                diet, goal_pace, goal_kind, int(bool(body.onGlp1)), created_at, now,
+                diet, goal_pace, goal_kind, int(bool(body.onGlp1)),
+                body.glp1DoseWeekday, created_at, now,
             ),
         )
         row = c.execute(
@@ -532,7 +552,57 @@ def put_profile(body: ProfileBody, request: Request):
     return {"profile": _row_to_profile(row)}
 
 
-# --- meal logs -------------------------------------------------------------- #
+# --- GLP-1 dose log ---------------------------------------------------------- #
+# Lightweight log of "I took my dose today" taps -- used to (a) show a simple
+# dose-history strip and (b) let symptom/appetite trends be read alongside
+# days-since-dose later. Deliberately NOT medical record-keeping: no dosage
+# amount, drug name, or clinical detail is captured, just a date.
+
+class Glp1DoseBody(BaseModel):
+    date: str = Field(..., min_length=10, max_length=10)  # "YYYY-MM-DD"
+
+
+@router.post("/glp1/doses")
+def log_glp1_dose(body: Glp1DoseBody, request: Request):
+    acct = auth.require_account(request)
+    now = time.time()
+    with db.write_lock(), db.connect() as c:
+        c.execute(
+            """
+            INSERT INTO glp1_doses (account_id, date, created_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(account_id, date) DO UPDATE SET created_at=excluded.created_at
+            """,
+            (acct["id"], body.date, now),
+        )
+    return {"ok": True}
+
+
+@router.delete("/glp1/doses/{date}")
+def delete_glp1_dose(date: str, request: Request):
+    acct = auth.require_account(request)
+    with db.write_lock(), db.connect() as c:
+        c.execute(
+            "DELETE FROM glp1_doses WHERE account_id=? AND date=?",
+            (acct["id"], date),
+        )
+    return {"ok": True}
+
+
+@router.get("/glp1/doses")
+def list_glp1_doses(request: Request, days: int = 60):
+    acct = auth.require_account(request)
+    days = max(1, min(365, days))
+    cutoff = time.strftime("%Y-%m-%d", time.localtime(time.time() - days * 86400))
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT date FROM glp1_doses WHERE account_id=? AND date>=? ORDER BY date DESC",
+            (acct["id"], cutoff),
+        ).fetchall()
+    return {"dates": [r["date"] for r in rows]}
+
+
+
 
 class MealBody(BaseModel):
     date: str = Field(..., min_length=10, max_length=10)  # "YYYY-MM-DD"

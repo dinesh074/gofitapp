@@ -20,11 +20,14 @@ import {
   DaySummary,
   ExerciseSummary,
   getExerciseSummary,
+  getGlp1Doses,
   getLogDays,
   getServerWeights,
   getSummary,
+  logGlp1Dose,
+  deleteGlp1Dose,
 } from "./api";
-import { LogMap, WeightEntry, bestStreak as computeBestStreak, monthStreak } from "./storage";
+import { LogMap, WeightEntry, bestStreak as computeBestStreak, monthStreak, todayKey } from "./storage";
 import { colors, elevation, gradients, radius, sp, type as T } from "./theme";
 
 type Props = {
@@ -82,6 +85,9 @@ export default function ProgressScreen({
   const [loadingRangeData, setLoadingRangeData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWeightSheet, setShowWeightSheet] = useState(false);
+  const [doseDates, setDoseDates] = useState<string[]>([]);
+  const [loadingDoses, setLoadingDoses] = useState(false);
+  const [logDoseBusy, setLogDoseBusy] = useState(false);
 
   const chartWidth = Math.max(260, Math.round(width - sp(16)));
   const weightChartWidth = Math.max(240, chartWidth - sp(6));
@@ -142,6 +148,44 @@ export default function ProgressScreen({
       alive = false;
     };
   }, [onRequireAuth, range]);
+
+  const refreshGlp1Doses = useCallback(async () => {
+    if (!profile.onGlp1) return;
+    setLoadingDoses(true);
+    try {
+      const dates = await getGlp1Doses(60);
+      setDoseDates(dates);
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+      // Non-fatal otherwise -- this is a small supplementary widget.
+    } finally {
+      setLoadingDoses(false);
+    }
+  }, [onRequireAuth, profile.onGlp1]);
+
+  useEffect(() => {
+    void refreshGlp1Doses();
+  }, [refreshGlp1Doses]);
+
+  const todayKeyVal = useMemo(() => todayKey(), []);
+  const loggedDoseToday = doseDates.includes(todayKeyVal);
+
+  async function toggleDoseToday() {
+    setLogDoseBusy(true);
+    try {
+      if (loggedDoseToday) {
+        await deleteGlp1Dose(todayKeyVal);
+        setDoseDates((s) => s.filter((d) => d !== todayKeyVal));
+      } else {
+        await logGlp1Dose(todayKeyVal);
+        setDoseDates((s) => [todayKeyVal, ...s.filter((d) => d !== todayKeyVal)]);
+      }
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    } finally {
+      setLogDoseBusy(false);
+    }
+  }
 
   const summaryByDate = useMemo(() => {
     const map = new Map<string, DaySummary>();
@@ -532,6 +576,46 @@ export default function ProgressScreen({
               </>
             )}
           </SectionCard>
+
+          {profile.onGlp1 && (
+            <SectionCard
+              icon="medkit"
+              title="Dose Log"
+              subtitle="Just a date -- no dosage or drug details are stored"
+            >
+              {loadingDoses ? (
+                <LoadingBlock />
+              ) : (
+                <>
+                  <View style={styles.weightTopRow}>
+                    <View style={styles.weightHeadlineBlock}>
+                      <Text style={styles.weightHeadline}>
+                        {doseDates.length ? `${doseDates.length} dose${doseDates.length === 1 ? "" : "s"} logged` : "No doses logged yet"}
+                      </Text>
+                      <Text style={styles.weightMeta}>
+                        {doseDates[0]
+                          ? `Last logged ${prettyShortDate(new Date(doseDates[0] + "T00:00:00"))}`
+                          : "Last 60 days"}
+                      </Text>
+                    </View>
+                    <Pressable
+                      style={[styles.secondaryButton, loggedDoseToday && styles.secondaryButtonActive]}
+                      onPress={toggleDoseToday}
+                      disabled={logDoseBusy}
+                    >
+                      <Icon name={loggedDoseToday ? "check" : "plus"} size={16} color={loggedDoseToday ? "#fff" : colors.green} />
+                      <Text style={[styles.secondaryButtonText, loggedDoseToday && styles.secondaryButtonTextActive]}>
+                        {loggedDoseToday ? "Logged today" : "Log today"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                  <Text style={styles.projectionSub}>
+                    Set your weekly reminder day in Settings -- this log is just for your own reference, not medical advice.
+                  </Text>
+                </>
+              )}
+            </SectionCard>
+          )}
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
@@ -987,6 +1071,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.greenTint,
   },
   secondaryButtonText: { ...T.caption, color: colors.green },
+  secondaryButtonActive: { backgroundColor: colors.green },
+  secondaryButtonTextActive: { color: colors.white },
   weightTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   weightHeadlineBlock: { flex: 1, paddingRight: sp(3) },
   weightHeadline: { ...T.h1, color: colors.ink },
