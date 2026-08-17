@@ -1169,6 +1169,7 @@ export type DaySummary = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  fiber_g: number;
   mealsCount: number;
 };
 
@@ -1221,6 +1222,18 @@ export async function setHabit(
   value: number
 ): Promise<HabitState> {
   return postAuth<HabitState>("/habits", { date, kind, value });
+}
+
+export type HabitHistory = {
+  days: number;
+  byDate: Record<string, Partial<Record<HabitKind, number>>>;
+  stepGoal: number;
+};
+
+// Recent steps/sleep/workout_min values by date -- powers the unified
+// progress dashboard's weekly steps/sleep trend cards.
+export async function getHabitsHistory(days: number): Promise<HabitHistory> {
+  return getJson<HabitHistory>(`/habits/history?days=${days}`);
 }
 
 // Today's training context, persisted server-side so it's part of the one

@@ -16,12 +16,14 @@ Endpoints (all Bearer-authenticated):
   POST /water   {date, ml}      -> add (ml may be negative to undo) -> {date, ml}
   GET  /habits?date=YYYY-MM-DD  -> {date, habits: {kind: value}}
   POST /habits  {date, kind, value} -> upsert one habit's value -> {date, habits}
+  GET  /habits/history?days=N  -> {days, byDate: {date: {kind: value}}, stepGoal}
 
 Storage mirrors progress.py's per-account, per-date pattern so the client's
 local cache can stay eventually-consistent the same way meal logs do.
 """
 import time
 import logging
+from datetime import date as _date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -228,6 +230,28 @@ def set_habit(body: HabitBody, request: Request):
         habits = _habits_for(c, acct["id"], body.date)
         step_goal = _step_goal(_profile_for(c, acct["id"]))
     return {"date": body.date, "habits": habits, "stepGoal": step_goal}
+
+
+@router.get("/habits/history")
+def get_habits_history(request: Request, days: int = 14):
+    """Recent steps/sleep/workout_min habit values grouped by date (most
+    recent first) -- powers the unified progress dashboard's weekly trend
+    cards. Real logged data only; days with nothing logged are simply
+    absent from `byDate`."""
+    acct = auth.require_account(request)
+    days = max(1, min(90, int(days)))
+    start_key = (_date.today() - timedelta(days=days - 1)).isoformat()
+    with db.connect() as c:
+        rows = c.execute(
+            "SELECT date, kind, value FROM habit_logs WHERE account_id=? AND date>=? ORDER BY date DESC",
+            (acct["id"], start_key),
+        ).fetchall()
+        step_goal = _step_goal(_profile_for(c, acct["id"]))
+    by_date: dict[str, dict] = {}
+    for r in rows:
+        day = by_date.setdefault(r["date"], {})
+        day[r["kind"]] = r["value"]
+    return {"days": days, "byDate": by_date, "stepGoal": step_goal}
 
 
 # --- training context ----------------------------------------------------- #

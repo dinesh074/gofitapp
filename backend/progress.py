@@ -217,6 +217,11 @@ def init_db() -> None:
             )
             """
         )
+        # fiber_g: daily total pulled from each meal's `micros` JSON panel (see
+        # meal_logs.micros above) at refresh time -- not summed in SQL since
+        # micros is a free-form JSON blob, not a column, so json1 support
+        # can't be assumed on every deployment target.
+        _ensure_column(c, "daily_summary", "fiber_g", "REAL NOT NULL DEFAULT 0")
         # Durable, permanent record of "this account logged >=1 meal on this
         # calendar date" -- deliberately NEVER touched by RETENTION_LOG_DAYS
         # cleanup (unlike meal_logs/daily_summary, which age out at 30 days).
@@ -360,15 +365,28 @@ def _refresh_daily_summary(c, account_id: int, date_key: str) -> None:
     if row["n"] == 0:
         c.execute("DELETE FROM daily_summary WHERE account_id=? AND date=?", (account_id, date_key))
         return
+    # fiber_g isn't a meal_logs column (it lives inside the free-form `micros`
+    # JSON panel), so sum it in Python rather than in SQL.
+    fiber_g = 0.0
+    micro_rows = c.execute(
+        "SELECT micros FROM meal_logs WHERE account_id=? AND date=? AND micros IS NOT NULL",
+        (account_id, date_key),
+    ).fetchall()
+    for mr in micro_rows:
+        try:
+            m = json.loads(mr["micros"])
+            fiber_g += float(m.get("fiber_g") or 0)
+        except Exception:
+            continue
     c.execute(
         """
-        INSERT INTO daily_summary (account_id, date, kcal, protein_g, carbs_g, fat_g, meals_count, updated_at)
-        VALUES (?,?,?,?,?,?,?,?)
+        INSERT INTO daily_summary (account_id, date, kcal, protein_g, carbs_g, fat_g, fiber_g, meals_count, updated_at)
+        VALUES (?,?,?,?,?,?,?,?,?)
         ON CONFLICT(account_id, date) DO UPDATE SET
             kcal=excluded.kcal, protein_g=excluded.protein_g, carbs_g=excluded.carbs_g,
-            fat_g=excluded.fat_g, meals_count=excluded.meals_count, updated_at=excluded.updated_at
+            fat_g=excluded.fat_g, fiber_g=excluded.fiber_g, meals_count=excluded.meals_count, updated_at=excluded.updated_at
         """,
-        (account_id, date_key, row["kcal"], row["protein_g"], row["carbs_g"], row["fat_g"], row["n"], time.time()),
+        (account_id, date_key, row["kcal"], row["protein_g"], row["carbs_g"], row["fat_g"], round(fiber_g, 1), row["n"], time.time()),
     )
 
 
@@ -1018,6 +1036,7 @@ def get_summary(request: Request, days: int = 30):
                 "protein_g": r["protein_g"],
                 "carbs_g": r["carbs_g"],
                 "fat_g": r["fat_g"],
+                "fiber_g": r["fiber_g"] if "fiber_g" in r.keys() else 0,
                 "mealsCount": r["meals_count"],
             }
             for r in rows

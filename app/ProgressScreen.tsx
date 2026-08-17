@@ -15,7 +15,9 @@ import { useNavigation } from "@react-navigation/native";
 import Screen from "./Screen";
 import WeightSheet from "./WeightSheet";
 import Icon, { IconName } from "./Icon";
+import NumberStepper from "./NumberStepper";
 import { GoalTargets, Profile } from "./nutrition";
+import { MICRO_REFS } from "./micros";
 import {
   askHealthQuestion,
   AuthRequiredError,
@@ -27,6 +29,11 @@ import {
   getLogDays,
   getServerWeights,
   getSummary,
+  getHabits,
+  getHabitsHistory,
+  setHabit,
+  HabitState,
+  HabitHistory,
   Glp1Symptom,
   logGlp1Dose,
   deleteGlp1Dose,
@@ -104,6 +111,9 @@ export default function ProgressScreen({
   const [symptomDays, setSymptomDays] = useState<{ date: string; symptoms: Glp1Symptom[] }[]>([]);
   const [todaySymptoms, setTodaySymptoms] = useState<Glp1Symptom[]>([]);
   const [symptomBusy, setSymptomBusy] = useState(false);
+  const [todayHabits, setTodayHabits] = useState<HabitState | null>(null);
+  const [habitHistory, setHabitHistory] = useState<HabitHistory | null>(null);
+  const [habitBusy, setHabitBusy] = useState(false);
 
   const chartWidth = Math.max(260, Math.round(width - sp(16)));
   const weightChartWidth = Math.max(240, chartWidth - sp(6));
@@ -164,6 +174,48 @@ export default function ProgressScreen({
       alive = false;
     };
   }, [onRequireAuth, range]);
+
+  const refreshHabits = useCallback(async () => {
+    setHabitBusy(true);
+    try {
+      const [today, history] = await Promise.all([getHabits(todayKey()), getHabitsHistory(7)]);
+      setTodayHabits(today);
+      setHabitHistory(history);
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+      // Non-fatal otherwise -- small supplementary widget, same as GLP-1 doses.
+    } finally {
+      setHabitBusy(false);
+    }
+  }, [onRequireAuth]);
+
+  useEffect(() => {
+    void refreshHabits();
+  }, [refreshHabits]);
+
+  async function logStepsToday(steps: number) {
+    const key = todayKey();
+    setTodayHabits((s) => (s ? { ...s, habits: { ...s.habits, steps } } : s));
+    try {
+      const res = await setHabit(key, "steps", steps);
+      setTodayHabits(res);
+      setHabitHistory((h) => (h ? { ...h, byDate: { ...h.byDate, [key]: { ...h.byDate[key], steps } } } : h));
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    }
+  }
+
+  async function logSleepToday(hours: number) {
+    const key = todayKey();
+    setTodayHabits((s) => (s ? { ...s, habits: { ...s.habits, sleep_hr: hours } } : s));
+    try {
+      const res = await setHabit(key, "sleep_hr", hours);
+      setTodayHabits(res);
+      setHabitHistory((h) => (h ? { ...h, byDate: { ...h.byDate, [key]: { ...h.byDate[key], sleep_hr: hours } } } : h));
+    } catch (e) {
+      if (e instanceof AuthRequiredError) onRequireAuth();
+    }
+  }
 
   const refreshGlp1Doses = useCallback(async () => {
     if (!profile.onGlp1) return;
@@ -318,6 +370,29 @@ export default function ProgressScreen({
     () => macroChartData.filter((d) => d.proteinRatio >= PROTEIN_HIT_MIN).length,
     [macroChartData]
   );
+
+  const fiberTargetG = MICRO_REFS.find((m) => m.key === "fiber_g")?.target ?? 30;
+  const fiberAvg7 = useMemo(() => {
+    const withData = recentSevenDays.map((d) => summaryByDate.get(d)?.fiber_g).filter((v): v is number => typeof v === "number");
+    if (!withData.length) return null;
+    return withData.reduce((a, b) => a + b, 0) / withData.length;
+  }, [recentSevenDays, summaryByDate]);
+
+  const stepGoal = todayHabits?.stepGoal ?? habitHistory?.stepGoal ?? 9000;
+  const stepsToday = todayHabits?.habits.steps ?? 0;
+  const sleepToday = todayHabits?.habits.sleep_hr ?? 0;
+  const stepsAvg7 = useMemo(() => {
+    if (!habitHistory) return null;
+    const vals = recentSevenDays.map((d) => habitHistory.byDate[d]?.steps).filter((v): v is number => typeof v === "number");
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, [habitHistory, recentSevenDays]);
+  const sleepAvg7 = useMemo(() => {
+    if (!habitHistory) return null;
+    const vals = recentSevenDays.map((d) => habitHistory.byDate[d]?.sleep_hr).filter((v): v is number => typeof v === "number");
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, [habitHistory, recentSevenDays]);
 
   const filteredWeights = useMemo(() => {
     if (range === "all") return weights;
@@ -480,6 +555,63 @@ export default function ProgressScreen({
                 <Text style={styles.footnote}>Tap any day to open what you actually logged for that date.</Text>
               </>
             )}
+          </SectionCard>
+
+          <SectionCard
+            icon="walk"
+            title="Steps, Sleep & Fibre"
+            subtitle="Quick daily log -- no wearable sync yet, just tap to update"
+          >
+            <View style={styles.exerciseGrid}>
+              <MetricTile
+                label={`Steps today${stepGoal ? ` / ${stepGoal}` : ""}`}
+                value={`${Math.round(stepsToday)}`}
+                accent={stepsToday >= stepGoal ? colors.green : colors.orange}
+              />
+              <MetricTile
+                label="Sleep last night"
+                value={sleepToday ? `${sleepToday.toFixed(1)}h` : "--"}
+                accent={sleepToday >= 7 ? colors.green : colors.orange}
+              />
+              <MetricTile
+                label={`Fibre (7d avg) / ${fiberTargetG}g`}
+                value={fiberAvg7 !== null ? `${Math.round(fiberAvg7)}g` : "--"}
+                accent={fiberAvg7 !== null && fiberAvg7 >= fiberTargetG ? colors.green : colors.orange}
+              />
+            </View>
+            <View style={styles.habitStepperRow}>
+              <View style={styles.habitStepperCol}>
+                <Text style={styles.habitStepperLabel}>Steps</Text>
+                <NumberStepper
+                  value={stepsToday}
+                  min={0}
+                  max={50000}
+                  step={500}
+                  onChange={logStepsToday}
+                  compact
+                />
+              </View>
+              <View style={styles.habitStepperCol}>
+                <Text style={styles.habitStepperLabel}>Sleep (hrs)</Text>
+                <NumberStepper
+                  value={sleepToday}
+                  min={0}
+                  max={14}
+                  step={0.5}
+                  decimals={1}
+                  unit="h"
+                  onChange={logSleepToday}
+                  compact
+                />
+              </View>
+            </View>
+            {stepsAvg7 !== null || sleepAvg7 !== null ? (
+              <Text style={styles.footnote}>
+                7-day average: {stepsAvg7 !== null ? `${Math.round(stepsAvg7)} steps` : "no step logs"}
+                {" · "}
+                {sleepAvg7 !== null ? `${sleepAvg7.toFixed(1)}h sleep` : "no sleep logs"}
+              </Text>
+            ) : null}
           </SectionCard>
 
           <SectionCard
@@ -1379,6 +1511,9 @@ const styles = StyleSheet.create({
   previewOpenBtnText: { ...T.bodyStrong, color: colors.white },
   previewEmpty: { ...T.caption, color: colors.mute, lineHeight: 18 },
   exerciseGrid: { flexDirection: "row", gap: sp(2) },
+  habitStepperRow: { flexDirection: "row", gap: sp(3), marginTop: sp(3) },
+  habitStepperCol: { flex: 1, gap: sp(1.5) },
+  habitStepperLabel: { ...T.caption, color: colors.mute },
   metricTile: { flex: 1, backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: sp(3) },
   metricDot: { width: sp(2), height: sp(2), borderRadius: radius.pill, marginBottom: sp(2) },
   metricValue: { ...T.h2, color: colors.ink },
