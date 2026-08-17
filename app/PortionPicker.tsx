@@ -32,7 +32,25 @@ function isFruitLike(name: string): boolean {
   return FRUIT_KEYWORDS.some((k) => n.includes(k));
 }
 
-const GRAMS_PER_BASELINE = 100; // 1.0x count ~= a normal single serving (~100g)
+// Realistic per-unit baseline serving weight (grams) -- previously this was
+// a flat 100g for every non-countable item regardless of unit, which made
+// "Full plate" of a rice dish display as "≈ 100g" (a real full plate is
+// 250-350g). That mislabeling made otherwise-plausible calorie estimates
+// look absurd (e.g. "594 kcal ≈ 100g" reads as 594kcal/100g, when the dish
+// is actually a ~280g plate at a much more normal ~210 kcal/100g). This does
+// NOT change any calorie math -- kcal_total is still count * kcal_per_unit
+// exactly as before -- it only fixes the displayed gram estimate to match
+// what the unit name actually means.
+function gramsBaselineForUnit(unit: string): number {
+  const u = unit.toLowerCase();
+  if (u.includes("100g")) return 100;
+  if (u.includes("plate")) return 280;
+  if (u.includes("katori")) return 150;
+  if (u.includes("bowl")) return 180;
+  if (u.includes("cup") || u.includes("glass") || u.includes("jar")) return 220;
+  if (u.includes("tablespoon")) return 15;
+  return 150;
+}
 
 export default function PortionPicker({ visible, item, onClose, onApply }: Props) {
   const [count, setCount] = useState(item?.count ?? 1);
@@ -44,11 +62,12 @@ export default function PortionPicker({ visible, item, onClose, onApply }: Props
 
   if (!item) return null;
   const fruit = isFruitLike(item.item);
-  const grams = Math.round(count * GRAMS_PER_BASELINE);
+  const gramsBaseline = gramsBaselineForUnit(item.unit || "");
+  const grams = Math.round(count * gramsBaseline);
   const kcalPreview = Math.round(count * item.kcal_per_unit);
 
   function setGrams(g: number) {
-    setCount(Math.max(0.05, g / GRAMS_PER_BASELINE));
+    setCount(Math.max(0.05, g / gramsBaseline));
   }
 
   const partPresets: { label: string; value: number }[] = [
