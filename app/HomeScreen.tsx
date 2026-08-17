@@ -374,7 +374,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
   }, [logs, goal.kcal]);
   // Personalized from this profile's weightKg/activity (see nutrition.ts) --
   // not the same flat number for every account regardless of who they are.
-  const waterGoalMl = useMemo(() => computeWaterGoalMl(profile), [profile.weightKg, profile.activity]);
+  const waterGoalMl = useMemo(() => computeWaterGoalMl(profile), [profile.weightKg, profile.activity, profile.onGlp1]);
   const stepGoal = useMemo(() => computeStepGoal(profile), [profile.activity]);
 
   // Real "what to eat next": ask the backend to rank the WHOLE food DB against
@@ -400,6 +400,7 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     goal_kind: profile.goalKind,
     diet: profile.diet,
     goal: profile.goal,
+    on_glp1: profile.onGlp1,
   };
   const biggestGap = useMemo(() => {
     const rows = [

@@ -681,6 +681,7 @@ export type PlannerProfileContext = {
   goal_kind?: string;
   diet?: string;
   goal?: string;
+  on_glp1?: boolean;
 };
 
 export async function fetchTodayPlan(input: {

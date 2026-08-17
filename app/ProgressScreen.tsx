@@ -514,8 +514,16 @@ export default function ProgressScreen({
               </>
             ) : projection.kind === "stalled" ? (
               <>
-                <Text style={styles.projectionHeadline}>Current weight trend isn&apos;t moving toward your target yet.</Text>
-                <Text style={styles.projectionSub}>Keep logging weigh-ins for a clearer ETA toward {formatWeight(projection.targetKg)} kg.</Text>
+                <Text style={styles.projectionHeadline}>
+                  {profile.onGlp1
+                    ? "Your weight trend has plateaued for now."
+                    : "Current weight trend isn't moving toward your target yet."}
+                </Text>
+                <Text style={styles.projectionSub}>
+                  {profile.onGlp1
+                    ? "Plateaus are common during GLP-1 dose changes and don't mean something's wrong -- keep logging weigh-ins and check in with your prescriber if it continues."
+                    : `Keep logging weigh-ins for a clearer ETA toward ${formatWeight(projection.targetKg)} kg.`}
+                </Text>
               </>
             ) : (
               <>

@@ -339,8 +339,13 @@ const WATER_ACTIVITY_BUMP_ML: Record<Activity, number> = {
   very_active: 750,
 };
 
-export function computeWaterGoalMl(p: Pick<Profile, "weightKg" | "activity">): number {
-  const base = p.weightKg * 33 + WATER_ACTIVITY_BUMP_ML[p.activity];
+// Extra daily water target for GLP-1 users -- the medication commonly causes
+// constipation/dehydration side effects, so hydration matters more here than
+// the activity-level bump alone accounts for.
+const GLP1_WATER_BUMP_ML = 400;
+
+export function computeWaterGoalMl(p: Pick<Profile, "weightKg" | "activity" | "onGlp1">): number {
+  const base = p.weightKg * 33 + WATER_ACTIVITY_BUMP_ML[p.activity] + (p.onGlp1 ? GLP1_WATER_BUMP_ML : 0);
   return Math.min(5000, Math.max(1500, Math.round(base / 50) * 50));
 }
 

@@ -1772,6 +1772,7 @@ class RecommendProfile(BaseModel):
     goal_kind: str = ""
     diet: str = ""
     goal: str = ""
+    on_glp1: bool = False
 
 
 class RecommendBody(BaseModel):
@@ -1919,7 +1920,18 @@ def _recent_reco_counts(account_id: int, date_key: str, lookback: int = 4) -> di
     return {str(r["meal_key"]): int(r["n"]) for r in rows}
 
 
-def _target_kcal_share(slot: str) -> float:
+def _target_kcal_share(slot: str, on_glp1: bool = False) -> float:
+    if on_glp1:
+        # Smaller, more even meals across the day (GLP-1 users typically eat
+        # less per sitting due to appetite suppression) -- flatter split with
+        # a bigger snack share instead of two dominant main meals.
+        if slot == "breakfast":
+            return 0.22
+        if slot == "lunch":
+            return 0.28
+        if slot == "dinner":
+            return 0.24
+        return 0.26
     if slot == "breakfast":
         return 0.25
     if slot == "lunch":
@@ -2437,7 +2449,7 @@ def foods_recommend(body: RecommendBody, request: Request):
     training = (body.training or "").strip().lower()
     # If targets are present, align slot budget to a realistic day share.
     if body.targets is not None:
-        share = _target_kcal_share(slot)
+        share = _target_kcal_share(slot, on_glp1=bool(body.profile.on_glp1) if body.profile else False)
         rem["kcal"] = min(rem["kcal"], max(120.0, body.targets.kcal * share))
         rem["protein_g"] = min(rem["protein_g"], max(8.0, body.targets.protein_g * share))
         rem["carbs_g"] = min(rem["carbs_g"], max(10.0, body.targets.carbs_g * share))

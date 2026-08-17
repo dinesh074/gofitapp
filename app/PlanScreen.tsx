@@ -54,6 +54,7 @@ export default function PlanScreen() {
     goal_kind: profile.goalKind,
     diet: profile.diet,
     goal: profile.goal,
+    on_glp1: profile.onGlp1,
   };
 
   const biggestGap = useMemo(() => {
