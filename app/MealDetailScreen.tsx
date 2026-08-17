@@ -146,17 +146,37 @@ export default function MealDetailScreen() {
           <Text style={styles.sectionHead}>Logged items</Text>
           {meal.foodItems && meal.foodItems.length > 0 ? (
             <View style={styles.itemsList}>
-              {meal.foodItems.map((it, i) => (
-                <View key={`${it.key || it.item}-${i}`} style={[styles.itemRow, i > 0 && styles.itemDivider]}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.itemName}>{it.item}</Text>
-                    <Text style={styles.itemMeta}>
-                      ×{it.count} {it.unit} · {Math.round(it.kcal_total)} kcal · P {Math.round(it.protein_g)}g · C{" "}
-                      {Math.round(it.carbs_g)}g · F {Math.round(it.fat_g)}g
-                    </Text>
+              {meal.foodItems.map((it, i) => {
+                // A verified match against our food database (source === "db")
+                // has lab-referenced nutrition; anything else (AI-parsed item
+                // with no DB match, or micros_source === "ai_estimated") is the
+                // model's best-guess estimate and must be labeled as such --
+                // never presented as if it were verified data.
+                const isVerified = it.source === "db" && it.micros_source !== "ai_estimated";
+                return (
+                  <View key={`${it.key || it.item}-${i}`} style={[styles.itemRow, i > 0 && styles.itemDivider]}>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.itemNameRow}>
+                        <Text style={styles.itemName}>{it.item}</Text>
+                        <View style={isVerified ? styles.verifiedBadge : styles.estBadgeSmall}>
+                          <Icon
+                            name={isVerified ? "check" : "info"}
+                            size={10}
+                            color={isVerified ? colors.green : colors.gold}
+                          />
+                          <Text style={isVerified ? styles.verifiedBadgeText : styles.estBadgeText}>
+                            {isVerified ? "Verified" : "Estimated"}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.itemMeta}>
+                        ×{it.count} {it.unit} · {Math.round(it.kcal_total)} kcal · P {Math.round(it.protein_g)}g · C{" "}
+                        {Math.round(it.carbs_g)}g · F {Math.round(it.fat_g)}g
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           ) : (
             <Text style={styles.microEmpty}>This meal was logged without item-level breakdown.</Text>
@@ -174,8 +194,8 @@ export default function MealDetailScreen() {
           </View>
           {meal.micros && Object.keys(meal.micros).length > 0 && meal.microsEstimated && (
             <Text style={styles.estNote}>
-              This dish wasn't matched to our verified food database, so these values are the AI's
-              best-guess nutrition estimate, not lab-measured data.
+              These values are the AI's own nutrition estimate for this dish (from the photo/description),
+              not lab-measured data.
             </Text>
           )}
           {meal.micros && Object.keys(meal.micros).length > 0 ? (
@@ -262,6 +282,26 @@ const styles = StyleSheet.create({
   itemRow: { paddingVertical: 8 },
   itemDivider: { borderTopWidth: 1, borderTopColor: colors.hairline },
   itemName: { fontSize: 13.5, color: colors.ink, fontWeight: "800" },
+  itemNameRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#DCFCE7",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  verifiedBadgeText: { fontSize: 10, fontWeight: "800", color: colors.green },
+  estBadgeSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#FEF3C7",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
   itemMeta: { fontSize: 12, color: colors.mute, fontWeight: "600", marginTop: 2, lineHeight: 16 },
 
   microCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 14, ...elevation.sm },

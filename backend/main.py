@@ -842,37 +842,54 @@ def match_food(name: str):
 
 
 def anchor_items(data: dict) -> dict:
-    """Override per-unit calories AND macros with DB values when matched, then
-    compute per-item and meal-level totals.
-
-    v2: also carries through the extended DB fields where present --
-    micronutrients (fiber/sugar/sodium/potassium/calcium/iron) scale with
-    count just like the macros; health_score/benefits/watch_outs describe the
-    food itself and are copied as-is (a "high in sodium" tag doesn't change
-    because you ate two servings, so these are not multiplied by count).
-
-    v3: unmatched items (source="ai") now also carry a micronutrient panel --
-    the model's own per-unit ESTIMATE (see PROMPT's micros_estimate field),
-    clamped to sane per-serving bounds so a hallucinated number can't blow up
-    a day's micro totals. Tagged micros_source="ai_estimated" so the client
-    can honestly label it differently from a verified DB match
-    (micros_source="db") -- see micros.ts / MealDetailScreen.tsx. Every
-    unmatched item is also logged to food_review.record_unmatched() so real
-    scan volume (not guesswork) drives what gets curated into the verified
-    DB next."""
+    """Match each scanned item against the food DB for identification/naming
+    only -- nutrition numbers (calories, macros, micronutrients) always come
+    from the AI's own per-item estimate, never overridden by DB values. Per
+    the user's explicit direction: "everything from the AI instead of the
+    database, other than [using the database for] the search of the dish."
+    The DB is still used to: resolve a curated display name (e.g. "Cooked
+    rice" instead of a vision model's "steamed rice" guess), and attach
+    descriptive tags that don't vary by nutrition estimate (health_score,
+    benefits, watch_outs, jain/sattvic status). It is NOT used to replace the
+    AI's calorie/macro/micro numbers -- those are always the model's estimate,
+    tagged source="ai"/micros_source="ai_estimated" regardless of whether a DB
+    match was found, so downstream UI (MealDetailScreen's Verified/Estimated
+    per-item badge) reflects this honestly. DB-lookup-based flows that are NOT
+    photo/text scans (manual food search, barcode lookup, "add from template")
+    are untouched by this function and continue to use verified DB nutrition
+    values as before, since those are direct catalog selections, not
+    AI-estimated photo/text analysis.
+    """
     macros = ("protein_g", "carbs_g", "fat_g")
     micro_fields = ("fiber_g", "sugar_g", "sodium_mg", "potassium_mg", "calcium_mg", "iron_mg")
-    # Per-unit sanity ceiling for an AI-estimated micro value -- guards against
-    # a hallucinated number (e.g. "5000mg sodium in one idli") dominating a
-    # day's totals. DB-matched values are real lab/govt data and are NOT
-    # clamped (see the `food` branch below).
+    # Per-unit sanity ceiling for the AI-estimated micro value -- guards
+    # against a hallucinated number (e.g. "5000mg sodium in one idli")
+    # dominating a day's totals. Applied to every item now, matched or not,
+    # since every item's micros are AI-estimated.
     _EST_CAPS = {
         "fiber_g": 25, "iron_mg": 20, "calcium_mg": 800,
         "potassium_mg": 2000, "vitamin_c_mg": 300, "sodium_mg": 3000, "sugar_g": 100,
     }
     for it in data.get("items", []):
         food = match_food(it.get("item", ""))
+        # Always start from the AI's own per-unit numbers -- never overridden
+        # by the DB match below, even when one is found.
+        for m in macros:
+            it[m + "_per_unit"] = it.get(m, 0)
+        it["source"] = "ai"
+        est = it.get("micros_estimate")
+        if isinstance(est, dict):
+            clamped = {}
+            for k, cap in _EST_CAPS.items():
+                v = est.get(k)
+                if isinstance(v, (int, float)) and v >= 0:
+                    clamped[k] = min(float(v), cap)
+            if clamped:
+                it["micros_per_unit"] = clamped
+                it["micros_source"] = "ai_estimated"
         if food:
+            # Identification/search match only -- naming + descriptive tags,
+            # NOT nutrition numbers (see docstring above).
             if food.get("key"):
                 it["key"] = food["key"]
             # Only override the displayed name when the DB has an explicit
@@ -886,15 +903,7 @@ def anchor_items(data: dict) -> dict:
             # renaming those would lose detail, not add clarity.
             if food.get("name"):
                 it["item"] = food["name"]
-            it["kcal_per_unit"] = food["kcal_per_unit"]
-            for m in macros:
-                it[m + "_per_unit"] = food.get(m, 0)
-            for m in micro_fields:
-                if m in food:
-                    it[m + "_per_unit"] = food[m]
-            it["unit"] = food.get("unit", it.get("unit", "piece"))
-            it["source"] = "db"
-            # Descriptive, not scaled by count -- see docstring.
+            # Descriptive, not a nutrition number -- see docstring.
             if "health_score" in food:
                 it["health_score"] = food["health_score"]
             if food.get("benefits"):
@@ -905,25 +914,7 @@ def anchor_items(data: dict) -> dict:
                 it["jain_status"] = food["jain_status"]
             if food.get("sattvic_status"):
                 it["sattvic_status"] = food["sattvic_status"]
-            # Full vitamin/mineral panel ("all the minute details"), per-unit.
-            if food.get("micros"):
-                it["micros_per_unit"] = food["micros"]
-                it["micros_source"] = "db"
         else:
-            # fall back to the model's own per-unit macro estimates
-            for m in macros:
-                it[m + "_per_unit"] = it.get(m, 0)
-            it["source"] = "ai"
-            est = it.get("micros_estimate")
-            if isinstance(est, dict):
-                clamped = {}
-                for k, cap in _EST_CAPS.items():
-                    v = est.get(k)
-                    if isinstance(v, (int, float)) and v >= 0:
-                        clamped[k] = min(float(v), cap)
-                if clamped:
-                    it["micros_per_unit"] = clamped
-                    it["micros_source"] = "ai_estimated"
             food_review.record_unmatched(it.get("item", ""), it)
         scaled = nutrition_engine.scale_per_unit_item(it, it.get("count", 1))
         it.clear()
