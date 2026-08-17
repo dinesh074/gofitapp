@@ -401,6 +401,13 @@ export default function HomeScreen({ profile, goal, logs, setLogs, streak, accou
     diet: profile.diet,
     goal: profile.goal,
     on_glp1: profile.onGlp1,
+    avoid_foods: profile.avoidFoods || [],
+    budget_pref: profile.budgetPref || "",
+    // /plan/today's profile dict is read with camelCase keys (avoidFoods/
+    // budgetPref) while /foods/recommend's RecommendProfile model uses
+    // snake_case -- send both since this object is shared by both callers.
+    avoidFoods: profile.avoidFoods || [],
+    budgetPref: profile.budgetPref || "",
   };
   const biggestGap = useMemo(() => {
     const rows = [

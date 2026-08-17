@@ -362,6 +362,8 @@ def _build_slot(
     used: dict,
     used_family: dict,
     rng: random.Random,
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> dict:
     """Greedily fill one slot toward its share of the day's budget, re-ranking
     the food DB against the SHRINKING remaining budget after each pick. Because
@@ -381,7 +383,14 @@ def _build_slot(
     }
     if _pick_meal_for_slot is not None:
         try:
-            built = _pick_meal_for_slot(budget, diet, goal, slot_key, training_context, MAX_ITEMS_PER_SLOT) or []
+            try:
+                built = _pick_meal_for_slot(
+                    budget, diet, goal, slot_key, training_context, MAX_ITEMS_PER_SLOT,
+                    avoid_foods=avoid_foods, budget_pref=budget_pref,
+                ) or []
+            except TypeError:
+                # Older call signatures don't know about avoid_foods/budget_pref.
+                built = _pick_meal_for_slot(budget, diet, goal, slot_key, training_context, MAX_ITEMS_PER_SLOT) or []
             if built:
                 used_local: list[dict] = []
                 for it in built:
@@ -422,9 +431,15 @@ def _build_slot(
         # Backward-compatible call shape: newer pickers can use slot/training/role
         # context; older ones still receive the 4-arg signature.
         try:
-            foods = _pick_for_slot(rem, diet, goal, pool, slot_key, training_context, role_hint) or []
+            foods = _pick_for_slot(
+                rem, diet, goal, pool, slot_key, training_context, role_hint,
+                avoid_foods=avoid_foods, budget_pref=budget_pref,
+            ) or []
         except TypeError:
-            foods = _pick_for_slot(rem, diet, goal, pool) or []
+            try:
+                foods = _pick_for_slot(rem, diet, goal, pool, slot_key, training_context, role_hint) or []
+            except TypeError:
+                foods = _pick_for_slot(rem, diet, goal, pool) or []
         # Candidates that aren't already used up for the day (by exact dish OR by
         # ingredient family), aren't already in THIS slot, and (once the slot has
         # something) wouldn't blow the fat budget even at the minimum portion --
@@ -492,19 +507,34 @@ def build_plan(
     training_context: str = "",
     account_id: Optional[int] = None,
     rng: Optional[random.Random] = None,
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> dict:
     rng = rng or random.Random()
     slots = []
     if _build_day_plan is not None:
         try:
-            shared_slots = _build_day_plan(
-                account_id=account_id,
-                date_key=date_key,
-                targets=targets,
-                diet=diet,
-                goal=goal,
-                training_context=training_context,
-            )
+            try:
+                shared_slots = _build_day_plan(
+                    account_id=account_id,
+                    date_key=date_key,
+                    targets=targets,
+                    diet=diet,
+                    goal=goal,
+                    training_context=training_context,
+                    avoid_foods=avoid_foods,
+                    budget_pref=budget_pref,
+                )
+            except TypeError:
+                # Older shared-planner signature doesn't know about these prefs.
+                shared_slots = _build_day_plan(
+                    account_id=account_id,
+                    date_key=date_key,
+                    targets=targets,
+                    diet=diet,
+                    goal=goal,
+                    training_context=training_context,
+                )
             if isinstance(shared_slots, list) and shared_slots:
                 slots = shared_slots
         except Exception as ex:
@@ -513,7 +543,7 @@ def build_plan(
         used: dict = {}
         used_family: dict = {}
         slots = [
-            _build_slot(k, l, f, ag, targets, diet, goal, training_context, used, used_family, rng)
+            _build_slot(k, l, f, ag, targets, diet, goal, training_context, used, used_family, rng, avoid_foods, budget_pref)
             for k, l, f, ag in SLOTS
         ]
     totals = _sum_items([it for s in slots for it in s["items"]])
@@ -763,6 +793,9 @@ def plan_today(body: PlanBody, request: Request):
         raise HTTPException(status_code=422, detail="a positive calorie target is required")
     diet = (body.diet or "veg").strip().lower()
     goal = (body.goal or "maintain").strip().lower()
+    profile = body.profile or {}
+    avoid_foods = [str(a).strip() for a in (profile.get("avoidFoods") or []) if str(a).strip()]
+    budget_pref = str(profile.get("budgetPref") or "").strip().lower()
     sig = _signature(targets, diet, goal)
     if body.ai_mode:
         sig = f"{sig}|ai"
@@ -830,6 +863,8 @@ def plan_today(body: PlanBody, request: Request):
             training_context=((body.training or "").strip().lower()),
             account_id=acct["id"],
             rng=random.Random(seed + i),
+            avoid_foods=avoid_foods,
+            budget_pref=budget_pref,
         )
         ok, reason = _validate_plan(cand, targets)
         score = _plan_quality_score(cand, targets)
@@ -848,5 +883,7 @@ def plan_today(body: PlanBody, request: Request):
         date_key,
         training_context=((body.training or "").strip().lower()),
         account_id=acct["id"],
+        avoid_foods=avoid_foods,
+        budget_pref=budget_pref,
     )
     return _respond(plan, False)

@@ -88,10 +88,17 @@ const WEEKDAYS: { key: number; label: string }[] = [
   { key: 7, label: "Sat" },
 ];
 
+const BUDGET_PREFS: { key: "budget" | "moderate" | "premium"; label: string }[] = [
+  { key: "budget", label: "Budget" },
+  { key: "moderate", label: "Moderate" },
+  { key: "premium", label: "Premium" },
+];
+
 export default function Settings({ profile, onSave, onClose, onResetAll }: Props) {
   const [d, setD] = useState<Profile>({ ...normalizeProfile(profile)! });
   const [confirmReset, setConfirmReset] = useState(false);
   const [reminders, setReminders] = useState(true);
+  const [avoidFoodsText, setAvoidFoodsText] = useState((profile.avoidFoods || []).join(", "));
   // Set once the user changes any field, so an in-flight server refresh (below)
   // can't clobber edits already in progress.
   const edited = useRef(false);
@@ -119,7 +126,10 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
     let cancelled = false;
     getProfile()
       .then(({ profile: sp }) => {
-        if (!cancelled && !edited.current && isCompleteProfile(sp)) setD({ ...normalizeProfile(sp)! });
+        if (!cancelled && !edited.current && isCompleteProfile(sp)) {
+          setD({ ...normalizeProfile(sp)! });
+          setAvoidFoodsText((sp.avoidFoods || []).join(", "));
+        }
       })
       .catch(() => {});
     return () => {
@@ -152,7 +162,8 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
   }
 
   function save() {
-    onSave(normalizeProfile({ ...d })!);
+    const avoidFoods = avoidFoodsText.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 20);
+    onSave(normalizeProfile({ ...d, avoidFoods })!);
     scheduleGlp1DoseReminder(d.onGlp1 ? d.glp1DoseWeekday : undefined).catch(() => {});
   }
 
@@ -305,6 +316,48 @@ export default function Settings({ profile, onSave, onClose, onResetAll }: Props
               />
             ))}
           </View>
+        </Field>
+
+        {/* Budget preference -- soft cost-tier nudge in plan/recommendation
+            ranking, never a hard filter. See backend _food_cost_tier. */}
+        <Field label="Grocery budget">
+          <View style={styles.wrap}>
+            {BUDGET_PREFS.map((o) => (
+              <Chip
+                key={o.key}
+                label={o.label}
+                selected={(d.budgetPref || "moderate") === o.key}
+                onPress={() => update({ budgetPref: o.key })}
+              />
+            ))}
+          </View>
+          <Text style={styles.hintText}>
+            Nudges suggestions toward simpler, everyday ingredients (Budget) or richer ones (Premium) --
+            never blocks a food outright.
+          </Text>
+        </Field>
+
+        {/* Avoid list -- hard-excludes matching dishes from Next Best Move and
+            Today Plan (unlike budgetPref, this IS a filter). */}
+        <Field label="Foods to avoid">
+          <TextInput
+            style={styles.nameInput}
+            value={avoidFoodsText}
+            placeholder="e.g. mushroom, paneer, karela (comma separated)"
+            placeholderTextColor={MUTE}
+            maxLength={200}
+            onChangeText={setAvoidFoodsText}
+            onBlur={() =>
+              update({
+                avoidFoods: avoidFoodsText
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .slice(0, 20),
+              })
+            }
+          />
+          <Text style={styles.hintText}>Dishes/ingredients we'll never suggest -- separate with commas.</Text>
         </Field>
 
         {/* GLP-1 medication toggle -- targets safety signal only, never medical

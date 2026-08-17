@@ -1453,6 +1453,13 @@ def _recommend_components(food: dict, rem: dict, goal: dict) -> dict:
     if isinstance(hs, (int, float)):
         hs_term = (hs - 50) * 0.03
         score += hs_term
+    # Soft budget-preference nudge (see _food_cost_tier) -- unset/"moderate"
+    # applies no bias either way.
+    budget_pref = str(goal.get("budget_pref") or "").strip().lower()
+    if budget_pref in ("budget", "premium"):
+        tier = _food_cost_tier(food.get("name") or food.get("key", ""))
+        direction = -1 if budget_pref == "budget" else 1
+        score += direction * tier * 0.5
     return {
         "score": score,
         "protein_fill": protein_fill,
@@ -1471,10 +1478,13 @@ def _rank_foods_detailed(rem: dict, goal: dict, diet: str, limit: int) -> dict:
     remKcal = rem["kcal"]
     ceiling = max(remKcal * 1.2, 150)
     source = FOOD_DB
+    avoid = {str(a).strip().lower() for a in (goal.get("avoid_foods") or []) if str(a).strip()}
     after_diet = []
     scored = []
     for food in source:
         if not _food_diet_ok(food, diet):
+            continue
+        if avoid and _food_matches_avoid(food, avoid):
             continue
         after_diet.append(food)
         kcal = food.get("kcal_per_unit", 0) or 0
@@ -1782,6 +1792,8 @@ class RecommendProfile(BaseModel):
     diet: str = ""
     goal: str = ""
     on_glp1: bool = False
+    avoid_foods: list[str] = Field(default_factory=list)
+    budget_pref: str = ""
 
 
 class RecommendBody(BaseModel):
@@ -2006,6 +2018,57 @@ def _recent_gentle_signal(account_id: int, date_key: str) -> bool:
         return False
 
 
+# --- Personalization: budget preference + explicit avoid list ---------------- #
+# Same philosophy as the GLP-1 gentle-food nudge above: a soft, name-keyword
+# heuristic (no DB schema/tagging pass across 839+ dishes needed) rather than
+# a hard, brittle cost model. Only kicks in when the user has actually set a
+# preference; "moderate"/unset means no bias either way.
+_PREMIUM_FOOD_WORDS = {
+    "paneer", "cashew", "cashews", "almond", "almonds", "pistachio", "mutton",
+    "lamb", "prawns", "prawn", "shrimp", "fish", "salmon", "cheese", "butter",
+    "makhani", "malai", "saffron", "kesar", "dry fruits", "dryfruit", "nuts",
+    "exotic", "imported", "avocado", "quinoa", "chia", "walnuts", "pine nuts",
+    "duck", "lobster", "crab", "steak",
+}
+_BUDGET_FOOD_WORDS = {
+    "dal", "chana", "rajma", "rice", "roti", "chapati", "poha", "upma",
+    "khichdi", "banana", "potato", "aloo", "sprouts", "buttermilk", "chaas",
+    "moong", "toor", "peanut", "groundnut", "jowar", "bajra", "ragi", "besan",
+    "curd", "egg", "onion", "cabbage", "carrot", "spinach", "palak",
+}
+
+
+def _food_cost_tier(name: str) -> int:
+    """Returns +1 (premium-leaning ingredients), -1 (budget-friendly staples),
+    or 0 (neutral/unknown) based on a simple keyword match against the dish
+    name. Deliberately conservative -- most dishes are neutral."""
+    n = (name or "").lower()
+    if any(w in n for w in _PREMIUM_FOOD_WORDS):
+        return 1
+    if any(w in n for w in _BUDGET_FOOD_WORDS):
+        return -1
+    return 0
+
+
+def _food_matches_avoid(food: dict, avoid: set) -> bool:
+    """True if this food's name/aliases match ANY of the user's explicitly
+    avoided foods (substring match, case-insensitive, either direction so
+    'paneer' avoids 'paneer tikka' and 'paneer tikka' avoids a food literally
+    named 'paneer')."""
+    if not avoid:
+        return False
+    name = (food.get("name") or food.get("key", "")).strip().lower()
+    aliases = [str(a).strip().lower() for a in (food.get("aliases") or [])]
+    candidates = [name] + aliases
+    for a in avoid:
+        for c in candidates:
+            if not c:
+                continue
+            if a in c or c in a:
+                return True
+    return False
+
+
 _PREP_WORDS = {
     "curry", "masala", "gravy", "dry", "fry", "fried", "sabzi", "sabji", "bhaji",
     "tadka", "tikka", "roasted", "grilled", "steamed", "boiled", "spicy", "hot",
@@ -2147,8 +2210,15 @@ def _build_next_move_candidates(
     training: str,
     limit: int,
     gentle_mode: bool = False,
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> list[dict]:
-    goal = {"goal": goal_name, "protein_g": rem.get("protein_g", 0) * 3}
+    goal = {
+        "goal": goal_name,
+        "protein_g": rem.get("protein_g", 0) * 3,
+        "avoid_foods": avoid_foods or [],
+        "budget_pref": budget_pref,
+    }
     rank_debug = _rank_foods_detailed(rem, goal, diet, max(30, limit * 10))
     primaries = [_food_suggestion(f) for f in rank_debug["foods"]]
     if not primaries:
@@ -2381,6 +2451,8 @@ def _build_shared_day_plan(
     diet: str,
     goal: str,
     training_context: str,
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> list[dict]:
     """Shared engine for full-day planning used by /plan/today and next-move stack."""
     acct = int(account_id or 0)
@@ -2398,6 +2470,8 @@ def _build_shared_day_plan(
             goal_name=goal,
             training=training_context,
             limit=5,
+            avoid_foods=avoid_foods,
+            budget_pref=budget_pref,
         )
         if not cands:
             log.info("shared_plan: slot=%s no candidates", slot)
@@ -2516,6 +2590,10 @@ def foods_recommend(body: RecommendBody, request: Request):
     # protein target isn't sent; derive a proxy so the protein-priority switch
     # still works: if a real gap exists, treat protein as a priority.
     goal["protein_g"] = rem["protein_g"] * 3 if rem["protein_g"] > 0 else 0
+    avoid_foods = list(body.profile.avoid_foods) if body.profile else []
+    budget_pref = (body.profile.budget_pref or "").strip().lower() if body.profile else ""
+    goal["avoid_foods"] = avoid_foods
+    goal["budget_pref"] = budget_pref
     diet = (body.diet or "veg").strip().lower()
     limit = max(1, min(24, body.limit))
     date_key = (body.date or "").strip()[:10] or time.strftime("%Y-%m-%d")
@@ -2579,6 +2657,8 @@ def foods_recommend(body: RecommendBody, request: Request):
         training=training,
         limit=max(3, min(10, limit)),
         gentle_mode=gentle_mode,
+        avoid_foods=avoid_foods,
+        budget_pref=budget_pref,
     )
     if meals:
         primary = meals[0]
@@ -3211,12 +3291,19 @@ def _plan_pick_for_slot(
     slot: str = "",
     training: str = "",
     role_hint: str = "",
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> list:
     """Top real DB foods that fit a single slot's calorie/macro budget, already
     diet-filtered and in the client-friendly _food_suggestion shape. Reuses the
     exact ranking the /foods/recommend endpoint uses so the plan and the (later)
     recommender stay consistent."""
-    goal = {"goal": goal_str, "protein_g": budget.get("protein_g", 0) * 3}
+    goal = {
+        "goal": goal_str,
+        "protein_g": budget.get("protein_g", 0) * 3,
+        "avoid_foods": avoid_foods or [],
+        "budget_pref": budget_pref,
+    }
     pool = max(limit * 3, 24)
     top = _rank_foods(budget, goal, diet, pool)
     if not top:
@@ -3343,13 +3430,23 @@ def _plan_pick_meal_for_slot(
     slot: str,
     training: str,
     limit: int = 3,
+    avoid_foods: Optional[list] = None,
+    budget_pref: str = "",
 ) -> list[dict]:
     """Build a culturally-valid meal first, then tune portions toward slot macros.
 
     Debug logging reports template pick, candidate rejects, and final selection.
     """
-    goal = {"goal": goal_str, "protein_g": budget.get("protein_g", 0) * 3}
-    ranked = _plan_pick_for_slot(budget, diet, goal_str, max(36, limit * 10), slot, training, "staple")
+    goal = {
+        "goal": goal_str,
+        "protein_g": budget.get("protein_g", 0) * 3,
+        "avoid_foods": avoid_foods or [],
+        "budget_pref": budget_pref,
+    }
+    ranked = _plan_pick_for_slot(
+        budget, diet, goal_str, max(36, limit * 10), slot, training, "staple",
+        avoid_foods=avoid_foods, budget_pref=budget_pref,
+    )
     if not ranked:
         log.info("plan.combo slot=%s no ranked foods", slot)
         return []

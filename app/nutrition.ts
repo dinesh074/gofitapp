@@ -54,6 +54,13 @@ export type Profile = {
   // expo-notifications' WEEKLY trigger weekday convention). Undefined/0 means
   // no weekly reminder is scheduled -- only relevant when onGlp1 is true.
   glp1DoseWeekday?: number;
+  // Meal-planning personalization: dishes/ingredients to hard-exclude from
+  // Next Best Move + Today Plan (e.g. "mushroom", "paneer"). Simple
+  // name-keyword match against the food DB -- see backend _food_matches_avoid.
+  avoidFoods?: string[];
+  // Soft cost-tier nudge for plan/recommendation ranking. "moderate"/absent
+  // applies no bias. See backend _food_cost_tier.
+  budgetPref?: "budget" | "moderate" | "premium";
   createdAt: number;
   updatedAt?: number;
 };
@@ -235,6 +242,12 @@ export function normalizeProfile(p: Profile | null | undefined): Profile | null 
     goalKind,
     onGlp1: !!(p as any).onGlp1,
     glp1DoseWeekday: (p as any).glp1DoseWeekday || undefined,
+    avoidFoods: Array.isArray((p as any).avoidFoods)
+      ? (p as any).avoidFoods.map((s: any) => String(s).trim()).filter(Boolean).slice(0, 20)
+      : undefined,
+    budgetPref: (["budget", "moderate", "premium"].includes((p as any).budgetPref)
+      ? (p as any).budgetPref
+      : undefined),
   };
 }
 

@@ -682,6 +682,14 @@ export type PlannerProfileContext = {
   diet?: string;
   goal?: string;
   on_glp1?: boolean;
+  avoid_foods?: string[];
+  budget_pref?: string;
+  // /plan/today reads these two camelCase keys from the free-form profile
+  // dict (see backend/plan.py plan_today()); snake_case above is for
+  // /foods/recommend's typed RecommendProfile model. Both are sent so this
+  // one context object works for either endpoint.
+  avoidFoods?: string[];
+  budgetPref?: string;
 };
 
 export async function fetchTodayPlan(input: {
