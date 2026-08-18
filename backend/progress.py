@@ -943,14 +943,21 @@ def add_log(body: MealBody, request: Request):
         new_id = cur.lastrowid
         _refresh_daily_summary(c, acct["id"], body.date)
         _touch_log_day(c, acct["id"], body.date)
-    if body.food_items:
+    # Mirror into the canonical food graph -- always, even without an itemized
+    # breakdown (e.g. a quick manual dish/kcal entry), so gofit_food_logs
+    # never silently drifts out of sync with meal_logs (the source of truth).
+    # Best-effort: a food_graph hiccup must never fail the primary log save,
+    # which has already succeeded by this point.
+    try:
         food_graph.record_food_log(
             acct["id"],
             body.date,
             body.dish,
             legacy_meal_log_id=new_id,
-            items=body.food_items,
+            items=body.food_items or None,
         )
+    except Exception:
+        log.exception("food_graph.record_food_log failed for meal_log %s", new_id)
     return {"ok": True, "id": new_id, "at": at, "mealType": meal_type}
 
 
