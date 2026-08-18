@@ -5807,7 +5807,7 @@ GF-ING-00526,calcium_mg,0.0579,per_100g,SRC-IFCT2017,S010,source
 GF-ING-00526,iron_mg,0.00084,per_100g,SRC-IFCT2017,S010,source
 GF-ING-00526,zinc_mg,0.00102,per_100g,SRC-IFCT2017,S010,source
 GF-ING-00526,cholesterol_mg,0.07887,per_100g,SRC-IFCT2017,S010,source
-GF-ING-00527,energy_kcal,0.0,per_100g,SRC-IFCT2017,T001,source
+GF-ING-00527,energy_kcal,900.0,per_100g,SRC-IFCT2017,T001,corrected_from_macros
 GF-ING-00527,protein_g,0.0,per_100g,SRC-IFCT2017,T001,source
 GF-ING-00527,carb_g,0.0,per_100g,SRC-IFCT2017,T001,source
 GF-ING-00527,fat_g,100.0,per_100g,SRC-IFCT2017,T001,source
@@ -5818,7 +5818,7 @@ GF-ING-00527,calcium_mg,0.0,per_100g,SRC-IFCT2017,T001,source
 GF-ING-00527,iron_mg,0.0,per_100g,SRC-IFCT2017,T001,source
 GF-ING-00527,zinc_mg,0.0,per_100g,SRC-IFCT2017,T001,source
 GF-ING-00527,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T001,source
-GF-ING-00528,energy_kcal,0.0,per_100g,SRC-IFCT2017,T002,source
+GF-ING-00528,energy_kcal,900.09,per_100g,SRC-IFCT2017,T002,corrected_from_macros
 GF-ING-00528,protein_g,0.0,per_100g,SRC-IFCT2017,T002,source
 GF-ING-00528,carb_g,0.0,per_100g,SRC-IFCT2017,T002,source
 GF-ING-00528,fat_g,100.01,per_100g,SRC-IFCT2017,T002,source
@@ -5829,7 +5829,7 @@ GF-ING-00528,calcium_mg,0.0,per_100g,SRC-IFCT2017,T002,source
 GF-ING-00528,iron_mg,0.0,per_100g,SRC-IFCT2017,T002,source
 GF-ING-00528,zinc_mg,0.0,per_100g,SRC-IFCT2017,T002,source
 GF-ING-00528,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T002,source
-GF-ING-00529,energy_kcal,0.0,per_100g,SRC-IFCT2017,T003,source
+GF-ING-00529,energy_kcal,899.91,per_100g,SRC-IFCT2017,T003,corrected_from_macros
 GF-ING-00529,protein_g,0.0,per_100g,SRC-IFCT2017,T003,source
 GF-ING-00529,carb_g,0.0,per_100g,SRC-IFCT2017,T003,source
 GF-ING-00529,fat_g,99.99,per_100g,SRC-IFCT2017,T003,source
@@ -5840,7 +5840,7 @@ GF-ING-00529,calcium_mg,0.0,per_100g,SRC-IFCT2017,T003,source
 GF-ING-00529,iron_mg,0.0,per_100g,SRC-IFCT2017,T003,source
 GF-ING-00529,zinc_mg,0.0,per_100g,SRC-IFCT2017,T003,source
 GF-ING-00529,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T003,source
-GF-ING-00530,energy_kcal,0.0,per_100g,SRC-IFCT2017,T004,source
+GF-ING-00530,energy_kcal,900.0,per_100g,SRC-IFCT2017,T004,corrected_from_macros
 GF-ING-00530,protein_g,0.0,per_100g,SRC-IFCT2017,T004,source
 GF-ING-00530,carb_g,0.0,per_100g,SRC-IFCT2017,T004,source
 GF-ING-00530,fat_g,100.0,per_100g,SRC-IFCT2017,T004,source
@@ -5851,7 +5851,7 @@ GF-ING-00530,calcium_mg,0.0,per_100g,SRC-IFCT2017,T004,source
 GF-ING-00530,iron_mg,0.0,per_100g,SRC-IFCT2017,T004,source
 GF-ING-00530,zinc_mg,0.0,per_100g,SRC-IFCT2017,T004,source
 GF-ING-00530,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T004,source
-GF-ING-00531,energy_kcal,0.0,per_100g,SRC-IFCT2017,T005,source
+GF-ING-00531,energy_kcal,900.0,per_100g,SRC-IFCT2017,T005,corrected_from_macros
 GF-ING-00531,protein_g,0.0,per_100g,SRC-IFCT2017,T005,source
 GF-ING-00531,carb_g,0.0,per_100g,SRC-IFCT2017,T005,source
 GF-ING-00531,fat_g,100.0,per_100g,SRC-IFCT2017,T005,source
@@ -5862,7 +5862,7 @@ GF-ING-00531,calcium_mg,0.0,per_100g,SRC-IFCT2017,T005,source
 GF-ING-00531,iron_mg,0.0,per_100g,SRC-IFCT2017,T005,source
 GF-ING-00531,zinc_mg,0.0,per_100g,SRC-IFCT2017,T005,source
 GF-ING-00531,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T005,source
-GF-ING-00532,energy_kcal,0.0,per_100g,SRC-IFCT2017,T006,source
+GF-ING-00532,energy_kcal,900.0,per_100g,SRC-IFCT2017,T006,corrected_from_macros
 GF-ING-00532,protein_g,0.0,per_100g,SRC-IFCT2017,T006,source
 GF-ING-00532,carb_g,0.0,per_100g,SRC-IFCT2017,T006,source
 GF-ING-00532,fat_g,100.0,per_100g,SRC-IFCT2017,T006,source
@@ -5873,7 +5873,7 @@ GF-ING-00532,calcium_mg,0.0,per_100g,SRC-IFCT2017,T006,source
 GF-ING-00532,iron_mg,0.0,per_100g,SRC-IFCT2017,T006,source
 GF-ING-00532,zinc_mg,0.0,per_100g,SRC-IFCT2017,T006,source
 GF-ING-00532,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T006,source
-GF-ING-00533,energy_kcal,0.0,per_100g,SRC-IFCT2017,T007,source
+GF-ING-00533,energy_kcal,900.0,per_100g,SRC-IFCT2017,T007,corrected_from_macros
 GF-ING-00533,protein_g,0.0,per_100g,SRC-IFCT2017,T007,source
 GF-ING-00533,carb_g,0.0,per_100g,SRC-IFCT2017,T007,source
 GF-ING-00533,fat_g,100.0,per_100g,SRC-IFCT2017,T007,source
@@ -5884,7 +5884,7 @@ GF-ING-00533,calcium_mg,0.0,per_100g,SRC-IFCT2017,T007,source
 GF-ING-00533,iron_mg,0.0,per_100g,SRC-IFCT2017,T007,source
 GF-ING-00533,zinc_mg,0.0,per_100g,SRC-IFCT2017,T007,source
 GF-ING-00533,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T007,source
-GF-ING-00534,energy_kcal,0.0,per_100g,SRC-IFCT2017,T008,source
+GF-ING-00534,energy_kcal,900.0,per_100g,SRC-IFCT2017,T008,corrected_from_macros
 GF-ING-00534,protein_g,0.0,per_100g,SRC-IFCT2017,T008,source
 GF-ING-00534,carb_g,0.0,per_100g,SRC-IFCT2017,T008,source
 GF-ING-00534,fat_g,100.0,per_100g,SRC-IFCT2017,T008,source
@@ -5895,7 +5895,7 @@ GF-ING-00534,calcium_mg,0.0,per_100g,SRC-IFCT2017,T008,source
 GF-ING-00534,iron_mg,0.0,per_100g,SRC-IFCT2017,T008,source
 GF-ING-00534,zinc_mg,0.0,per_100g,SRC-IFCT2017,T008,source
 GF-ING-00534,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T008,source
-GF-ING-00535,energy_kcal,0.0,per_100g,SRC-IFCT2017,T009,source
+GF-ING-00535,energy_kcal,900.09,per_100g,SRC-IFCT2017,T009,corrected_from_macros
 GF-ING-00535,protein_g,0.0,per_100g,SRC-IFCT2017,T009,source
 GF-ING-00535,carb_g,0.0,per_100g,SRC-IFCT2017,T009,source
 GF-ING-00535,fat_g,100.01,per_100g,SRC-IFCT2017,T009,source
@@ -5906,7 +5906,7 @@ GF-ING-00535,calcium_mg,0.0,per_100g,SRC-IFCT2017,T009,source
 GF-ING-00535,iron_mg,0.0,per_100g,SRC-IFCT2017,T009,source
 GF-ING-00535,zinc_mg,0.0,per_100g,SRC-IFCT2017,T009,source
 GF-ING-00535,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T009,source
-GF-ING-00536,energy_kcal,0.0,per_100g,SRC-IFCT2017,T010,source
+GF-ING-00536,energy_kcal,900.0,per_100g,SRC-IFCT2017,T010,corrected_from_macros
 GF-ING-00536,protein_g,0.0,per_100g,SRC-IFCT2017,T010,source
 GF-ING-00536,carb_g,0.0,per_100g,SRC-IFCT2017,T010,source
 GF-ING-00536,fat_g,100.0,per_100g,SRC-IFCT2017,T010,source
@@ -5917,7 +5917,7 @@ GF-ING-00536,calcium_mg,0.0,per_100g,SRC-IFCT2017,T010,source
 GF-ING-00536,iron_mg,0.0,per_100g,SRC-IFCT2017,T010,source
 GF-ING-00536,zinc_mg,0.0,per_100g,SRC-IFCT2017,T010,source
 GF-ING-00536,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T010,source
-GF-ING-00537,energy_kcal,0.0,per_100g,SRC-IFCT2017,T011,source
+GF-ING-00537,energy_kcal,900.0,per_100g,SRC-IFCT2017,T011,corrected_from_macros
 GF-ING-00537,protein_g,0.0,per_100g,SRC-IFCT2017,T011,source
 GF-ING-00537,carb_g,0.0,per_100g,SRC-IFCT2017,T011,source
 GF-ING-00537,fat_g,100.0,per_100g,SRC-IFCT2017,T011,source
@@ -5928,7 +5928,7 @@ GF-ING-00537,calcium_mg,0.0,per_100g,SRC-IFCT2017,T011,source
 GF-ING-00537,iron_mg,0.0,per_100g,SRC-IFCT2017,T011,source
 GF-ING-00537,zinc_mg,0.0,per_100g,SRC-IFCT2017,T011,source
 GF-ING-00537,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T011,source
-GF-ING-00538,energy_kcal,0.0,per_100g,SRC-IFCT2017,T012,source
+GF-ING-00538,energy_kcal,900.0,per_100g,SRC-IFCT2017,T012,corrected_from_macros
 GF-ING-00538,protein_g,0.0,per_100g,SRC-IFCT2017,T012,source
 GF-ING-00538,carb_g,0.0,per_100g,SRC-IFCT2017,T012,source
 GF-ING-00538,fat_g,100.0,per_100g,SRC-IFCT2017,T012,source
@@ -5939,7 +5939,7 @@ GF-ING-00538,calcium_mg,0.0,per_100g,SRC-IFCT2017,T012,source
 GF-ING-00538,iron_mg,0.0,per_100g,SRC-IFCT2017,T012,source
 GF-ING-00538,zinc_mg,0.0,per_100g,SRC-IFCT2017,T012,source
 GF-ING-00538,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T012,source
-GF-ING-00539,energy_kcal,0.0,per_100g,SRC-IFCT2017,T013,source
+GF-ING-00539,energy_kcal,900.0,per_100g,SRC-IFCT2017,T013,corrected_from_macros
 GF-ING-00539,protein_g,0.0,per_100g,SRC-IFCT2017,T013,source
 GF-ING-00539,carb_g,0.0,per_100g,SRC-IFCT2017,T013,source
 GF-ING-00539,fat_g,100.0,per_100g,SRC-IFCT2017,T013,source
@@ -5950,7 +5950,7 @@ GF-ING-00539,calcium_mg,0.0,per_100g,SRC-IFCT2017,T013,source
 GF-ING-00539,iron_mg,0.0,per_100g,SRC-IFCT2017,T013,source
 GF-ING-00539,zinc_mg,0.0,per_100g,SRC-IFCT2017,T013,source
 GF-ING-00539,cholesterol_mg,0.0,per_100g,SRC-IFCT2017,T013,source
-GF-ING-00540,energy_kcal,0.0,per_100g,SRC-IFCT2017,T014,source
+GF-ING-00540,energy_kcal,900.0,per_100g,SRC-IFCT2017,T014,corrected_from_macros
 GF-ING-00540,protein_g,0.0,per_100g,SRC-IFCT2017,T014,source
 GF-ING-00540,carb_g,0.0,per_100g,SRC-IFCT2017,T014,source
 GF-ING-00540,fat_g,100.0,per_100g,SRC-IFCT2017,T014,source
