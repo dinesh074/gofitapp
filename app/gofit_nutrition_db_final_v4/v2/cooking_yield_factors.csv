@@ -1,0 +1,543 @@
+food_id,source_record_id,food_name,preparation,yield_factor,source_id
+GF-ING-00001,A001,"Amaranth seed, black",Washing,0.985,SRC-IFCT2017
+GF-ING-00002,A002,"Amaranth seed, pale brown",Washing,0.985,SRC-IFCT2017
+GF-ING-00003,A003,Bajra,Washing,0.985,SRC-IFCT2017
+GF-ING-00004,A004,Barley,Washing,0.9833333333,SRC-IFCT2017
+GF-ING-00005,A005,Jowar,Washing,0.985,SRC-IFCT2017
+GF-ING-00006,A006,"Maize, dry",Washing,0.985,SRC-IFCT2017
+GF-ING-00007,A007,"Maize, tender, local","Husking, Silk Removal",0.6,SRC-IFCT2017
+GF-ING-00008,A008,"Maize, tender, sweet","Husking, Silk Removal",0.6,SRC-IFCT2017
+GF-ING-00009,A009,Quinoa,Washing,0.985,SRC-IFCT2017
+GF-ING-00010,A010,Ragi,Cleaning,0.965,SRC-IFCT2017
+GF-ING-00011,A011,"Rice, flakes",Washing,0.9866666667,SRC-IFCT2017
+GF-ING-00012,A012,"Rice, puffed",,0.99,SRC-IFCT2017
+GF-ING-00013,A013,"Rice, raw, brown",Washing,0.985,SRC-IFCT2017
+GF-ING-00014,A014,"Rice, parboiled, milled",Washing,0.985,SRC-IFCT2017
+GF-ING-00015,A015,"Rice, raw, milled",Washing,0.985,SRC-IFCT2017
+GF-ING-00016,A016,Samai,Cleaning,0.965,SRC-IFCT2017
+GF-ING-00017,A017,Varagu,Washing,0.985,SRC-IFCT2017
+GF-ING-00018,A018,"Wheat flour, refined",,0.99,SRC-IFCT2017
+GF-ING-00019,A019,"Wheat flour, atta",,0.99,SRC-IFCT2017
+GF-ING-00020,A020,"Wheat, whole",Washing,0.9766666667,SRC-IFCT2017
+GF-ING-00021,A021,"Wheat, bulgur",Rinsing,0.9866666667,SRC-IFCT2017
+GF-ING-00022,A022,"Wheat, semolina",,0.99,SRC-IFCT2017
+GF-ING-00023,A023,"Wheat, vermicelli",,0.99,SRC-IFCT2017
+GF-ING-00024,A024,"Wheat, vermicelli, roasted",,0.99,SRC-IFCT2017
+GF-ING-00025,B001,"Bengal gram, dal",Washing,0.9883333333,SRC-IFCT2017
+GF-ING-00026,B002,"Bengal gram, whole","Washing, Shelling",0.9366666667,SRC-IFCT2017
+GF-ING-00027,B003,"Black gram, dal",Washing,0.9883333333,SRC-IFCT2017
+GF-ING-00028,B004,"Black gram, whole","Washing, Skin Removal",0.9533333333,SRC-IFCT2017
+GF-ING-00029,B005,"Cowpea, brown",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00030,B006,"Cowpea, white",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00031,B007,"Field bean, black",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00032,B008,"Field bean, brown",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00033,B009,"Field bean, white",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00034,B010,"Green gram, dal",Washing,0.9883333333,SRC-IFCT2017
+GF-ING-00035,B011,"Green gram, whole",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00036,B012,"Horse gram, whole",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00037,B013,"Lentil, dal",Washing,0.9883333333,SRC-IFCT2017
+GF-ING-00038,B014,"Lentil, whole, brown",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00039,B015,"Lentil, whole, yellowish",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00040,B016,Moth bean,Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00041,B017,"Peas, dry",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00042,B018,"Rajmah, black",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00043,B019,"Rajmah, brown",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00044,B020,"Rajmah, red",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00045,B021,"Red gram, dal",Washing,0.9883333333,SRC-IFCT2017
+GF-ING-00046,B022,"Red gram, whole",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00047,B023,Ricebean,Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00048,B024,"Soya bean, brown",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00049,B025,"Soya bean, white",Washing,0.9816666667,SRC-IFCT2017
+GF-ING-00050,C001,Agathi leaves,"Stem removal, Damaged leaves removal, Washing",0.7416666667,SRC-IFCT2017
+GF-ING-00051,C002,"Amaranth leaves, green","Stem removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00052,C003,"Amaranth leaves, red","Stem removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00053,C004,"Amaranth leaves, red and green","Stem removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00054,C005,"Amaranth, spinous, leaves, green","Stem removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00055,C006,"Amaranth, spinous, leaves, red and green","Stem removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00056,C007,Basella leaves,"Thicker stem removal, Washing",0.8083333333,SRC-IFCT2017
+GF-ING-00057,C008,Bathua leaves,"Thicker stem removal, Washing",0.7666666667,SRC-IFCT2017
+GF-ING-00058,C009,Beetroot leaves,"Tough stem removal, Washing",0.7333333333,SRC-IFCT2017
+GF-ING-00059,C010,"Betel leaves, big (kolkata)","Washing, Minimal stem trimming",0.8566666667,SRC-IFCT2017
+GF-ING-00060,C011,"Betel leaves, small","Washing, Minimal stem trimming",0.8566666667,SRC-IFCT2017
+GF-ING-00061,C012,Brussels sprouts,"Base trimming, Outer damaged leaves removal",0.8,SRC-IFCT2017
+GF-ING-00062,C013,"Cabbage, Chinese","Outer leaves removal, Core removal, Washing",0.7916666667,SRC-IFCT2017
+GF-ING-00063,C014,"Cabbage, collard greens","Outer leaves removal, Thick stem removal, Washing",0.75,SRC-IFCT2017
+GF-ING-00064,C015,"Cabbage, green","Outer leaves removal, Core removal, Washing",0.775,SRC-IFCT2017
+GF-ING-00065,C016,"Cabbage, violet","Outer leaves removal, Core removal, Washing",0.775,SRC-IFCT2017
+GF-ING-00066,C017,Cauliflower leaves,Tough stem removal,0.7666666667,SRC-IFCT2017
+GF-ING-00067,C018,"Colocasia leaves, green","Thick stem removal, Washing",0.65,SRC-IFCT2017
+GF-ING-00068,C019,Drumstick leaves,"Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00069,C020,Fenugreek leaves,"Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00070,C021,Garden cress,Washing,0.8133333333,SRC-IFCT2017
+GF-ING-00071,C022,"Gogu leaves, green stem","Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00072,C023,"Gogu leaves, red stem","Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00073,C024,"Knol-Khol, leaves","Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00074,C025,Lettuce,"Core removal, Outer leaves removal, Washing",0.8,SRC-IFCT2017
+GF-ING-00075,C026,Mustard leaves,"Thicker stem removal, Washing",0.7666666667,SRC-IFCT2017
+GF-ING-00076,C027,Pak Choi leaves,"Base trimming, Washing",0.8,SRC-IFCT2017
+GF-ING-00077,C028,Parsley,"Thicker stem removal, Washing",0.7666666667,SRC-IFCT2017
+GF-ING-00078,C029,Ponnaganni,"Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00079,C030,"Pumpkin leaves, tender","Thicker stem removal, Washing",0.7833333333,SRC-IFCT2017
+GF-ING-00080,C031,Radish leaves,"Thicker stem removal, Washing",0.7666666667,SRC-IFCT2017
+GF-ING-00081,C032,Rumex leaves,"Thicker stem removal, Washing",0.7666666667,SRC-IFCT2017
+GF-ING-00082,C033,Spinach,"Thicker stem removal, Washing",0.7333333333,SRC-IFCT2017
+GF-ING-00083,C034,"Tamarind leaves, tender",Washing,0.7966666667,SRC-IFCT2017
+GF-ING-00084,D001,Ash gourd,"Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00085,D002,"Bamboo shoot, tender","Peeling, Trimming",0.6166666667,SRC-IFCT2017
+GF-ING-00086,D003,"Bean scarlet, tender","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00087,D004,"Bitter gourd, jagged, teeth ridges, elongate","Washing, Slicing, Removing seeds and core",0.7666666667,SRC-IFCT2017
+GF-ING-00088,D005,"Bitter gourd, jagged, teeth ridges, short","Washing, Slicing, Removing seeds and core",0.7666666667,SRC-IFCT2017
+GF-ING-00089,D006,"Bitter gourd, jagged, smooth ridges, elongate","Washing, Slicing, Removing seeds and core",0.7666666667,SRC-IFCT2017
+GF-ING-00090,D007,"Bottle gourd, elongate, pale green","Peeling, Deseeding",0.75,SRC-IFCT2017
+GF-ING-00091,D008,"Bottle gourd, round, pale green","Peeling, Deseeding",0.75,SRC-IFCT2017
+GF-ING-00092,D009,"Bottle gourd, elongate, dark green","Peeling, Deseeding",0.75,SRC-IFCT2017
+GF-ING-00093,D010,Brinjal 1,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00094,D011,Brinjal 2,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00095,D012,Brinjal 3,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00096,D013,Brinjal 4,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00097,D014,Brinjal 5,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00098,D015,Brinjal 6,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00099,D016,Brinjal 7,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00100,D017,Brinjal 8,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00101,D018,Brinjal 9,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00102,D019,Brinjal 10,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00103,D020,Brinjal 11,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00104,D021,Brinjal 12,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00105,D022,Brinjal 13,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00106,D023,Brinjal 14,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00107,D024,Brinjal 15,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00108,D025,Brinjal 16,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00109,D026,Brinjal 17,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00110,D027,Brinjal 18,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00111,D028,Brinjal 19,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00112,D029,Brinjal 20,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00113,D030,Brinjal 21,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00114,D031,Brinjal - all varieties,"Washing, Stem trimming",0.8583333333,SRC-IFCT2017
+GF-ING-00115,D032,Broad beans,Shelling (optional: double podding),0.8,SRC-IFCT2017
+GF-ING-00116,D033,"Capsicum, green","Washing, Removing stem and seeds",0.7833333333,SRC-IFCT2017
+GF-ING-00117,D034,"Capsicum, red","Washing, Removing stem and seeds",0.7833333333,SRC-IFCT2017
+GF-ING-00118,D035,"Capsicum, yellow","Washing, Removing stem and seeds",0.7833333333,SRC-IFCT2017
+GF-ING-00119,D036,Cauliflower,"Washing, Separating florets, Trimming core",0.6166666667,SRC-IFCT2017
+GF-ING-00120,D037,Celery stalk,"Washing, Trimming base and leaves (optional: peeling)",0.7333333333,SRC-IFCT2017
+GF-ING-00121,D038,Cho-cho-marrow,"Peeling, Deseeding",0.7666666667,SRC-IFCT2017
+GF-ING-00122,D039,Cluster beans,"Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00123,D040,"Colocasia, stem, black","Washing, Peeling",0.7166666667,SRC-IFCT2017
+GF-ING-00124,D041,"Colocasia, stem, green","Washing, Peeling",0.7166666667,SRC-IFCT2017
+GF-ING-00125,D042,"Corn, baby","Husking, Silk removal",0.7833333333,SRC-IFCT2017
+GF-ING-00126,D043,"Cucumber, green, elongate","Washing, Trimming ends (optional: peeling)",0.8416666667,SRC-IFCT2017
+GF-ING-00127,D044,"Cucumber, green, short","Washing, Trimming ends (optional: peeling)",0.8416666667,SRC-IFCT2017
+GF-ING-00128,D045,"Cucumber, orange, round","Washing, Trimming ends (optional: peeling)",0.8416666667,SRC-IFCT2017
+GF-ING-00129,D046,Drumstick,"Washing, Trimming ends (optional: scraping)",0.7833333333,SRC-IFCT2017
+GF-ING-00130,D047,"Field beans, tender, broad","Washing, Shelling (optional: double podding)",0.65,SRC-IFCT2017
+GF-ING-00131,D048,"Field beans, tender, lean","Washing, Shelling (optional: double podding)",0.65,SRC-IFCT2017
+GF-ING-00132,D049,"French beans, country","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00133,D050,"French beans, hybrid","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00134,D051,"Jack fruit, raw","Peeling, Removing core, Separating flesh and seeds",0.5833333333,SRC-IFCT2017
+GF-ING-00135,D052,"Jack fruit, seeds, mature","Washing, Boiling/Roasting, Shell removal",0.7166666667,SRC-IFCT2017
+GF-ING-00136,D053,Knol - Khol,"Washing, Trimming root and top, Peeling",0.7666666667,SRC-IFCT2017
+GF-ING-00137,D054,"Kovai, big","Washing, Trimming ends",0.84,SRC-IFCT2017
+GF-ING-00138,D055,"Kovai, small","Washing, Trimming ends",0.84,SRC-IFCT2017
+GF-ING-00139,D056,Ladies finger,"Washing, Stem trimming",0.8733333333,SRC-IFCT2017
+GF-ING-00140,D057,"Mango, green, raw","Washing, Peeling, Seed removal",0.6833333333,SRC-IFCT2017
+GF-ING-00141,D058,"Onion, stalk","Washing, Trimming ends",0.7666666667,SRC-IFCT2017
+GF-ING-00142,D059,"Papaya, raw","Washing, Peeling, Deseeding",0.75,SRC-IFCT2017
+GF-ING-00143,D060,Parwar,"Washing, Trimming ends",0.84,SRC-IFCT2017
+GF-ING-00144,D061,"Peas, fresh",Shelling,0.6833333333,SRC-IFCT2017
+GF-ING-00145,D062,"Plantain, flower","Washing, Separating edible parts",0.6833333333,SRC-IFCT2017
+GF-ING-00146,D063,"Plantain, green","Washing, Peeling",0.7,SRC-IFCT2017
+GF-ING-00147,D064,"Plantain, stem","Washing, Peeling outer layers",0.6166666667,SRC-IFCT2017
+GF-ING-00148,D065,"Pumpkin, green, cylindrical","Washing, Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00149,D066,"Pumpkin, orange, round","Washing, Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00150,D067,"Red gram, tender, fresh","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00151,D068,Ridge gourd,"Washing, Trimming ends, Peeling (optional: deseeding)",0.7833333333,SRC-IFCT2017
+GF-ING-00152,D069,"Ridge gourd, smooth skin","Washing, Trimming ends, Peeling (optional: deseeding)",0.7833333333,SRC-IFCT2017
+GF-ING-00153,D070,"Snake gourd, long, pale green","Washing, Trimming ends, Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00154,D071,"Snake gourd, long, dark green","Washing, Trimming ends, Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00155,D072,"Snake gourd, short","Washing, Trimming ends, Peeling, Deseeding",0.7333333333,SRC-IFCT2017
+GF-ING-00156,D073,"Tinda, tender","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00157,D074,"Tomato, green","Washing, Stem removal",0.8583333333,SRC-IFCT2017
+GF-ING-00158,D075,"Tomato, ripe, hybrid","Washing, Stem removal",0.8583333333,SRC-IFCT2017
+GF-ING-00159,D076,"Tomato, ripe, local","Washing, Stem removal",0.8583333333,SRC-IFCT2017
+GF-ING-00160,D077,"Zucchini, green","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00161,D078,"Zucchini, yellow","Washing, Trimming ends",0.8566666667,SRC-IFCT2017
+GF-ING-00162,E001,"Apple, big","Washing, Coring",0.845,SRC-IFCT2017
+GF-ING-00163,E002,"Apple, green","Washing, Coring",0.845,SRC-IFCT2017
+GF-ING-00164,E003,"Apple, small","Washing, Coring",0.845,SRC-IFCT2017
+GF-ING-00165,E004,"Apple, small, Kashmir","Washing, Coring",0.845,SRC-IFCT2017
+GF-ING-00166,E005,"Apricot, dried",Washing,0.9483333333,SRC-IFCT2017
+GF-ING-00167,E006,"Apricot, processed",,1.0,SRC-IFCT2017
+GF-ING-00168,E007,Avocado fruit,"Washing, Pit removal, Skin removal",0.7866666667,SRC-IFCT2017
+GF-ING-00169,E008,Bael fruit,"Washing, Shell removal, Pulp extraction",0.6533333333,SRC-IFCT2017
+GF-ING-00170,E009,"Banana, ripe, montham",Peeling,0.7283333333,SRC-IFCT2017
+GF-ING-00171,E010,"Banana, ripe, poovam",Peeling,0.7283333333,SRC-IFCT2017
+GF-ING-00172,E011,"Banana, ripe, red",Peeling,0.7283333333,SRC-IFCT2017
+GF-ING-00173,E012,"Banana, ripe, robusta",Peeling,0.7283333333,SRC-IFCT2017
+GF-ING-00174,E013,Black berry,Washing,0.9133333333,SRC-IFCT2017
+GF-ING-00175,E014,"Cherries, red","Washing, Pitting",0.87,SRC-IFCT2017
+GF-ING-00176,E015,"Currants, black","Washing, Destemming",0.9116666667,SRC-IFCT2017
+GF-ING-00177,E016,Custard apple,"Washing, Pulp extraction (skin and seeds removed)",0.7033333333,SRC-IFCT2017
+GF-ING-00178,E017,"Dates, dry, pale brown","Washing, Pitting",0.9283333333,SRC-IFCT2017
+GF-ING-00179,E018,"Dates, dry, dark brown","Washing, Pitting",0.9283333333,SRC-IFCT2017
+GF-ING-00180,E019,"Dates, processed",,1.0,SRC-IFCT2017
+GF-ING-00181,E020,Fig,"Washing, Stem removal",0.895,SRC-IFCT2017
+GF-ING-00182,E021,Goosberry,"Washing, Trimming ends",0.8783333333,SRC-IFCT2017
+GF-ING-00183,E022,"Grapes, seeded, round, black","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00184,E023,"Grapes, seeded, round, green","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00185,E024,"Grapes, seeded, round, red","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00186,E025,"Grapes, seedless, oval, black","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00187,E026,"Grapes, seedless, round, green","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00188,E027,"Grapes, seedless, round, black","Washing, Destemming",0.925,SRC-IFCT2017
+GF-ING-00189,E028,"Guava, white flesh","Washing, Trimming ends",0.8616666667,SRC-IFCT2017
+GF-ING-00190,E029,"Guava, pink flesh","Washing, Trimming ends",0.8616666667,SRC-IFCT2017
+GF-ING-00191,E030,"Jack fruit, ripe","Washing, Skin/Core removal, Separating flesh/seeds",0.7033333333,SRC-IFCT2017
+GF-ING-00192,E031,"Jambu fruit, ripe","Washing, Stem removal",0.8283333333,SRC-IFCT2017
+GF-ING-00193,E032,Karonda fruit,"Washing, Deseeding",0.8033333333,SRC-IFCT2017
+GF-ING-00194,E033,"Lemon, juice",Juicing,0.72,SRC-IFCT2017
+GF-ING-00195,E034,"Lime, sweet, pulp",Pulp extraction,0.7866666667,SRC-IFCT2017
+GF-ING-00196,E035,Litchi,"Washing, Peeling, Deseeding",0.77,SRC-IFCT2017
+GF-ING-00197,E036,"Mango, ripe, banganapalli","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00198,E037,"Mango, ripe, gulabkhas","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00199,E038,"Mango, ripe, himsagar","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00200,E039,"Mango, ripe, kesar","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00201,E040,"Mango, ripe, neelam","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00202,E041,"Mango, ripe, paheri","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00203,E042,"Mango, ripe, totapari","Washing, Peeling, Seed removal",0.7033333333,SRC-IFCT2017
+GF-ING-00204,E043,Mangosteen,"Washing, Rind removal",0.595,SRC-IFCT2017
+GF-ING-00205,E044,Manila tamarind,"Washing, Shelling",0.7033333333,SRC-IFCT2017
+GF-ING-00206,E045,"Musk melon, orange flesh","Washing, Rind removal, Deseeding",0.67,SRC-IFCT2017
+GF-ING-00207,E046,"Musk melon, yellow flesh","Washing, Rind removal, Deseeding",0.67,SRC-IFCT2017
+GF-ING-00208,E047,"Orange, pulp",Pulp extraction,0.82,SRC-IFCT2017
+GF-ING-00209,E048,"Palm fruit, tender","Washing, Skin removal, Shell cracking, Kernel extraction",0.575,SRC-IFCT2017
+GF-ING-00210,E049,"Papaya, ripe","Washing, Peeling, Deseeding",0.7533333333,SRC-IFCT2017
+GF-ING-00211,E050,Peach,"Washing, Pitting (optional: peeling)",0.8616666667,SRC-IFCT2017
+GF-ING-00212,E051,Pear,"Washing, Coring (optional: peeling)",0.845,SRC-IFCT2017
+GF-ING-00213,E052,Phalsa,"Washing, Stem removal",0.8283333333,SRC-IFCT2017
+GF-ING-00214,E053,Pineapple,"Washing, Crown/Base removal, Peeling, Coring",0.6033333333,SRC-IFCT2017
+GF-ING-00215,E054,Plum,"Washing, Pitting",0.8783333333,SRC-IFCT2017
+GF-ING-00216,E055,"Pomegranate, maroon seeds","Washing, Seed extraction",0.6366666667,SRC-IFCT2017
+GF-ING-00217,E056,Pummelo,"Washing, Rind/Pith removal, Segment separation",0.6366666667,SRC-IFCT2017
+GF-ING-00218,E057,"Raisins, dried, black","Washing, Destemming",0.9433333333,SRC-IFCT2017
+GF-ING-00219,E058,"Raisins, dried, golden","Washing, Destemming",0.9433333333,SRC-IFCT2017
+GF-ING-00220,E059,Rambutan,"Washing, Peeling, Deseeding",0.67,SRC-IFCT2017
+GF-ING-00221,E060,Sapota,"Washing, Skin removal, Deseeding",0.77,SRC-IFCT2017
+GF-ING-00222,E061,Soursop,"Washing, Pulp extraction (skin and seeds removed)",0.7033333333,SRC-IFCT2017
+GF-ING-00223,E062,Star fruit,"Washing, Trimming ends",0.8783333333,SRC-IFCT2017
+GF-ING-00224,E063,Strawberry,"Washing, Hull removal",0.9116666667,SRC-IFCT2017
+GF-ING-00225,E064,"Tamarind, pulp",Pulp extraction,0.8533333333,SRC-IFCT2017
+GF-ING-00226,E065,"Water melon, dark green (sugar baby)","Washing, Rind removal, Deseeding",0.67,SRC-IFCT2017
+GF-ING-00227,E066,"Water melon, pale green","Washing, Rind removal, Deseeding",0.67,SRC-IFCT2017
+GF-ING-00228,E067,Wood apple,"Washing, Shell removal, Pulp extraction",0.6366666667,SRC-IFCT2017
+GF-ING-00229,E068,Zizyphus,"Washing, Pitting",0.8283333333,SRC-IFCT2017
+GF-ING-00230,F001,Beetroot,"Washing, Trimming, Peeling",0.7833333333,SRC-IFCT2017
+GF-ING-00231,F002,"Carrot, orange","Washing, Trimming, Peeling",0.7833333333,SRC-IFCT2017
+GF-ING-00232,F003,"Carrot, red","Washing, Trimming, Peeling",0.7833333333,SRC-IFCT2017
+GF-ING-00233,F004,Colocasia,"Washing, Trimming, Peeling",0.7333333333,SRC-IFCT2017
+GF-ING-00234,F005,Lotus root,"Washing, Trimming, Peeling",0.75,SRC-IFCT2017
+GF-ING-00235,F006,"Potato, brown skin, big","Washing, Peeling",0.7333333333,SRC-IFCT2017
+GF-ING-00236,F007,"Potato, brown skin, small","Washing, Peeling",0.7333333333,SRC-IFCT2017
+GF-ING-00237,F008,"Potato, red skin","Washing, Peeling",0.7333333333,SRC-IFCT2017
+GF-ING-00238,F009,"Radish, elongate, red skin","Washing, Trimming (optional: peeling)",0.7916666667,SRC-IFCT2017
+GF-ING-00239,F010,"Radish, elongate, white skin","Washing, Trimming (optional: peeling)",0.7916666667,SRC-IFCT2017
+GF-ING-00240,F011,"Radish, round, red skin","Washing, Trimming (optional: peeling)",0.7916666667,SRC-IFCT2017
+GF-ING-00241,F012,"Radish, round, white skin","Washing, Trimming (optional: peeling)",0.7916666667,SRC-IFCT2017
+GF-ING-00242,F013,"Sweet potato, brown skin","Washing, Trimming, Peeling",0.7666666667,SRC-IFCT2017
+GF-ING-00243,F014,"Sweet potato, pink skin","Washing, Trimming, Peeling",0.7666666667,SRC-IFCT2017
+GF-ING-00244,F015,Tapioca,"Washing, Trimming, Peeling",0.7,SRC-IFCT2017
+GF-ING-00245,F016,Water Chestnut,"Washing, Peeling",0.7333333333,SRC-IFCT2017
+GF-ING-00246,F017,"Yam, elephant","Washing, Trimming, Peeling",0.7166666667,SRC-IFCT2017
+GF-ING-00247,F018,"Yam, ordinary","Washing, Trimming, Peeling",0.7166666667,SRC-IFCT2017
+GF-ING-00248,F019,"Yam, wild","Washing, Trimming, Peeling",0.7166666667,SRC-IFCT2017
+GF-ING-00249,G001,"Chillies, green-1","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00250,G002,"Chillies, green-2","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00251,G003,"Chillies, green-3","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00252,G004,"Chillies, green-4","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00253,G005,"Chillies, green-5","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00254,G006,"Chillies, green-6","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00255,G007,"Chillies, green-7","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00256,G008,"Chillies, green - all varieties","Washing, Stem removal (optional: deseeding)",0.8966666667,SRC-IFCT2017
+GF-ING-00257,G009,Coriander leaves,"Washing, Root trimming",0.8083333333,SRC-IFCT2017
+GF-ING-00258,G010,Curry leaves,"Washing, Minimal stem removal",0.8233333333,SRC-IFCT2017
+GF-ING-00259,G011,"Garlic, big cloves",Peeling,0.8333333333,SRC-IFCT2017
+GF-ING-00260,G012,"Garlic, small cloves",Peeling,0.8333333333,SRC-IFCT2017
+GF-ING-00261,G013,"Garlic, single clove, Kashmir",Peeling,0.8333333333,SRC-IFCT2017
+GF-ING-00262,G014,"Ginger, fresh","Washing, Peeling",0.85,SRC-IFCT2017
+GF-ING-00263,G015,Mango ginger,"Washing, Peeling",0.85,SRC-IFCT2017
+GF-ING-00264,G016,Mint leaves,"Washing, Minimal stem removal",0.8083333333,SRC-IFCT2017
+GF-ING-00265,G017,"Onion, big","Peeling, Trimming ends",0.85,SRC-IFCT2017
+GF-ING-00266,G018,"Onion, small","Peeling, Trimming ends",0.85,SRC-IFCT2017
+GF-ING-00267,G019,Asafoetida,,1.0,SRC-IFCT2017
+GF-ING-00268,G020,"Cardamom, green",,1.0,SRC-IFCT2017
+GF-ING-00269,G021,"Cardamom, black",,1.0,SRC-IFCT2017
+GF-ING-00270,G022,"Chillies, red","Washing, Stem removal (optional: deseeding)",0.9133333333,SRC-IFCT2017
+GF-ING-00271,G023,Cloves,,1.0,SRC-IFCT2017
+GF-ING-00272,G024,Coriander seeds,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00273,G025,Cumin seeds,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00274,G026,Fenugreek seeds,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00275,G027,Mace,,1.0,SRC-IFCT2017
+GF-ING-00276,G028,Nutmeg,,1.0,SRC-IFCT2017
+GF-ING-00277,G029,Omum,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00278,G030,Pippali,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00279,G031,"Pepper, black",,1.0,SRC-IFCT2017
+GF-ING-00280,G032,Poppy seeds,Washing (optional),0.9283333333,SRC-IFCT2017
+GF-ING-00281,G033,Turmeric powder,,1.0,SRC-IFCT2017
+GF-ING-00282,H001,Almond,Shelling (optional: blanching),0.985,SRC-IFCT2017
+GF-ING-00283,H002,"Arecanut, dried, brown",Shelling,0.5166666667,SRC-IFCT2017
+GF-ING-00284,H003,"Arecanut, dried, red color",Shelling,0.5166666667,SRC-IFCT2017
+GF-ING-00285,H004,"Arecanut, fresh",Shelling,0.5166666667,SRC-IFCT2017
+GF-ING-00286,H005,Cashew nut,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00287,H006,"Coconut, kernel, dry",Shell removal,0.4833333333,SRC-IFCT2017
+GF-ING-00288,H007,"Coconut, kernel, fresh",Shell removal,0.45,SRC-IFCT2017
+GF-ING-00289,H008,"Garden cress, seeds",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00290,H009,"Gingelly seeds, black",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00291,H010,"Gingelly seeds, brown",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00292,H011,"Gingelly seeds, white",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00293,H012,Ground nut,Shelling (optional: skin removal),0.675,SRC-IFCT2017
+GF-ING-00294,H013,Mustard seeds,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00295,H014,Linseeds,Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00296,H015,"Niger seeds, black",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00297,H016,"Niger seeds, grey",Washing (optional),0.9925,SRC-IFCT2017
+GF-ING-00298,H017,Pine seeds,Shelling,0.45,SRC-IFCT2017
+GF-ING-00299,H018,Pistachio nuts,Washing (optional),0.5,SRC-IFCT2017
+GF-ING-00300,H019,Safflower seeds,Washing (optional),0.5,SRC-IFCT2017
+GF-ING-00301,H020,Sunflower seeds,Shelling,0.5,SRC-IFCT2017
+GF-ING-00302,H021,Walnut,Shelling,0.5,SRC-IFCT2017
+GF-ING-00303,I001,"Jaggery, cane",Processing,0.975,SRC-IFCT2017
+GF-ING-00304,I002,"Sugarcane, juice",Processing,0.975,SRC-IFCT2017
+GF-ING-00305,J001,"Button mushroom, fresh",Trimming/Washing,0.875,SRC-IFCT2017
+GF-ING-00306,J002,"Chicken mushroom, fresh",Trimming/Washing,0.875,SRC-IFCT2017
+GF-ING-00307,J003,"Shiitake mushroom, fresh",Trimming/Washing,0.875,SRC-IFCT2017
+GF-ING-00308,J004,"Oyster mushroom, dried",Trimming/Washing,0.925,SRC-IFCT2017
+GF-ING-00309,K001,Toddy,,1.0,SRC-IFCT2017
+GF-ING-00310,K002,Coconut water,,1.0,SRC-IFCT2017
+GF-ING-00311,L001,"Milk, whole, Buffalo",,1.0,SRC-IFCT2017
+GF-ING-00312,L002,"Milk, whole, Cow",,1.0,SRC-IFCT2017
+GF-ING-00313,L003,Paneer,,1.0,SRC-IFCT2017
+GF-ING-00314,L004,Khoa,,1.0,SRC-IFCT2017
+GF-ING-00315,M001,"Egg, poultry, whole, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00316,M002,"Egg, poultry, white, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00317,M003,"Egg, poultry, yolk, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00318,M004,"Egg, poultry, whole, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00319,M005,"Egg, poultry, white, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00320,M006,"Egg, poultry, yolk, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00321,M007,"Egg, poultry, omlet",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00322,M008,"Egg, country hen, whole, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00323,M009,"Egg, country hen, whole, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00324,M010,"Egg, country hen, omlet",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00325,M011,"Egg, duck, whole, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00326,M012,"Egg, duck, whole, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00327,M013,"Egg, duck, whole, omlet",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00328,M014,"Egg, quial, whole, raw",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00329,M015,"Egg, quial, whole, boiled",Shell removal,1.0,SRC-IFCT2017
+GF-ING-00330,N001,"Chicken, poultry, leg, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00331,N002,"Chicken, poultry, thigh, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00332,N003,"Chicken, poultry, breast, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00333,N004,"Chicken, poultry, wing, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00334,N005,"Poultry, chicken, liver",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00335,N006,"Poultry, chicken, gizzard",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00336,N007,"Country hen, leg, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00337,N008,"Country hen, thigh, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00338,N009,"Country hen, breast, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00339,N010,"Country hen, wing, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00340,N011,"Duck, meat, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00341,N012,"Emu, meat, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00342,N013,"Guinea fowl, meat, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00343,N014,"Pigeon, meat, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00344,N015,"Quail, meat, skinless",Trimming/Cutting,0.845,SRC-IFCT2017
+GF-ING-00345,N016,"Turkey, leg, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00346,N017,"Turkey, thigh, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00347,N018,"Turkey, breast, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00348,N019,"Turkey, wing, with skin",Trimming/Cutting,0.745,SRC-IFCT2017
+GF-ING-00349,O001,"Goat, shoulder, meat",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00350,O002,"Goat, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00351,O003,"Goat, legs",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00352,O004,"Goat, brain",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00353,O005,"Goat, tongue",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00354,O006,"Goat, lungs",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00355,O007,"Goat, heart",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00356,O008,"Goat, liver",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00357,O009,"Goat, tripe",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00358,O010,"Goat, spleen",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00359,O011,"Goat, kidneys",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00360,O012,"Goat, tube (small intestine)",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00361,O013,"Goat, testis",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00362,O014,"Sheep, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00363,O015,"Sheep, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00364,O016,"Sheep, leg",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00365,O017,"Sheep, brain",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00366,O018,"Sheep, tongue",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00367,O019,"Sheep, lungs",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00368,O020,"Sheep, heart",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00369,O021,"Sheep, liver",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00370,O022,"Sheep, tripe",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00371,O023,"Sheep, spleen",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00372,O024,"Sheep, kidneys",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00373,O025,"Beef, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00374,O026,"Beef, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00375,O027,"Beef, round (leg)",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00376,O028,"Beef, brain",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00377,O029,"Beef, tongue",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00378,O030,"Beef, lungs",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00379,O031,"Beef, heart",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00380,O032,"Beef, liver",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00381,O033,"Beef, tripe",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00382,O034,"Beef, spleen",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00383,O035,"Beef, kidneys",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00384,O036,"Calf, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00385,O037,"Calf, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00386,O038,"Calf, round (leg)",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00387,O039,"Calf, brain",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00388,O040,"Calf, tongue",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00389,O041,"Calf, heart",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00390,O042,"Calf, liver",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00391,O043,"Calf, spleen",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00392,O044,"Calf, kidneys",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00393,O045,"Mithun, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00394,O046,"Mithun, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00395,O047,"Mithun, round (leg)",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00396,O048,"Pork, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00397,O049,"Pork, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00398,O050,"Pork, ham",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00399,O051,"Pork, lungs",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00400,O052,"Pork, heart",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00401,O053,"Pork, liver",Trimming/Cutting,0.82,SRC-IFCT2017
+GF-ING-00402,O054,"Pork, stomach",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00403,O055,"Pork, spleen",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00404,O056,"Pork, kidneys",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00405,O057,"Pork, tube (small intestine)",Trimming/Cutting,0.77,SRC-IFCT2017
+GF-ING-00406,O058,"Hare, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00407,O059,"Hare, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00408,O060,"Hare, leg",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00409,O061,"Rabbit, shoulder",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00410,O062,"Rabbit, chops",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00411,O063,"Rabbit, leg",Trimming/Cutting,0.67,SRC-IFCT2017
+GF-ING-00412,P001,Allathi,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00413,P002,Aluva,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00414,P003,Anchovy,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00415,P004,Ari fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00416,P005,Betki,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00417,P006,Black snapper,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00418,P007,Bombay duck,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00419,P008,Bommuralu,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00420,P009,Cat fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00421,P010,Chakla,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00422,P011,Chappal,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00423,P012,Chelu,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00424,P013,Chembali,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00425,P014,Eri meen,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00426,P015,Gobro,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00427,P016,Guitar fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00428,P017,Hilsa,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00429,P018,Jallal,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00430,P019,Jathi vela meen,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00431,P020,Kadal bral,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00432,P021,Kadali,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00433,P022,Kalamaara,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00434,P023,Kalava,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00435,P024,Kanamayya,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00436,P025,Kannadi paarai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00437,P026,Karimeen,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00438,P027,Karnagawala,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00439,P028,Kayrai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00440,P029,Kiriyan,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00441,P030,Kite fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00442,P031,Korka,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00443,P032,Kulam paarai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00444,P033,Maagaa,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00445,P034,Mackerel,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00446,P035,Manda clathi,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00447,P036,Matha,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00448,P037,Milk fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00449,P038,Moon fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00450,P039,Mullet,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00451,P040,Mural,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00452,P041,Myil meen,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00453,P042,Nalla bontha,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00454,P043,Narba,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00455,P044,Paarai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00456,P045,Padayappa,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00457,P046,Pali kora,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00458,P047,Pambada,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00459,P048,Pandukopa,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00460,P049,Parava,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00461,P050,Parcus,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00462,P051,Parrot fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00463,P052,Perinkilichai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00464,P053,Phopat,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00465,P054,Piranha,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00466,P055,"Pomfret, black",Gutting/Scaling/Trimming,0.6,SRC-IFCT2017
+GF-ING-00467,P056,"Pomfret, snub nose",Gutting/Scaling/Trimming,0.6,SRC-IFCT2017
+GF-ING-00468,P057,"Pomfret, white",Gutting/Scaling/Trimming,0.6,SRC-IFCT2017
+GF-ING-00469,P058,Pranel,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00470,P059,Pulli paarai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00471,P060,Queen fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00472,P061,Raai fish,Gutting/Scaling/Trimming,0.55,SRC-IFCT2017
+GF-ING-00473,P062,Raai vanthu,Gutting/Scaling/Trimming,0.55,SRC-IFCT2017
+GF-ING-00474,P063,Rani,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00475,P064,"Ray fish, bow head, spotted",Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00476,P065,Red snapper,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00477,P066,"Red snapper, small",Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00478,P067,Sadaya,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00479,P068,Salmon,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00480,P069,Sangada,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00481,P070,Sankata parai,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00482,P071,Sardine,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00483,P072,Shark,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00484,P073,"Shark, hammer head",Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00485,P074,"Shark, spotted",Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00486,P075,Shelavu,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00487,P076,Silan,Gutting/Scaling/Trimming,0.55,SRC-IFCT2017
+GF-ING-00488,P077,Silk fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00489,P078,Silver carp,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00490,P079,Sole fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00491,P080,Stingray,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00492,P081,Tarlava,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00493,P082,Tholam,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00494,P083,Tilapia,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00495,P084,Tuna,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00496,P085,"Tuna, striped",Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00497,P086,Valava,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00498,P087,Vanjaram,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00499,P088,Vela meen,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00500,P089,Vora,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00501,P090,Whale shark,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00502,P091,Xiphinis,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00503,P092,"Eggs, cat fish",Cleaning,0.775,SRC-IFCT2017
+GF-ING-00504,Q001,Crab,Shell removal,0.35,SRC-IFCT2017
+GF-ING-00505,Q002,"Crab, sea",Shell removal,0.35,SRC-IFCT2017
+GF-ING-00506,Q003,"Lobster, brown",Shell removal,0.4,SRC-IFCT2017
+GF-ING-00507,Q004,"Lobster, king size",Shell removal,0.4,SRC-IFCT2017
+GF-ING-00508,Q005,Mud crab,Shell removal,0.35,SRC-IFCT2017
+GF-ING-00509,Q006,Oyster,Shell removal,0.45,SRC-IFCT2017
+GF-ING-00510,Q007,"Tiger prawns, brown",Shell/Head removal (assumed),0.6,SRC-IFCT2017
+GF-ING-00511,Q008,"Tiger Prawns, orange",Shell/Head removal (assumed),0.6,SRC-IFCT2017
+GF-ING-00512,R001,"Clam, green shell",Shell removal,0.3,SRC-IFCT2017
+GF-ING-00513,R002,"Clam, white shell, ribbed",Shell removal,0.3,SRC-IFCT2017
+GF-ING-00514,R003,Octopus,Cleaning,0.45,SRC-IFCT2017
+GF-ING-00515,R004,"Squid, black",Cleaning,0.45,SRC-IFCT2017
+GF-ING-00516,R005,"Squid, hard shell",Cleaning,0.45,SRC-IFCT2017
+GF-ING-00517,R006,"Squid, red",Cleaning,0.45,SRC-IFCT2017
+GF-ING-00518,R007,"Squid, white, small",Cleaning,0.45,SRC-IFCT2017
+GF-ING-00420,S001,Cat fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00519,S002,Catla,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00520,S003,Fresh water Eel,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00521,S004,Gold fish,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00522,S005,Pangas,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00523,S006,Rohu,Gutting/Scaling/Trimming,0.575,SRC-IFCT2017
+GF-ING-00504,S007,Crab,Shell removal,0.35,SRC-IFCT2017
+GF-ING-00524,S008,"Prawns, big",Shell/Head removal,0.5,SRC-IFCT2017
+GF-ING-00525,S009,"Prawns, small",Shell/Head removal,0.5,SRC-IFCT2017
+GF-ING-00526,S010,Tiger prawns,Shell/Head removal,0.5,SRC-IFCT2017
+GF-ING-00527,T001,Coconut oil,,1.0,SRC-IFCT2017
+GF-ING-00528,T002,Corn oil,,1.0,SRC-IFCT2017
+GF-ING-00529,T003,Cotton seed oil,,1.0,SRC-IFCT2017
+GF-ING-00530,T004,Gingelly oil,,1.0,SRC-IFCT2017
+GF-ING-00531,T005,Groundnut oil,,1.0,SRC-IFCT2017
+GF-ING-00532,T006,Mustard oil,,1.0,SRC-IFCT2017
+GF-ING-00533,T007,Palm oil,,1.0,SRC-IFCT2017
+GF-ING-00534,T008,Rice bran oil,,1.0,SRC-IFCT2017
+GF-ING-00535,T009,Safflower oil,,1.0,SRC-IFCT2017
+GF-ING-00536,T010,Safflower oil (blended),,1.0,SRC-IFCT2017
+GF-ING-00537,T011,Soyabean oil,,1.0,SRC-IFCT2017
+GF-ING-00538,T012,Sunflower oil,,1.0,SRC-IFCT2017
+GF-ING-00539,T013,Ghee,,1.0,SRC-IFCT2017
+GF-ING-00540,T014,Vanaspati,,1.0,SRC-IFCT2017

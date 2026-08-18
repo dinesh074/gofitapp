@@ -1,0 +1,11 @@
+field,type,allowed_or_rule
+portion_type,enum,grams|ml|piece|cup|bowl|katori|plate|handi|glass|serving
+quantity,number,positive
+size,enum,small|medium|large|custom|null
+source_serving_id,id,required for recipe/source-defined serving
+weight_g,number,required only when source-backed weight conversion exists
+volume_ml,number,required for volume measures
+fraction_of_serving,number,optional; e.g. 0.5
+conversion_method,text,required
+source_ref,text,required
+confidence,enum,source|derived|user_calibrated

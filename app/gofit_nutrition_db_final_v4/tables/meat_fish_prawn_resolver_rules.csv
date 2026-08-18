@@ -1,0 +1,15 @@
+user_term,resolver_family,rule
+mutton,do_not_auto_resolve,IFCT separates goat and sheep; resolve species/cut when possible.
+mamsam,goat/mutton,Regional meat term; preserve actual species/dish.
+chicken,chicken/poultry,Preserve cut and skin status when known.
+kodi,chicken/poultry,Telugu regional term for chicken.
+prawn,prawn/shrimp,Resolve exact species/size when available.
+shrimp,prawn/shrimp,Do not collapse with all prawns when species is known.
+fish,fish,Resolve species when possible; fish species have different nutrient profiles.
+chepa,fish,Telugu regional term for fish.
+rohu,fish,Exact IFCT freshwater fish record.
+katla,fish,Exact IFCT freshwater fish record.
+pomfret,fish,Preserve black/white/snub-nose variant when identified.
+mackerel,fish,Exact IFCT marine fish record.
+sardine,fish,Exact IFCT marine fish record.
+tuna,fish,Preserve species when source distinguishes it.

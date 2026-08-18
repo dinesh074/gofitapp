@@ -1,0 +1,6 @@
+indb_food_id,indb_food_name,indb_primary_source,indb_source_record_id,normalized_source_id,normalized_source_record_id,food_id,mapping_status
+SRC_FOOD_nan,1046,ifct_nin,SRC_FOOD_nan,SRC-IFCT2017,,,unresolved_source_record
+SRC_FOOD_O064,1106,ifct_nin,SRC_FOOD_O064,SRC-IFCT2017,O064,,unresolved_source_record
+SRC_FOOD_F500,1263,ifct_nin,SRC_FOOD_F500,SRC-IFCT2017,F500,,unresolved_source_record
+SRC_FOOD_D501,1286,ifct_nin,SRC_FOOD_D501,SRC-IFCT2017,D501,,unresolved_source_record
+SRC_FOOD_D091,1312,ifct_nin,SRC_FOOD_D091,SRC-IFCT2017,D091,,unresolved_source_record

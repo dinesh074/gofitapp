@@ -1,0 +1,1753 @@
+food_id,canonical_name,entity_type,state,country_region,cuisine,primary_source_id,primary_source_record_id,data_status
+GF-ING-00001,"Amaranth seed, black",ingredient,unspecified,India,,SRC-IFCT2017,A001,source_mapped
+GF-ING-00002,"Amaranth seed, pale brown",ingredient,unspecified,India,,SRC-IFCT2017,A002,source_mapped
+GF-ING-00003,Bajra,ingredient,unspecified,India,,SRC-IFCT2017,A003,source_mapped
+GF-ING-00004,Barley,ingredient,unspecified,India,,SRC-IFCT2017,A004,source_mapped
+GF-ING-00005,Jowar,ingredient,unspecified,India,,SRC-IFCT2017,A005,source_mapped
+GF-ING-00006,"Maize, dry",ingredient,unspecified,India,,SRC-IFCT2017,A006,source_mapped
+GF-ING-00007,"Maize, tender, local",ingredient,unspecified,India,,SRC-IFCT2017,A007,source_mapped
+GF-ING-00008,"Maize, tender, sweet",ingredient,unspecified,India,,SRC-IFCT2017,A008,source_mapped
+GF-ING-00009,Quinoa,ingredient,unspecified,India,,SRC-IFCT2017,A009,source_mapped
+GF-ING-00010,Ragi,ingredient,unspecified,India,,SRC-IFCT2017,A010,source_mapped
+GF-ING-00011,"Rice, flakes",ingredient,unspecified,India,,SRC-IFCT2017,A011,source_mapped
+GF-ING-00012,"Rice, puffed",ingredient,unspecified,India,,SRC-IFCT2017,A012,source_mapped
+GF-ING-00013,"Rice, raw, brown",ingredient,raw,India,,SRC-IFCT2017,A013,source_mapped
+GF-ING-00014,"Rice, parboiled, milled",ingredient,boiled,India,,SRC-IFCT2017,A014,source_mapped
+GF-ING-00015,"Rice, raw, milled",ingredient,raw,India,,SRC-IFCT2017,A015,source_mapped
+GF-ING-00016,Samai,ingredient,unspecified,India,,SRC-IFCT2017,A016,source_mapped
+GF-ING-00017,Varagu,ingredient,unspecified,India,,SRC-IFCT2017,A017,source_mapped
+GF-ING-00018,"Wheat flour, refined",ingredient,unspecified,India,,SRC-IFCT2017,A018,source_mapped
+GF-ING-00019,"Wheat flour, atta",ingredient,unspecified,India,,SRC-IFCT2017,A019,source_mapped
+GF-ING-00020,"Wheat, whole",ingredient,whole,India,,SRC-IFCT2017,A020,source_mapped
+GF-ING-00021,"Wheat, bulgur",ingredient,unspecified,India,,SRC-IFCT2017,A021,source_mapped
+GF-ING-00022,"Wheat, semolina",ingredient,unspecified,India,,SRC-IFCT2017,A022,source_mapped
+GF-ING-00023,"Wheat, vermicelli",ingredient,unspecified,India,,SRC-IFCT2017,A023,source_mapped
+GF-ING-00024,"Wheat, vermicelli, roasted",ingredient,roasted,India,,SRC-IFCT2017,A024,source_mapped
+GF-ING-00025,"Bengal gram, dal",ingredient,unspecified,India,,SRC-IFCT2017,B001,source_mapped
+GF-ING-00026,"Bengal gram, whole",ingredient,whole,India,,SRC-IFCT2017,B002,source_mapped
+GF-ING-00027,"Black gram, dal",ingredient,unspecified,India,,SRC-IFCT2017,B003,source_mapped
+GF-ING-00028,"Black gram, whole",ingredient,whole,India,,SRC-IFCT2017,B004,source_mapped
+GF-ING-00029,"Cowpea, brown",ingredient,unspecified,India,,SRC-IFCT2017,B005,source_mapped
+GF-ING-00030,"Cowpea, white",ingredient,unspecified,India,,SRC-IFCT2017,B006,source_mapped
+GF-ING-00031,"Field bean, black",ingredient,unspecified,India,,SRC-IFCT2017,B007,source_mapped
+GF-ING-00032,"Field bean, brown",ingredient,unspecified,India,,SRC-IFCT2017,B008,source_mapped
+GF-ING-00033,"Field bean, white",ingredient,unspecified,India,,SRC-IFCT2017,B009,source_mapped
+GF-ING-00034,"Green gram, dal",ingredient,unspecified,India,,SRC-IFCT2017,B010,source_mapped
+GF-ING-00035,"Green gram, whole",ingredient,whole,India,,SRC-IFCT2017,B011,source_mapped
+GF-ING-00036,"Horse gram, whole",ingredient,whole,India,,SRC-IFCT2017,B012,source_mapped
+GF-ING-00037,"Lentil, dal",ingredient,unspecified,India,,SRC-IFCT2017,B013,source_mapped
+GF-ING-00038,"Lentil, whole, brown",ingredient,whole,India,,SRC-IFCT2017,B014,source_mapped
+GF-ING-00039,"Lentil, whole, yellowish",ingredient,whole,India,,SRC-IFCT2017,B015,source_mapped
+GF-ING-00040,Moth bean,ingredient,unspecified,India,,SRC-IFCT2017,B016,source_mapped
+GF-ING-00041,"Peas, dry",ingredient,unspecified,India,,SRC-IFCT2017,B017,source_mapped
+GF-ING-00042,"Rajmah, black",ingredient,unspecified,India,,SRC-IFCT2017,B018,source_mapped
+GF-ING-00043,"Rajmah, brown",ingredient,unspecified,India,,SRC-IFCT2017,B019,source_mapped
+GF-ING-00044,"Rajmah, red",ingredient,unspecified,India,,SRC-IFCT2017,B020,source_mapped
+GF-ING-00045,"Red gram, dal",ingredient,unspecified,India,,SRC-IFCT2017,B021,source_mapped
+GF-ING-00046,"Red gram, whole",ingredient,whole,India,,SRC-IFCT2017,B022,source_mapped
+GF-ING-00047,Ricebean,ingredient,unspecified,India,,SRC-IFCT2017,B023,source_mapped
+GF-ING-00048,"Soya bean, brown",ingredient,unspecified,India,,SRC-IFCT2017,B024,source_mapped
+GF-ING-00049,"Soya bean, white",ingredient,unspecified,India,,SRC-IFCT2017,B025,source_mapped
+GF-ING-00050,Agathi leaves,ingredient,unspecified,India,,SRC-IFCT2017,C001,source_mapped
+GF-ING-00051,"Amaranth leaves, green",ingredient,unspecified,India,,SRC-IFCT2017,C002,source_mapped
+GF-ING-00052,"Amaranth leaves, red",ingredient,unspecified,India,,SRC-IFCT2017,C003,source_mapped
+GF-ING-00053,"Amaranth leaves, red and green",ingredient,unspecified,India,,SRC-IFCT2017,C004,source_mapped
+GF-ING-00054,"Amaranth, spinous, leaves, green",ingredient,unspecified,India,,SRC-IFCT2017,C005,source_mapped
+GF-ING-00055,"Amaranth, spinous, leaves, red and green",ingredient,unspecified,India,,SRC-IFCT2017,C006,source_mapped
+GF-ING-00056,Basella leaves,ingredient,unspecified,India,,SRC-IFCT2017,C007,source_mapped
+GF-ING-00057,Bathua leaves,ingredient,unspecified,India,,SRC-IFCT2017,C008,source_mapped
+GF-ING-00058,Beetroot leaves,ingredient,unspecified,India,,SRC-IFCT2017,C009,source_mapped
+GF-ING-00059,"Betel leaves, big (kolkata)",ingredient,unspecified,India,,SRC-IFCT2017,C010,source_mapped
+GF-ING-00060,"Betel leaves, small",ingredient,unspecified,India,,SRC-IFCT2017,C011,source_mapped
+GF-ING-00061,Brussels sprouts,ingredient,unspecified,India,,SRC-IFCT2017,C012,source_mapped
+GF-ING-00062,"Cabbage, Chinese",ingredient,unspecified,India,,SRC-IFCT2017,C013,source_mapped
+GF-ING-00063,"Cabbage, collard greens",ingredient,unspecified,India,,SRC-IFCT2017,C014,source_mapped
+GF-ING-00064,"Cabbage, green",ingredient,unspecified,India,,SRC-IFCT2017,C015,source_mapped
+GF-ING-00065,"Cabbage, violet",ingredient,unspecified,India,,SRC-IFCT2017,C016,source_mapped
+GF-ING-00066,Cauliflower leaves,ingredient,unspecified,India,,SRC-IFCT2017,C017,source_mapped
+GF-ING-00067,"Colocasia leaves, green",ingredient,unspecified,India,,SRC-IFCT2017,C018,source_mapped
+GF-ING-00068,Drumstick leaves,ingredient,unspecified,India,,SRC-IFCT2017,C019,source_mapped
+GF-ING-00069,Fenugreek leaves,ingredient,unspecified,India,,SRC-IFCT2017,C020,source_mapped
+GF-ING-00070,Garden cress,ingredient,unspecified,India,,SRC-IFCT2017,C021,source_mapped
+GF-ING-00071,"Gogu leaves, green stem",ingredient,unspecified,India,,SRC-IFCT2017,C022,source_mapped
+GF-ING-00072,"Gogu leaves, red stem",ingredient,unspecified,India,,SRC-IFCT2017,C023,source_mapped
+GF-ING-00073,"Knol-Khol, leaves",ingredient,unspecified,India,,SRC-IFCT2017,C024,source_mapped
+GF-ING-00074,Lettuce,ingredient,unspecified,India,,SRC-IFCT2017,C025,source_mapped
+GF-ING-00075,Mustard leaves,ingredient,unspecified,India,,SRC-IFCT2017,C026,source_mapped
+GF-ING-00076,Pak Choi leaves,ingredient,unspecified,India,,SRC-IFCT2017,C027,source_mapped
+GF-ING-00077,Parsley,ingredient,unspecified,India,,SRC-IFCT2017,C028,source_mapped
+GF-ING-00078,Ponnaganni,ingredient,unspecified,India,,SRC-IFCT2017,C029,source_mapped
+GF-ING-00079,"Pumpkin leaves, tender",ingredient,unspecified,India,,SRC-IFCT2017,C030,source_mapped
+GF-ING-00080,Radish leaves,ingredient,unspecified,India,,SRC-IFCT2017,C031,source_mapped
+GF-ING-00081,Rumex leaves,ingredient,unspecified,India,,SRC-IFCT2017,C032,source_mapped
+GF-ING-00082,Spinach,ingredient,unspecified,India,,SRC-IFCT2017,C033,source_mapped
+GF-ING-00083,"Tamarind leaves, tender",ingredient,unspecified,India,,SRC-IFCT2017,C034,source_mapped
+GF-ING-00084,Ash gourd,ingredient,unspecified,India,,SRC-IFCT2017,D001,source_mapped
+GF-ING-00085,"Bamboo shoot, tender",ingredient,unspecified,India,,SRC-IFCT2017,D002,source_mapped
+GF-ING-00086,"Bean scarlet, tender",ingredient,unspecified,India,,SRC-IFCT2017,D003,source_mapped
+GF-ING-00087,"Bitter gourd, jagged, teeth ridges, elongate",ingredient,unspecified,India,,SRC-IFCT2017,D004,source_mapped
+GF-ING-00088,"Bitter gourd, jagged, teeth ridges, short",ingredient,unspecified,India,,SRC-IFCT2017,D005,source_mapped
+GF-ING-00089,"Bitter gourd, jagged, smooth ridges, elongate",ingredient,unspecified,India,,SRC-IFCT2017,D006,source_mapped
+GF-ING-00090,"Bottle gourd, elongate, pale green",ingredient,unspecified,India,,SRC-IFCT2017,D007,source_mapped
+GF-ING-00091,"Bottle gourd, round, pale green",ingredient,unspecified,India,,SRC-IFCT2017,D008,source_mapped
+GF-ING-00092,"Bottle gourd, elongate, dark green",ingredient,unspecified,India,,SRC-IFCT2017,D009,source_mapped
+GF-ING-00093,Brinjal 1,ingredient,unspecified,India,,SRC-IFCT2017,D010,source_mapped
+GF-ING-00094,Brinjal 2,ingredient,unspecified,India,,SRC-IFCT2017,D011,source_mapped
+GF-ING-00095,Brinjal 3,ingredient,unspecified,India,,SRC-IFCT2017,D012,source_mapped
+GF-ING-00096,Brinjal 4,ingredient,unspecified,India,,SRC-IFCT2017,D013,source_mapped
+GF-ING-00097,Brinjal 5,ingredient,unspecified,India,,SRC-IFCT2017,D014,source_mapped
+GF-ING-00098,Brinjal 6,ingredient,unspecified,India,,SRC-IFCT2017,D015,source_mapped
+GF-ING-00099,Brinjal 7,ingredient,unspecified,India,,SRC-IFCT2017,D016,source_mapped
+GF-ING-00100,Brinjal 8,ingredient,unspecified,India,,SRC-IFCT2017,D017,source_mapped
+GF-ING-00101,Brinjal 9,ingredient,unspecified,India,,SRC-IFCT2017,D018,source_mapped
+GF-ING-00102,Brinjal 10,ingredient,unspecified,India,,SRC-IFCT2017,D019,source_mapped
+GF-ING-00103,Brinjal 11,ingredient,unspecified,India,,SRC-IFCT2017,D020,source_mapped
+GF-ING-00104,Brinjal 12,ingredient,unspecified,India,,SRC-IFCT2017,D021,source_mapped
+GF-ING-00105,Brinjal 13,ingredient,unspecified,India,,SRC-IFCT2017,D022,source_mapped
+GF-ING-00106,Brinjal 14,ingredient,unspecified,India,,SRC-IFCT2017,D023,source_mapped
+GF-ING-00107,Brinjal 15,ingredient,unspecified,India,,SRC-IFCT2017,D024,source_mapped
+GF-ING-00108,Brinjal 16,ingredient,unspecified,India,,SRC-IFCT2017,D025,source_mapped
+GF-ING-00109,Brinjal 17,ingredient,unspecified,India,,SRC-IFCT2017,D026,source_mapped
+GF-ING-00110,Brinjal 18,ingredient,unspecified,India,,SRC-IFCT2017,D027,source_mapped
+GF-ING-00111,Brinjal 19,ingredient,unspecified,India,,SRC-IFCT2017,D028,source_mapped
+GF-ING-00112,Brinjal 20,ingredient,unspecified,India,,SRC-IFCT2017,D029,source_mapped
+GF-ING-00113,Brinjal 21,ingredient,unspecified,India,,SRC-IFCT2017,D030,source_mapped
+GF-ING-00114,Brinjal - all varieties,ingredient,unspecified,India,,SRC-IFCT2017,D031,source_mapped
+GF-ING-00115,Broad beans,ingredient,unspecified,India,,SRC-IFCT2017,D032,source_mapped
+GF-ING-00116,"Capsicum, green",ingredient,unspecified,India,,SRC-IFCT2017,D033,source_mapped
+GF-ING-00117,"Capsicum, red",ingredient,unspecified,India,,SRC-IFCT2017,D034,source_mapped
+GF-ING-00118,"Capsicum, yellow",ingredient,unspecified,India,,SRC-IFCT2017,D035,source_mapped
+GF-ING-00119,Cauliflower,ingredient,unspecified,India,,SRC-IFCT2017,D036,source_mapped
+GF-ING-00120,Celery stalk,ingredient,unspecified,India,,SRC-IFCT2017,D037,source_mapped
+GF-ING-00121,Cho-cho-marrow,ingredient,unspecified,India,,SRC-IFCT2017,D038,source_mapped
+GF-ING-00122,Cluster beans,ingredient,unspecified,India,,SRC-IFCT2017,D039,source_mapped
+GF-ING-00123,"Colocasia, stem, black",ingredient,unspecified,India,,SRC-IFCT2017,D040,source_mapped
+GF-ING-00124,"Colocasia, stem, green",ingredient,unspecified,India,,SRC-IFCT2017,D041,source_mapped
+GF-ING-00125,"Corn, baby",ingredient,unspecified,India,,SRC-IFCT2017,D042,source_mapped
+GF-ING-00126,"Cucumber, green, elongate",ingredient,unspecified,India,,SRC-IFCT2017,D043,source_mapped
+GF-ING-00127,"Cucumber, green, short",ingredient,unspecified,India,,SRC-IFCT2017,D044,source_mapped
+GF-ING-00128,"Cucumber, orange, round",ingredient,unspecified,India,,SRC-IFCT2017,D045,source_mapped
+GF-ING-00129,Drumstick,ingredient,unspecified,India,,SRC-IFCT2017,D046,source_mapped
+GF-ING-00130,"Field beans, tender, broad",ingredient,unspecified,India,,SRC-IFCT2017,D047,source_mapped
+GF-ING-00131,"Field beans, tender, lean",ingredient,unspecified,India,,SRC-IFCT2017,D048,source_mapped
+GF-ING-00132,"French beans, country",ingredient,unspecified,India,,SRC-IFCT2017,D049,source_mapped
+GF-ING-00133,"French beans, hybrid",ingredient,unspecified,India,,SRC-IFCT2017,D050,source_mapped
+GF-ING-00134,"Jack fruit, raw",ingredient,raw,India,,SRC-IFCT2017,D051,source_mapped
+GF-ING-00135,"Jack fruit, seeds, mature",ingredient,unspecified,India,,SRC-IFCT2017,D052,source_mapped
+GF-ING-00136,Knol - Khol,ingredient,unspecified,India,,SRC-IFCT2017,D053,source_mapped
+GF-ING-00137,"Kovai, big",ingredient,unspecified,India,,SRC-IFCT2017,D054,source_mapped
+GF-ING-00138,"Kovai, small",ingredient,unspecified,India,,SRC-IFCT2017,D055,source_mapped
+GF-ING-00139,Ladies finger,ingredient,unspecified,India,,SRC-IFCT2017,D056,source_mapped
+GF-ING-00140,"Mango, green, raw",ingredient,raw,India,,SRC-IFCT2017,D057,source_mapped
+GF-ING-00141,"Onion, stalk",ingredient,unspecified,India,,SRC-IFCT2017,D058,source_mapped
+GF-ING-00142,"Papaya, raw",ingredient,raw,India,,SRC-IFCT2017,D059,source_mapped
+GF-ING-00143,Parwar,ingredient,unspecified,India,,SRC-IFCT2017,D060,source_mapped
+GF-ING-00144,"Peas, fresh",ingredient,fresh,India,,SRC-IFCT2017,D061,source_mapped
+GF-ING-00145,"Plantain, flower",ingredient,unspecified,India,,SRC-IFCT2017,D062,source_mapped
+GF-ING-00146,"Plantain, green",ingredient,unspecified,India,,SRC-IFCT2017,D063,source_mapped
+GF-ING-00147,"Plantain, stem",ingredient,unspecified,India,,SRC-IFCT2017,D064,source_mapped
+GF-ING-00148,"Pumpkin, green, cylindrical",ingredient,unspecified,India,,SRC-IFCT2017,D065,source_mapped
+GF-ING-00149,"Pumpkin, orange, round",ingredient,unspecified,India,,SRC-IFCT2017,D066,source_mapped
+GF-ING-00150,"Red gram, tender, fresh",ingredient,fresh,India,,SRC-IFCT2017,D067,source_mapped
+GF-ING-00151,Ridge gourd,ingredient,unspecified,India,,SRC-IFCT2017,D068,source_mapped
+GF-ING-00152,"Ridge gourd, smooth skin",ingredient,unspecified,India,,SRC-IFCT2017,D069,source_mapped
+GF-ING-00153,"Snake gourd, long, pale green",ingredient,unspecified,India,,SRC-IFCT2017,D070,source_mapped
+GF-ING-00154,"Snake gourd, long, dark green",ingredient,unspecified,India,,SRC-IFCT2017,D071,source_mapped
+GF-ING-00155,"Snake gourd, short",ingredient,unspecified,India,,SRC-IFCT2017,D072,source_mapped
+GF-ING-00156,"Tinda, tender",ingredient,unspecified,India,,SRC-IFCT2017,D073,source_mapped
+GF-ING-00157,"Tomato, green",ingredient,unspecified,India,,SRC-IFCT2017,D074,source_mapped
+GF-ING-00158,"Tomato, ripe, hybrid",ingredient,unspecified,India,,SRC-IFCT2017,D075,source_mapped
+GF-ING-00159,"Tomato, ripe, local",ingredient,unspecified,India,,SRC-IFCT2017,D076,source_mapped
+GF-ING-00160,"Zucchini, green",ingredient,unspecified,India,,SRC-IFCT2017,D077,source_mapped
+GF-ING-00161,"Zucchini, yellow",ingredient,unspecified,India,,SRC-IFCT2017,D078,source_mapped
+GF-ING-00162,"Apple, big",ingredient,unspecified,India,,SRC-IFCT2017,E001,source_mapped
+GF-ING-00163,"Apple, green",ingredient,unspecified,India,,SRC-IFCT2017,E002,source_mapped
+GF-ING-00164,"Apple, small",ingredient,unspecified,India,,SRC-IFCT2017,E003,source_mapped
+GF-ING-00165,"Apple, small, Kashmir",ingredient,unspecified,India,,SRC-IFCT2017,E004,source_mapped
+GF-ING-00166,"Apricot, dried",ingredient,dried,India,,SRC-IFCT2017,E005,source_mapped
+GF-ING-00167,"Apricot, processed",ingredient,unspecified,India,,SRC-IFCT2017,E006,source_mapped
+GF-ING-00168,Avocado fruit,ingredient,unspecified,India,,SRC-IFCT2017,E007,source_mapped
+GF-ING-00169,Bael fruit,ingredient,unspecified,India,,SRC-IFCT2017,E008,source_mapped
+GF-ING-00170,"Banana, ripe, montham",ingredient,unspecified,India,,SRC-IFCT2017,E009,source_mapped
+GF-ING-00171,"Banana, ripe, poovam",ingredient,unspecified,India,,SRC-IFCT2017,E010,source_mapped
+GF-ING-00172,"Banana, ripe, red",ingredient,unspecified,India,,SRC-IFCT2017,E011,source_mapped
+GF-ING-00173,"Banana, ripe, robusta",ingredient,unspecified,India,,SRC-IFCT2017,E012,source_mapped
+GF-ING-00174,Black berry,ingredient,unspecified,India,,SRC-IFCT2017,E013,source_mapped
+GF-ING-00175,"Cherries, red",ingredient,unspecified,India,,SRC-IFCT2017,E014,source_mapped
+GF-ING-00176,"Currants, black",ingredient,unspecified,India,,SRC-IFCT2017,E015,source_mapped
+GF-ING-00177,Custard apple,ingredient,unspecified,India,,SRC-IFCT2017,E016,source_mapped
+GF-ING-00178,"Dates, dry, pale brown",ingredient,unspecified,India,,SRC-IFCT2017,E017,source_mapped
+GF-ING-00179,"Dates, dry, dark brown",ingredient,unspecified,India,,SRC-IFCT2017,E018,source_mapped
+GF-ING-00180,"Dates, processed",ingredient,unspecified,India,,SRC-IFCT2017,E019,source_mapped
+GF-ING-00181,Fig,ingredient,unspecified,India,,SRC-IFCT2017,E020,source_mapped
+GF-ING-00182,Goosberry,ingredient,unspecified,India,,SRC-IFCT2017,E021,source_mapped
+GF-ING-00183,"Grapes, seeded, round, black",ingredient,unspecified,India,,SRC-IFCT2017,E022,source_mapped
+GF-ING-00184,"Grapes, seeded, round, green",ingredient,unspecified,India,,SRC-IFCT2017,E023,source_mapped
+GF-ING-00185,"Grapes, seeded, round, red",ingredient,unspecified,India,,SRC-IFCT2017,E024,source_mapped
+GF-ING-00186,"Grapes, seedless, oval, black",ingredient,unspecified,India,,SRC-IFCT2017,E025,source_mapped
+GF-ING-00187,"Grapes, seedless, round, green",ingredient,unspecified,India,,SRC-IFCT2017,E026,source_mapped
+GF-ING-00188,"Grapes, seedless, round, black",ingredient,unspecified,India,,SRC-IFCT2017,E027,source_mapped
+GF-ING-00189,"Guava, white flesh",ingredient,unspecified,India,,SRC-IFCT2017,E028,source_mapped
+GF-ING-00190,"Guava, pink flesh",ingredient,unspecified,India,,SRC-IFCT2017,E029,source_mapped
+GF-ING-00191,"Jack fruit, ripe",ingredient,unspecified,India,,SRC-IFCT2017,E030,source_mapped
+GF-ING-00192,"Jambu fruit, ripe",ingredient,unspecified,India,,SRC-IFCT2017,E031,source_mapped
+GF-ING-00193,Karonda fruit,ingredient,unspecified,India,,SRC-IFCT2017,E032,source_mapped
+GF-ING-00194,"Lemon, juice",ingredient,unspecified,India,,SRC-IFCT2017,E033,source_mapped
+GF-ING-00195,"Lime, sweet, pulp",ingredient,unspecified,India,,SRC-IFCT2017,E034,source_mapped
+GF-ING-00196,Litchi,ingredient,unspecified,India,,SRC-IFCT2017,E035,source_mapped
+GF-ING-00197,"Mango, ripe, banganapalli",ingredient,unspecified,India,,SRC-IFCT2017,E036,source_mapped
+GF-ING-00198,"Mango, ripe, gulabkhas",ingredient,unspecified,India,,SRC-IFCT2017,E037,source_mapped
+GF-ING-00199,"Mango, ripe, himsagar",ingredient,unspecified,India,,SRC-IFCT2017,E038,source_mapped
+GF-ING-00200,"Mango, ripe, kesar",ingredient,unspecified,India,,SRC-IFCT2017,E039,source_mapped
+GF-ING-00201,"Mango, ripe, neelam",ingredient,unspecified,India,,SRC-IFCT2017,E040,source_mapped
+GF-ING-00202,"Mango, ripe, paheri",ingredient,unspecified,India,,SRC-IFCT2017,E041,source_mapped
+GF-ING-00203,"Mango, ripe, totapari",ingredient,unspecified,India,,SRC-IFCT2017,E042,source_mapped
+GF-ING-00204,Mangosteen,ingredient,unspecified,India,,SRC-IFCT2017,E043,source_mapped
+GF-ING-00205,Manila tamarind,ingredient,unspecified,India,,SRC-IFCT2017,E044,source_mapped
+GF-ING-00206,"Musk melon, orange flesh",ingredient,unspecified,India,,SRC-IFCT2017,E045,source_mapped
+GF-ING-00207,"Musk melon, yellow flesh",ingredient,unspecified,India,,SRC-IFCT2017,E046,source_mapped
+GF-ING-00208,"Orange, pulp",ingredient,unspecified,India,,SRC-IFCT2017,E047,source_mapped
+GF-ING-00209,"Palm fruit, tender",ingredient,unspecified,India,,SRC-IFCT2017,E048,source_mapped
+GF-ING-00210,"Papaya, ripe",ingredient,unspecified,India,,SRC-IFCT2017,E049,source_mapped
+GF-ING-00211,Peach,ingredient,unspecified,India,,SRC-IFCT2017,E050,source_mapped
+GF-ING-00212,Pear,ingredient,unspecified,India,,SRC-IFCT2017,E051,source_mapped
+GF-ING-00213,Phalsa,ingredient,unspecified,India,,SRC-IFCT2017,E052,source_mapped
+GF-ING-00214,Pineapple,ingredient,unspecified,India,,SRC-IFCT2017,E053,source_mapped
+GF-ING-00215,Plum,ingredient,unspecified,India,,SRC-IFCT2017,E054,source_mapped
+GF-ING-00216,"Pomegranate, maroon seeds",ingredient,unspecified,India,,SRC-IFCT2017,E055,source_mapped
+GF-ING-00217,Pummelo,ingredient,unspecified,India,,SRC-IFCT2017,E056,source_mapped
+GF-ING-00218,"Raisins, dried, black",ingredient,dried,India,,SRC-IFCT2017,E057,source_mapped
+GF-ING-00219,"Raisins, dried, golden",ingredient,dried,India,,SRC-IFCT2017,E058,source_mapped
+GF-ING-00220,Rambutan,ingredient,unspecified,India,,SRC-IFCT2017,E059,source_mapped
+GF-ING-00221,Sapota,ingredient,unspecified,India,,SRC-IFCT2017,E060,source_mapped
+GF-ING-00222,Soursop,ingredient,unspecified,India,,SRC-IFCT2017,E061,source_mapped
+GF-ING-00223,Star fruit,ingredient,unspecified,India,,SRC-IFCT2017,E062,source_mapped
+GF-ING-00224,Strawberry,ingredient,raw,India,,SRC-IFCT2017,E063,source_mapped
+GF-ING-00225,"Tamarind, pulp",ingredient,unspecified,India,,SRC-IFCT2017,E064,source_mapped
+GF-ING-00226,"Water melon, dark green (sugar baby)",ingredient,unspecified,India,,SRC-IFCT2017,E065,source_mapped
+GF-ING-00227,"Water melon, pale green",ingredient,unspecified,India,,SRC-IFCT2017,E066,source_mapped
+GF-ING-00228,Wood apple,ingredient,unspecified,India,,SRC-IFCT2017,E067,source_mapped
+GF-ING-00229,Zizyphus,ingredient,unspecified,India,,SRC-IFCT2017,E068,source_mapped
+GF-ING-00230,Beetroot,ingredient,unspecified,India,,SRC-IFCT2017,F001,source_mapped
+GF-ING-00231,"Carrot, orange",ingredient,unspecified,India,,SRC-IFCT2017,F002,source_mapped
+GF-ING-00232,"Carrot, red",ingredient,unspecified,India,,SRC-IFCT2017,F003,source_mapped
+GF-ING-00233,Colocasia,ingredient,unspecified,India,,SRC-IFCT2017,F004,source_mapped
+GF-ING-00234,Lotus root,ingredient,unspecified,India,,SRC-IFCT2017,F005,source_mapped
+GF-ING-00235,"Potato, brown skin, big",ingredient,unspecified,India,,SRC-IFCT2017,F006,source_mapped
+GF-ING-00236,"Potato, brown skin, small",ingredient,unspecified,India,,SRC-IFCT2017,F007,source_mapped
+GF-ING-00237,"Potato, red skin",ingredient,unspecified,India,,SRC-IFCT2017,F008,source_mapped
+GF-ING-00238,"Radish, elongate, red skin",ingredient,unspecified,India,,SRC-IFCT2017,F009,source_mapped
+GF-ING-00239,"Radish, elongate, white skin",ingredient,unspecified,India,,SRC-IFCT2017,F010,source_mapped
+GF-ING-00240,"Radish, round, red skin",ingredient,unspecified,India,,SRC-IFCT2017,F011,source_mapped
+GF-ING-00241,"Radish, round, white skin",ingredient,unspecified,India,,SRC-IFCT2017,F012,source_mapped
+GF-ING-00242,"Sweet potato, brown skin",ingredient,unspecified,India,,SRC-IFCT2017,F013,source_mapped
+GF-ING-00243,"Sweet potato, pink skin",ingredient,unspecified,India,,SRC-IFCT2017,F014,source_mapped
+GF-ING-00244,Tapioca,ingredient,unspecified,India,,SRC-IFCT2017,F015,source_mapped
+GF-ING-00245,Water Chestnut,ingredient,unspecified,India,,SRC-IFCT2017,F016,source_mapped
+GF-ING-00246,"Yam, elephant",ingredient,unspecified,India,,SRC-IFCT2017,F017,source_mapped
+GF-ING-00247,"Yam, ordinary",ingredient,unspecified,India,,SRC-IFCT2017,F018,source_mapped
+GF-ING-00248,"Yam, wild",ingredient,unspecified,India,,SRC-IFCT2017,F019,source_mapped
+GF-ING-00249,"Chillies, green-1",ingredient,unspecified,India,,SRC-IFCT2017,G001,source_mapped
+GF-ING-00250,"Chillies, green-2",ingredient,unspecified,India,,SRC-IFCT2017,G002,source_mapped
+GF-ING-00251,"Chillies, green-3",ingredient,unspecified,India,,SRC-IFCT2017,G003,source_mapped
+GF-ING-00252,"Chillies, green-4",ingredient,unspecified,India,,SRC-IFCT2017,G004,source_mapped
+GF-ING-00253,"Chillies, green-5",ingredient,unspecified,India,,SRC-IFCT2017,G005,source_mapped
+GF-ING-00254,"Chillies, green-6",ingredient,unspecified,India,,SRC-IFCT2017,G006,source_mapped
+GF-ING-00255,"Chillies, green-7",ingredient,unspecified,India,,SRC-IFCT2017,G007,source_mapped
+GF-ING-00256,"Chillies, green - all varieties",ingredient,unspecified,India,,SRC-IFCT2017,G008,source_mapped
+GF-ING-00257,Coriander leaves,ingredient,unspecified,India,,SRC-IFCT2017,G009,source_mapped
+GF-ING-00258,Curry leaves,ingredient,unspecified,India,,SRC-IFCT2017,G010,source_mapped
+GF-ING-00259,"Garlic, big cloves",ingredient,unspecified,India,,SRC-IFCT2017,G011,source_mapped
+GF-ING-00260,"Garlic, small cloves",ingredient,unspecified,India,,SRC-IFCT2017,G012,source_mapped
+GF-ING-00261,"Garlic, single clove, Kashmir",ingredient,unspecified,India,,SRC-IFCT2017,G013,source_mapped
+GF-ING-00262,"Ginger, fresh",ingredient,fresh,India,,SRC-IFCT2017,G014,source_mapped
+GF-ING-00263,Mango ginger,ingredient,unspecified,India,,SRC-IFCT2017,G015,source_mapped
+GF-ING-00264,Mint leaves,ingredient,unspecified,India,,SRC-IFCT2017,G016,source_mapped
+GF-ING-00265,"Onion, big",ingredient,unspecified,India,,SRC-IFCT2017,G017,source_mapped
+GF-ING-00266,"Onion, small",ingredient,unspecified,India,,SRC-IFCT2017,G018,source_mapped
+GF-ING-00267,Asafoetida,ingredient,unspecified,India,,SRC-IFCT2017,G019,source_mapped
+GF-ING-00268,"Cardamom, green",ingredient,unspecified,India,,SRC-IFCT2017,G020,source_mapped
+GF-ING-00269,"Cardamom, black",ingredient,unspecified,India,,SRC-IFCT2017,G021,source_mapped
+GF-ING-00270,"Chillies, red",ingredient,unspecified,India,,SRC-IFCT2017,G022,source_mapped
+GF-ING-00271,Cloves,ingredient,unspecified,India,,SRC-IFCT2017,G023,source_mapped
+GF-ING-00272,Coriander seeds,ingredient,unspecified,India,,SRC-IFCT2017,G024,source_mapped
+GF-ING-00273,Cumin seeds,ingredient,unspecified,India,,SRC-IFCT2017,G025,source_mapped
+GF-ING-00274,Fenugreek seeds,ingredient,unspecified,India,,SRC-IFCT2017,G026,source_mapped
+GF-ING-00275,Mace,ingredient,unspecified,India,,SRC-IFCT2017,G027,source_mapped
+GF-ING-00276,Nutmeg,ingredient,unspecified,India,,SRC-IFCT2017,G028,source_mapped
+GF-ING-00277,Omum,ingredient,unspecified,India,,SRC-IFCT2017,G029,source_mapped
+GF-ING-00278,Pippali,ingredient,unspecified,India,,SRC-IFCT2017,G030,source_mapped
+GF-ING-00279,"Pepper, black",ingredient,unspecified,India,,SRC-IFCT2017,G031,source_mapped
+GF-ING-00280,Poppy seeds,ingredient,unspecified,India,,SRC-IFCT2017,G032,source_mapped
+GF-ING-00281,Turmeric powder,ingredient,powder,India,,SRC-IFCT2017,G033,source_mapped
+GF-ING-00282,Almond,ingredient,unspecified,India,,SRC-IFCT2017,H001,source_mapped
+GF-ING-00283,"Arecanut, dried, brown",ingredient,dried,India,,SRC-IFCT2017,H002,source_mapped
+GF-ING-00284,"Arecanut, dried, red color",ingredient,dried,India,,SRC-IFCT2017,H003,source_mapped
+GF-ING-00285,"Arecanut, fresh",ingredient,fresh,India,,SRC-IFCT2017,H004,source_mapped
+GF-ING-00286,Cashew nut,ingredient,unspecified,India,,SRC-IFCT2017,H005,source_mapped
+GF-ING-00287,"Coconut, kernel, dry",ingredient,unspecified,India,,SRC-IFCT2017,H006,source_mapped
+GF-ING-00288,"Coconut, kernel, fresh",ingredient,fresh,India,,SRC-IFCT2017,H007,source_mapped
+GF-ING-00289,"Garden cress, seeds",ingredient,unspecified,India,,SRC-IFCT2017,H008,source_mapped
+GF-ING-00290,"Gingelly seeds, black",ingredient,unspecified,India,,SRC-IFCT2017,H009,source_mapped
+GF-ING-00291,"Gingelly seeds, brown",ingredient,unspecified,India,,SRC-IFCT2017,H010,source_mapped
+GF-ING-00292,"Gingelly seeds, white",ingredient,unspecified,India,,SRC-IFCT2017,H011,source_mapped
+GF-ING-00293,Ground nut,ingredient,unspecified,India,,SRC-IFCT2017,H012,source_mapped
+GF-ING-00294,Mustard seeds,ingredient,unspecified,India,,SRC-IFCT2017,H013,source_mapped
+GF-ING-00295,Linseeds,ingredient,unspecified,India,,SRC-IFCT2017,H014,source_mapped
+GF-ING-00296,"Niger seeds, black",ingredient,unspecified,India,,SRC-IFCT2017,H015,source_mapped
+GF-ING-00297,"Niger seeds, grey",ingredient,unspecified,India,,SRC-IFCT2017,H016,source_mapped
+GF-ING-00298,Pine seeds,ingredient,unspecified,India,,SRC-IFCT2017,H017,source_mapped
+GF-ING-00299,Pistachio nuts,ingredient,unspecified,India,,SRC-IFCT2017,H018,source_mapped
+GF-ING-00300,Safflower seeds,ingredient,unspecified,India,,SRC-IFCT2017,H019,source_mapped
+GF-ING-00301,Sunflower seeds,ingredient,unspecified,India,,SRC-IFCT2017,H020,source_mapped
+GF-ING-00302,Walnut,ingredient,unspecified,India,,SRC-IFCT2017,H021,source_mapped
+GF-ING-00303,"Jaggery, cane",ingredient,unspecified,India,,SRC-IFCT2017,I001,source_mapped
+GF-ING-00304,"Sugarcane, juice",ingredient,unspecified,India,,SRC-IFCT2017,I002,source_mapped
+GF-ING-00305,"Button mushroom, fresh",ingredient,fresh,India,,SRC-IFCT2017,J001,source_mapped
+GF-ING-00306,"Chicken mushroom, fresh",ingredient,fresh,India,,SRC-IFCT2017,J002,source_mapped
+GF-ING-00307,"Shiitake mushroom, fresh",ingredient,fresh,India,,SRC-IFCT2017,J003,source_mapped
+GF-ING-00308,"Oyster mushroom, dried",ingredient,dried,India,,SRC-IFCT2017,J004,source_mapped
+GF-ING-00309,Toddy,ingredient,unspecified,India,,SRC-IFCT2017,K001,source_mapped
+GF-ING-00310,Coconut water,ingredient,unspecified,India,,SRC-IFCT2017,K002,source_mapped
+GF-ING-00311,"Milk, whole, Buffalo",ingredient,whole,India,,SRC-IFCT2017,L001,source_mapped
+GF-ING-00312,"Milk, whole, Cow",ingredient,whole,India,,SRC-IFCT2017,L002,source_mapped
+GF-ING-00313,Paneer,ingredient,unspecified,India,,SRC-IFCT2017,L003,source_mapped
+GF-ING-00314,Khoa,ingredient,unspecified,India,,SRC-IFCT2017,L004,source_mapped
+GF-ING-00315,"Egg, poultry, whole, raw",ingredient,raw,India,,SRC-IFCT2017,M001,source_mapped
+GF-ING-00316,"Egg, poultry, white, raw",ingredient,raw,India,,SRC-IFCT2017,M002,source_mapped
+GF-ING-00317,"Egg, poultry, yolk, raw",ingredient,raw,India,,SRC-IFCT2017,M003,source_mapped
+GF-ING-00318,"Egg, poultry, whole, boiled",ingredient,boiled,India,,SRC-IFCT2017,M004,source_mapped
+GF-ING-00319,"Egg, poultry, white, boiled",ingredient,boiled,India,,SRC-IFCT2017,M005,source_mapped
+GF-ING-00320,"Egg, poultry, yolk, boiled",ingredient,boiled,India,,SRC-IFCT2017,M006,source_mapped
+GF-ING-00321,"Egg, poultry, omlet",ingredient,unspecified,India,,SRC-IFCT2017,M007,source_mapped
+GF-ING-00322,"Egg, country hen, whole, raw",ingredient,raw,India,,SRC-IFCT2017,M008,source_mapped
+GF-ING-00323,"Egg, country hen, whole, boiled",ingredient,boiled,India,,SRC-IFCT2017,M009,source_mapped
+GF-ING-00324,"Egg, country hen, omlet",ingredient,unspecified,India,,SRC-IFCT2017,M010,source_mapped
+GF-ING-00325,"Egg, duck, whole, boiled",ingredient,boiled,India,,SRC-IFCT2017,M011,source_mapped
+GF-ING-00326,"Egg, duck, whole, raw",ingredient,raw,India,,SRC-IFCT2017,M012,source_mapped
+GF-ING-00327,"Egg, duck, whole, omlet",ingredient,whole,India,,SRC-IFCT2017,M013,source_mapped
+GF-ING-00328,"Egg, quial, whole, raw",ingredient,raw,India,,SRC-IFCT2017,M014,source_mapped
+GF-ING-00329,"Egg, quial, whole, boiled",ingredient,boiled,India,,SRC-IFCT2017,M015,source_mapped
+GF-ING-00330,"Chicken, poultry, leg, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N001,source_mapped
+GF-ING-00331,"Chicken, poultry, thigh, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N002,source_mapped
+GF-ING-00332,"Chicken, poultry, breast, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N003,source_mapped
+GF-ING-00333,"Chicken, poultry, wing, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N004,source_mapped
+GF-ING-00334,"Poultry, chicken, liver",ingredient,unspecified,India,,SRC-IFCT2017,N005,source_mapped
+GF-ING-00335,"Poultry, chicken, gizzard",ingredient,unspecified,India,,SRC-IFCT2017,N006,source_mapped
+GF-ING-00336,"Country hen, leg, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N007,source_mapped
+GF-ING-00337,"Country hen, thigh, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N008,source_mapped
+GF-ING-00338,"Country hen, breast, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N009,source_mapped
+GF-ING-00339,"Country hen, wing, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N010,source_mapped
+GF-ING-00340,"Duck, meat, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N011,source_mapped
+GF-ING-00341,"Emu, meat, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N012,source_mapped
+GF-ING-00342,"Guinea fowl, meat, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N013,source_mapped
+GF-ING-00343,"Pigeon, meat, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N014,source_mapped
+GF-ING-00344,"Quail, meat, skinless",ingredient,unspecified,India,,SRC-IFCT2017,N015,source_mapped
+GF-ING-00345,"Turkey, leg, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N016,source_mapped
+GF-ING-00346,"Turkey, thigh, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N017,source_mapped
+GF-ING-00347,"Turkey, breast, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N018,source_mapped
+GF-ING-00348,"Turkey, wing, with skin",ingredient,unspecified,India,,SRC-IFCT2017,N019,source_mapped
+GF-ING-00349,"Goat, shoulder, meat",ingredient,unspecified,India,,SRC-IFCT2017,O001,source_mapped
+GF-ING-00350,"Goat, chops",ingredient,unspecified,India,,SRC-IFCT2017,O002,source_mapped
+GF-ING-00351,"Goat, legs",ingredient,unspecified,India,,SRC-IFCT2017,O003,source_mapped
+GF-ING-00352,"Goat, brain",ingredient,unspecified,India,,SRC-IFCT2017,O004,source_mapped
+GF-ING-00353,"Goat, tongue",ingredient,unspecified,India,,SRC-IFCT2017,O005,source_mapped
+GF-ING-00354,"Goat, lungs",ingredient,unspecified,India,,SRC-IFCT2017,O006,source_mapped
+GF-ING-00355,"Goat, heart",ingredient,unspecified,India,,SRC-IFCT2017,O007,source_mapped
+GF-ING-00356,"Goat, liver",ingredient,unspecified,India,,SRC-IFCT2017,O008,source_mapped
+GF-ING-00357,"Goat, tripe",ingredient,unspecified,India,,SRC-IFCT2017,O009,source_mapped
+GF-ING-00358,"Goat, spleen",ingredient,unspecified,India,,SRC-IFCT2017,O010,source_mapped
+GF-ING-00359,"Goat, kidneys",ingredient,unspecified,India,,SRC-IFCT2017,O011,source_mapped
+GF-ING-00360,"Goat, tube (small intestine)",ingredient,unspecified,India,,SRC-IFCT2017,O012,source_mapped
+GF-ING-00361,"Goat, testis",ingredient,unspecified,India,,SRC-IFCT2017,O013,source_mapped
+GF-ING-00362,"Sheep, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O014,source_mapped
+GF-ING-00363,"Sheep, chops",ingredient,unspecified,India,,SRC-IFCT2017,O015,source_mapped
+GF-ING-00364,"Sheep, leg",ingredient,unspecified,India,,SRC-IFCT2017,O016,source_mapped
+GF-ING-00365,"Sheep, brain",ingredient,unspecified,India,,SRC-IFCT2017,O017,source_mapped
+GF-ING-00366,"Sheep, tongue",ingredient,unspecified,India,,SRC-IFCT2017,O018,source_mapped
+GF-ING-00367,"Sheep, lungs",ingredient,unspecified,India,,SRC-IFCT2017,O019,source_mapped
+GF-ING-00368,"Sheep, heart",ingredient,unspecified,India,,SRC-IFCT2017,O020,source_mapped
+GF-ING-00369,"Sheep, liver",ingredient,unspecified,India,,SRC-IFCT2017,O021,source_mapped
+GF-ING-00370,"Sheep, tripe",ingredient,unspecified,India,,SRC-IFCT2017,O022,source_mapped
+GF-ING-00371,"Sheep, spleen",ingredient,unspecified,India,,SRC-IFCT2017,O023,source_mapped
+GF-ING-00372,"Sheep, kidneys",ingredient,unspecified,India,,SRC-IFCT2017,O024,source_mapped
+GF-ING-00373,"Beef, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O025,source_mapped
+GF-ING-00374,"Beef, chops",ingredient,unspecified,India,,SRC-IFCT2017,O026,source_mapped
+GF-ING-00375,"Beef, round (leg)",ingredient,unspecified,India,,SRC-IFCT2017,O027,source_mapped
+GF-ING-00376,"Beef, brain",ingredient,unspecified,India,,SRC-IFCT2017,O028,source_mapped
+GF-ING-00377,"Beef, tongue",ingredient,unspecified,India,,SRC-IFCT2017,O029,source_mapped
+GF-ING-00378,"Beef, lungs",ingredient,unspecified,India,,SRC-IFCT2017,O030,source_mapped
+GF-ING-00379,"Beef, heart",ingredient,unspecified,India,,SRC-IFCT2017,O031,source_mapped
+GF-ING-00380,"Beef, liver",ingredient,unspecified,India,,SRC-IFCT2017,O032,source_mapped
+GF-ING-00381,"Beef, tripe",ingredient,unspecified,India,,SRC-IFCT2017,O033,source_mapped
+GF-ING-00382,"Beef, spleen",ingredient,unspecified,India,,SRC-IFCT2017,O034,source_mapped
+GF-ING-00383,"Beef, kidneys",ingredient,unspecified,India,,SRC-IFCT2017,O035,source_mapped
+GF-ING-00384,"Calf, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O036,source_mapped
+GF-ING-00385,"Calf, chops",ingredient,unspecified,India,,SRC-IFCT2017,O037,source_mapped
+GF-ING-00386,"Calf, round (leg)",ingredient,unspecified,India,,SRC-IFCT2017,O038,source_mapped
+GF-ING-00387,"Calf, brain",ingredient,unspecified,India,,SRC-IFCT2017,O039,source_mapped
+GF-ING-00388,"Calf, tongue",ingredient,unspecified,India,,SRC-IFCT2017,O040,source_mapped
+GF-ING-00389,"Calf, heart",ingredient,unspecified,India,,SRC-IFCT2017,O041,source_mapped
+GF-ING-00390,"Calf, liver",ingredient,unspecified,India,,SRC-IFCT2017,O042,source_mapped
+GF-ING-00391,"Calf, spleen",ingredient,unspecified,India,,SRC-IFCT2017,O043,source_mapped
+GF-ING-00392,"Calf, kidneys",ingredient,unspecified,India,,SRC-IFCT2017,O044,source_mapped
+GF-ING-00393,"Mithun, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O045,source_mapped
+GF-ING-00394,"Mithun, chops",ingredient,unspecified,India,,SRC-IFCT2017,O046,source_mapped
+GF-ING-00395,"Mithun, round (leg)",ingredient,unspecified,India,,SRC-IFCT2017,O047,source_mapped
+GF-ING-00396,"Pork, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O048,source_mapped
+GF-ING-00397,"Pork, chops",ingredient,unspecified,India,,SRC-IFCT2017,O049,source_mapped
+GF-ING-00398,"Pork, ham",ingredient,unspecified,India,,SRC-IFCT2017,O050,source_mapped
+GF-ING-00399,"Pork, lungs",ingredient,unspecified,India,,SRC-IFCT2017,O051,source_mapped
+GF-ING-00400,"Pork, heart",ingredient,unspecified,India,,SRC-IFCT2017,O052,source_mapped
+GF-ING-00401,"Pork, liver",ingredient,unspecified,India,,SRC-IFCT2017,O053,source_mapped
+GF-ING-00402,"Pork, stomach",ingredient,unspecified,India,,SRC-IFCT2017,O054,source_mapped
+GF-ING-00403,"Pork, spleen",ingredient,unspecified,India,,SRC-IFCT2017,O055,source_mapped
+GF-ING-00404,"Pork, kidneys",ingredient,unspecified,India,,SRC-IFCT2017,O056,source_mapped
+GF-ING-00405,"Pork, tube (small intestine)",ingredient,unspecified,India,,SRC-IFCT2017,O057,source_mapped
+GF-ING-00406,"Hare, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O058,source_mapped
+GF-ING-00407,"Hare, chops",ingredient,unspecified,India,,SRC-IFCT2017,O059,source_mapped
+GF-ING-00408,"Hare, leg",ingredient,unspecified,India,,SRC-IFCT2017,O060,source_mapped
+GF-ING-00409,"Rabbit, shoulder",ingredient,unspecified,India,,SRC-IFCT2017,O061,source_mapped
+GF-ING-00410,"Rabbit, chops",ingredient,unspecified,India,,SRC-IFCT2017,O062,source_mapped
+GF-ING-00411,"Rabbit, leg",ingredient,unspecified,India,,SRC-IFCT2017,O063,source_mapped
+GF-ING-00412,Allathi,ingredient,unspecified,India,,SRC-IFCT2017,P001,source_mapped
+GF-ING-00413,Aluva,ingredient,unspecified,India,,SRC-IFCT2017,P002,source_mapped
+GF-ING-00414,Anchovy,ingredient,unspecified,India,,SRC-IFCT2017,P003,source_mapped
+GF-ING-00415,Ari fish,ingredient,unspecified,India,,SRC-IFCT2017,P004,source_mapped
+GF-ING-00416,Betki,ingredient,unspecified,India,,SRC-IFCT2017,P005,source_mapped
+GF-ING-00417,Black snapper,ingredient,unspecified,India,,SRC-IFCT2017,P006,source_mapped
+GF-ING-00418,Bombay duck,ingredient,unspecified,India,,SRC-IFCT2017,P007,source_mapped
+GF-ING-00419,Bommuralu,ingredient,unspecified,India,,SRC-IFCT2017,P008,source_mapped
+GF-ING-00420,Cat fish,ingredient,unspecified,India,,SRC-IFCT2017,P009,source_mapped
+GF-ING-00421,Chakla,ingredient,unspecified,India,,SRC-IFCT2017,P010,source_mapped
+GF-ING-00422,Chappal,ingredient,unspecified,India,,SRC-IFCT2017,P011,source_mapped
+GF-ING-00423,Chelu,ingredient,unspecified,India,,SRC-IFCT2017,P012,source_mapped
+GF-ING-00424,Chembali,ingredient,unspecified,India,,SRC-IFCT2017,P013,source_mapped
+GF-ING-00425,Eri meen,ingredient,unspecified,India,,SRC-IFCT2017,P014,source_mapped
+GF-ING-00426,Gobro,ingredient,unspecified,India,,SRC-IFCT2017,P015,source_mapped
+GF-ING-00427,Guitar fish,ingredient,unspecified,India,,SRC-IFCT2017,P016,source_mapped
+GF-ING-00428,Hilsa,ingredient,unspecified,India,,SRC-IFCT2017,P017,source_mapped
+GF-ING-00429,Jallal,ingredient,unspecified,India,,SRC-IFCT2017,P018,source_mapped
+GF-ING-00430,Jathi vela meen,ingredient,unspecified,India,,SRC-IFCT2017,P019,source_mapped
+GF-ING-00431,Kadal bral,ingredient,unspecified,India,,SRC-IFCT2017,P020,source_mapped
+GF-ING-00432,Kadali,ingredient,unspecified,India,,SRC-IFCT2017,P021,source_mapped
+GF-ING-00433,Kalamaara,ingredient,unspecified,India,,SRC-IFCT2017,P022,source_mapped
+GF-ING-00434,Kalava,ingredient,unspecified,India,,SRC-IFCT2017,P023,source_mapped
+GF-ING-00435,Kanamayya,ingredient,unspecified,India,,SRC-IFCT2017,P024,source_mapped
+GF-ING-00436,Kannadi paarai,ingredient,unspecified,India,,SRC-IFCT2017,P025,source_mapped
+GF-ING-00437,Karimeen,ingredient,unspecified,India,,SRC-IFCT2017,P026,source_mapped
+GF-ING-00438,Karnagawala,ingredient,unspecified,India,,SRC-IFCT2017,P027,source_mapped
+GF-ING-00439,Kayrai,ingredient,unspecified,India,,SRC-IFCT2017,P028,source_mapped
+GF-ING-00440,Kiriyan,ingredient,unspecified,India,,SRC-IFCT2017,P029,source_mapped
+GF-ING-00441,Kite fish,ingredient,unspecified,India,,SRC-IFCT2017,P030,source_mapped
+GF-ING-00442,Korka,ingredient,unspecified,India,,SRC-IFCT2017,P031,source_mapped
+GF-ING-00443,Kulam paarai,ingredient,unspecified,India,,SRC-IFCT2017,P032,source_mapped
+GF-ING-00444,Maagaa,ingredient,unspecified,India,,SRC-IFCT2017,P033,source_mapped
+GF-ING-00445,Mackerel,ingredient,unspecified,India,,SRC-IFCT2017,P034,source_mapped
+GF-ING-00446,Manda clathi,ingredient,unspecified,India,,SRC-IFCT2017,P035,source_mapped
+GF-ING-00447,Matha,ingredient,unspecified,India,,SRC-IFCT2017,P036,source_mapped
+GF-ING-00448,Milk fish,ingredient,unspecified,India,,SRC-IFCT2017,P037,source_mapped
+GF-ING-00449,Moon fish,ingredient,unspecified,India,,SRC-IFCT2017,P038,source_mapped
+GF-ING-00450,Mullet,ingredient,unspecified,India,,SRC-IFCT2017,P039,source_mapped
+GF-ING-00451,Mural,ingredient,unspecified,India,,SRC-IFCT2017,P040,source_mapped
+GF-ING-00452,Myil meen,ingredient,unspecified,India,,SRC-IFCT2017,P041,source_mapped
+GF-ING-00453,Nalla bontha,ingredient,unspecified,India,,SRC-IFCT2017,P042,source_mapped
+GF-ING-00454,Narba,ingredient,unspecified,India,,SRC-IFCT2017,P043,source_mapped
+GF-ING-00455,Paarai,ingredient,unspecified,India,,SRC-IFCT2017,P044,source_mapped
+GF-ING-00456,Padayappa,ingredient,unspecified,India,,SRC-IFCT2017,P045,source_mapped
+GF-ING-00457,Pali kora,ingredient,unspecified,India,,SRC-IFCT2017,P046,source_mapped
+GF-ING-00458,Pambada,ingredient,unspecified,India,,SRC-IFCT2017,P047,source_mapped
+GF-ING-00459,Pandukopa,ingredient,unspecified,India,,SRC-IFCT2017,P048,source_mapped
+GF-ING-00460,Parava,ingredient,unspecified,India,,SRC-IFCT2017,P049,source_mapped
+GF-ING-00461,Parcus,ingredient,unspecified,India,,SRC-IFCT2017,P050,source_mapped
+GF-ING-00462,Parrot fish,ingredient,unspecified,India,,SRC-IFCT2017,P051,source_mapped
+GF-ING-00463,Perinkilichai,ingredient,unspecified,India,,SRC-IFCT2017,P052,source_mapped
+GF-ING-00464,Phopat,ingredient,unspecified,India,,SRC-IFCT2017,P053,source_mapped
+GF-ING-00465,Piranha,ingredient,unspecified,India,,SRC-IFCT2017,P054,source_mapped
+GF-ING-00466,"Pomfret, black",ingredient,unspecified,India,,SRC-IFCT2017,P055,source_mapped
+GF-ING-00467,"Pomfret, snub nose",ingredient,unspecified,India,,SRC-IFCT2017,P056,source_mapped
+GF-ING-00468,"Pomfret, white",ingredient,unspecified,India,,SRC-IFCT2017,P057,source_mapped
+GF-ING-00469,Pranel,ingredient,unspecified,India,,SRC-IFCT2017,P058,source_mapped
+GF-ING-00470,Pulli paarai,ingredient,unspecified,India,,SRC-IFCT2017,P059,source_mapped
+GF-ING-00471,Queen fish,ingredient,unspecified,India,,SRC-IFCT2017,P060,source_mapped
+GF-ING-00472,Raai fish,ingredient,unspecified,India,,SRC-IFCT2017,P061,source_mapped
+GF-ING-00473,Raai vanthu,ingredient,unspecified,India,,SRC-IFCT2017,P062,source_mapped
+GF-ING-00474,Rani,ingredient,unspecified,India,,SRC-IFCT2017,P063,source_mapped
+GF-ING-00475,"Ray fish, bow head, spotted",ingredient,unspecified,India,,SRC-IFCT2017,P064,source_mapped
+GF-ING-00476,Red snapper,ingredient,unspecified,India,,SRC-IFCT2017,P065,source_mapped
+GF-ING-00477,"Red snapper, small",ingredient,unspecified,India,,SRC-IFCT2017,P066,source_mapped
+GF-ING-00478,Sadaya,ingredient,unspecified,India,,SRC-IFCT2017,P067,source_mapped
+GF-ING-00479,Salmon,ingredient,unspecified,India,,SRC-IFCT2017,P068,source_mapped
+GF-ING-00480,Sangada,ingredient,unspecified,India,,SRC-IFCT2017,P069,source_mapped
+GF-ING-00481,Sankata parai,ingredient,unspecified,India,,SRC-IFCT2017,P070,source_mapped
+GF-ING-00482,Sardine,ingredient,unspecified,India,,SRC-IFCT2017,P071,source_mapped
+GF-ING-00483,Shark,ingredient,unspecified,India,,SRC-IFCT2017,P072,source_mapped
+GF-ING-00484,"Shark, hammer head",ingredient,unspecified,India,,SRC-IFCT2017,P073,source_mapped
+GF-ING-00485,"Shark, spotted",ingredient,unspecified,India,,SRC-IFCT2017,P074,source_mapped
+GF-ING-00486,Shelavu,ingredient,unspecified,India,,SRC-IFCT2017,P075,source_mapped
+GF-ING-00487,Silan,ingredient,unspecified,India,,SRC-IFCT2017,P076,source_mapped
+GF-ING-00488,Silk fish,ingredient,unspecified,India,,SRC-IFCT2017,P077,source_mapped
+GF-ING-00489,Silver carp,ingredient,unspecified,India,,SRC-IFCT2017,P078,source_mapped
+GF-ING-00490,Sole fish,ingredient,unspecified,India,,SRC-IFCT2017,P079,source_mapped
+GF-ING-00491,Stingray,ingredient,unspecified,India,,SRC-IFCT2017,P080,source_mapped
+GF-ING-00492,Tarlava,ingredient,unspecified,India,,SRC-IFCT2017,P081,source_mapped
+GF-ING-00493,Tholam,ingredient,unspecified,India,,SRC-IFCT2017,P082,source_mapped
+GF-ING-00494,Tilapia,ingredient,unspecified,India,,SRC-IFCT2017,P083,source_mapped
+GF-ING-00495,Tuna,ingredient,unspecified,India,,SRC-IFCT2017,P084,source_mapped
+GF-ING-00496,"Tuna, striped",ingredient,unspecified,India,,SRC-IFCT2017,P085,source_mapped
+GF-ING-00497,Valava,ingredient,unspecified,India,,SRC-IFCT2017,P086,source_mapped
+GF-ING-00498,Vanjaram,ingredient,unspecified,India,,SRC-IFCT2017,P087,source_mapped
+GF-ING-00499,Vela meen,ingredient,unspecified,India,,SRC-IFCT2017,P088,source_mapped
+GF-ING-00500,Vora,ingredient,unspecified,India,,SRC-IFCT2017,P089,source_mapped
+GF-ING-00501,Whale shark,ingredient,unspecified,India,,SRC-IFCT2017,P090,source_mapped
+GF-ING-00502,Xiphinis,ingredient,unspecified,India,,SRC-IFCT2017,P091,source_mapped
+GF-ING-00503,"Eggs, cat fish",ingredient,unspecified,India,,SRC-IFCT2017,P092,source_mapped
+GF-ING-00504,Crab,ingredient,unspecified,India,,SRC-IFCT2017,Q001,source_mapped
+GF-ING-00505,"Crab, sea",ingredient,unspecified,India,,SRC-IFCT2017,Q002,source_mapped
+GF-ING-00506,"Lobster, brown",ingredient,unspecified,India,,SRC-IFCT2017,Q003,source_mapped
+GF-ING-00507,"Lobster, king size",ingredient,unspecified,India,,SRC-IFCT2017,Q004,source_mapped
+GF-ING-00508,Mud crab,ingredient,unspecified,India,,SRC-IFCT2017,Q005,source_mapped
+GF-ING-00509,Oyster,ingredient,unspecified,India,,SRC-IFCT2017,Q006,source_mapped
+GF-ING-00510,"Tiger prawns, brown",ingredient,raw,India,,SRC-IFCT2017,Q007,source_mapped
+GF-ING-00511,"Tiger Prawns, orange",ingredient,raw,India,,SRC-IFCT2017,Q008,source_mapped
+GF-ING-00512,"Clam, green shell",ingredient,unspecified,India,,SRC-IFCT2017,R001,source_mapped
+GF-ING-00513,"Clam, white shell, ribbed",ingredient,unspecified,India,,SRC-IFCT2017,R002,source_mapped
+GF-ING-00514,Octopus,ingredient,unspecified,India,,SRC-IFCT2017,R003,source_mapped
+GF-ING-00515,"Squid, black",ingredient,unspecified,India,,SRC-IFCT2017,R004,source_mapped
+GF-ING-00516,"Squid, hard shell",ingredient,unspecified,India,,SRC-IFCT2017,R005,source_mapped
+GF-ING-00517,"Squid, red",ingredient,unspecified,India,,SRC-IFCT2017,R006,source_mapped
+GF-ING-00518,"Squid, white, small",ingredient,unspecified,India,,SRC-IFCT2017,R007,source_mapped
+GF-ING-00519,Catla,ingredient,unspecified,India,,SRC-IFCT2017,S002,source_mapped
+GF-ING-00520,Fresh water Eel,ingredient,fresh,India,,SRC-IFCT2017,S003,source_mapped
+GF-ING-00521,Gold fish,ingredient,unspecified,India,,SRC-IFCT2017,S004,source_mapped
+GF-ING-00522,Pangas,ingredient,unspecified,India,,SRC-IFCT2017,S005,source_mapped
+GF-ING-00523,Rohu,ingredient,unspecified,India,,SRC-IFCT2017,S006,source_mapped
+GF-ING-00524,"Prawns, big",ingredient,raw,India,,SRC-IFCT2017,S008,source_mapped
+GF-ING-00525,"Prawns, small",ingredient,raw,India,,SRC-IFCT2017,S009,source_mapped
+GF-ING-00526,Tiger prawns,ingredient,raw,India,,SRC-IFCT2017,S010,source_mapped
+GF-ING-00527,Coconut oil,ingredient,unspecified,India,,SRC-IFCT2017,T001,source_mapped
+GF-ING-00528,Corn oil,ingredient,unspecified,India,,SRC-IFCT2017,T002,source_mapped
+GF-ING-00529,Cotton seed oil,ingredient,unspecified,India,,SRC-IFCT2017,T003,source_mapped
+GF-ING-00530,Gingelly oil,ingredient,unspecified,India,,SRC-IFCT2017,T004,source_mapped
+GF-ING-00531,Groundnut oil,ingredient,unspecified,India,,SRC-IFCT2017,T005,source_mapped
+GF-ING-00532,Mustard oil,ingredient,unspecified,India,,SRC-IFCT2017,T006,source_mapped
+GF-ING-00533,Palm oil,ingredient,unspecified,India,,SRC-IFCT2017,T007,source_mapped
+GF-ING-00534,Rice bran oil,ingredient,unspecified,India,,SRC-IFCT2017,T008,source_mapped
+GF-ING-00535,Safflower oil,ingredient,unspecified,India,,SRC-IFCT2017,T009,source_mapped
+GF-ING-00536,Safflower oil (blended),ingredient,unspecified,India,,SRC-IFCT2017,T010,source_mapped
+GF-ING-00537,Soyabean oil,ingredient,unspecified,India,,SRC-IFCT2017,T011,source_mapped
+GF-ING-00538,Sunflower oil,ingredient,unspecified,India,,SRC-IFCT2017,T012,source_mapped
+GF-ING-00539,Ghee,ingredient,unspecified,India,,SRC-IFCT2017,T013,source_mapped
+GF-ING-00540,Vanaspati,ingredient,unspecified,India,,SRC-IFCT2017,T014,source_mapped
+GF-ING-00541,"Agar, dried",ingredient,dried,India,,SRC-UKFCT,G509,source_mapped
+GF-ING-00542,Amla,ingredient,unspecified,India,,SRC-UKFCT,E507,source_mapped
+GF-ING-00543,"Apple juice, clear, ambient and chilled",ingredient,unspecified,India,,SRC-UKFCT,V500,source_mapped
+GF-ING-00544,"Bacon rashers, back, raw",ingredient,raw,India,,SRC-UKFCT,O500,source_mapped
+GF-ING-00545,Baking powder,ingredient,powder,India,,SRC-UKFCT,K500,source_mapped
+GF-ING-00546,"Bananas, raw, flesh only, weighed with skin",ingredient,raw,India,,SRC-UKFCT,E503,source_mapped
+GF-ING-00547,"Basil, dried, ground",ingredient,dried,India,,SRC-UKFCT,G511,source_mapped
+GF-ING-00548,"Bay leaf, dried",ingredient,dried,India,,SRC-UKFCT,G512,source_mapped
+GF-ING-00549,"Beans, broad, whole, raw",ingredient,raw,India,,SRC-UKFCT,D508,source_mapped
+GF-ING-00550,"Beans, chick peas, Kabuli, whole, dried, raw",ingredient,raw,India,,SRC-UKFCT,B500,source_mapped
+GF-ING-00551,"Beansprouts, mung, boiled in unsalted water",ingredient,boiled,India,,SRC-UKFCT,B501,source_mapped
+GF-ING-00552,Bicarbonate of soda,ingredient,unspecified,India,,SRC-UKFCT,K501,source_mapped
+GF-ING-00553,"Biscuits, digestive, plain",ingredient,unspecified,India,,SRC-UKFCT,U500,source_mapped
+GF-ING-00554,Blueberries,ingredient,unspecified,India,,SRC-UKFCT,E500,source_mapped
+GF-ING-00555,"Bread, brown, average",ingredient,unspecified,India,,SRC-UKFCT,U501,source_mapped
+GF-ING-00556,"Bread, brown, toasted",ingredient,unspecified,India,,SRC-UKFCT,U502,source_mapped
+GF-ING-00557,"Bread, white, average",ingredient,unspecified,India,,SRC-UKFCT,U511,source_mapped
+GF-ING-00558,"Breakfast cereal, crunchy clusters type, without nuts, unfortified",ingredient,unspecified,India,,SRC-UKFCT,A501,source_mapped
+GF-ING-00559,"Broccoli, green, raw",ingredient,raw,India,,SRC-UKFCT,C500,source_mapped
+GF-ING-00560,"Buckwheat, groats",ingredient,unspecified,India,,SRC-UKFCT,A514,source_mapped
+GF-ING-00561,"Butter, salted",ingredient,unspecified,India,,SRC-UKFCT,T500,source_mapped
+GF-ING-00562,"Butter, unsalted",ingredient,unspecified,India,,SRC-UKFCT,T501,source_mapped
+GF-ING-00563,"Cheese, Cheddar, English",ingredient,unspecified,India,,SRC-UKFCT,L500,source_mapped
+GF-ING-00564,"Cheese, cottage, plain",ingredient,unspecified,India,,SRC-UKFCT,L502,source_mapped
+GF-ING-00565,"Cheese, Feta",ingredient,unspecified,India,,SRC-UKFCT,L506,source_mapped
+GF-ING-00566,"Cheese, Mozzarella, fresh",ingredient,fresh,India,,SRC-UKFCT,L503,source_mapped
+GF-ING-00567,"Cheese, processed, plain",ingredient,unspecified,India,,SRC-UKFCT,L505,source_mapped
+GF-ING-00568,"Cheese, Ricotta",ingredient,unspecified,India,,SRC-UKFCT,L511,source_mapped
+GF-ING-00569,"Cherries, glace",ingredient,unspecified,India,,SRC-UKFCT,E511,source_mapped
+GF-ING-00570,"Cherries, West Indian, flesh only",ingredient,unspecified,India,,SRC-UKFCT,E504,source_mapped
+GF-ING-00571,"Chicken, whole, corn-fed, raw, meat and skin, weighed with bone",ingredient,raw,India,,SRC-UKFCT,N500,source_mapped
+GF-ING-00572,Chilli powder,ingredient,powder,India,,SRC-UKFCT,G516,source_mapped
+GF-ING-00573,Chilli sauce,ingredient,unspecified,India,,SRC-UKFCT,G517,source_mapped
+GF-ING-00574,"Chocolate, plain",ingredient,unspecified,India,,SRC-UKFCT,I509,source_mapped
+GF-ING-00575,"Cinnamon, ground",ingredient,unspecified,India,,SRC-UKFCT,G518,source_mapped
+GF-ING-00576,Cocoa powder,ingredient,powder,India,,SRC-UKFCT,V501,source_mapped
+GF-ING-00577,Coconut milk,ingredient,unspecified,India,,SRC-UKFCT,H501,source_mapped
+GF-ING-00578,"Coffee, powder, instant",ingredient,powder,India,,SRC-UKFCT,V502,source_mapped
+GF-ING-00579,Cola,ingredient,unspecified,India,,SRC-UKFCT,V503,source_mapped
+GF-ING-00580,"Couscous, plain, raw",ingredient,raw,India,,SRC-UKFCT,A502,source_mapped
+GF-ING-00581,Cranberries,ingredient,unspecified,India,,SRC-UKFCT,E501,source_mapped
+GF-ING-00582,Cream of tartar,ingredient,unspecified,India,,SRC-UKFCT,U505,source_mapped
+GF-ING-00583,"Cream, fresh, single",ingredient,fresh,India,,SRC-UKFCT,L519,source_mapped
+GF-ING-00584,"Cream, fresh, whipping",ingredient,fresh,India,,SRC-UKFCT,L512,source_mapped
+GF-ING-00585,"Curly kale, raw",ingredient,raw,India,,SRC-UKFCT,D500,source_mapped
+GF-ING-00586,Currants,ingredient,unspecified,India,,SRC-UKFCT,E510,source_mapped
+GF-ING-00587,Curry powder,ingredient,powder,India,,SRC-UKFCT,G520,source_mapped
+GF-ING-00588,Custard powder,ingredient,powder,India,,SRC-UKFCT,K503,source_mapped
+GF-ING-00589,"Dips, sour-cream based, assorted flavours",ingredient,unspecified,India,,SRC-UKFCT,X508,source_mapped
+GF-ING-00590,"Dressing, French",ingredient,unspecified,India,,SRC-UKFCT,X510,source_mapped
+GF-ING-00591,"Dressing, thousand island",ingredient,unspecified,India,,SRC-UKFCT,X509,source_mapped
+GF-ING-00592,"Drinking chocolate, powder",ingredient,powder,India,,SRC-UKFCT,V504,source_mapped
+GF-ING-00593,"Energy drink, carbonated",ingredient,unspecified,India,,SRC-UKFCT,V505,source_mapped
+GF-ING-00594,Fennel seeds,ingredient,unspecified,India,,SRC-UKFCT,G510,source_mapped
+GF-ING-00595,"Flour, corn",ingredient,unspecified,India,,SRC-UKFCT,A503,source_mapped
+GF-ING-00596,"Flour, gram",ingredient,unspecified,India,,SRC-UKFCT,A504,source_mapped
+GF-ING-00597,"Flour, rice",ingredient,unspecified,India,,SRC-UKFCT,A505,source_mapped
+GF-ING-00598,"Flour, soya",ingredient,unspecified,India,,SRC-UKFCT,B503,source_mapped
+GF-ING-00599,"Fruit cocktail, canned in juice, whole contents",ingredient,whole,India,,SRC-UKFCT,E516,source_mapped
+GF-ING-00600,"Fruit cocktail, canned in syrup, whole contents",ingredient,whole,India,,SRC-UKFCT,V506,source_mapped
+GF-ING-00601,"Fruit juice drink/squash, diluted",ingredient,unspecified,India,,SRC-UKFCT,V507,source_mapped
+GF-ING-00602,"Fruit juice drink/squash, undiluted",ingredient,unspecified,India,,SRC-UKFCT,V508,source_mapped
+GF-ING-00603,Garam masala,ingredient,unspecified,India,,SRC-UKFCT,G523,source_mapped
+GF-ING-00604,Garlic powder,ingredient,powder,India,,SRC-UKFCT,G524,source_mapped
+GF-ING-00605,Gelatine,ingredient,unspecified,India,,SRC-UKFCT,K504,source_mapped
+GF-ING-00606,"Ghee, butter",ingredient,unspecified,India,,SRC-UKFCT,T506,source_mapped
+GF-ING-00607,"Gherkins, pickled, drained",ingredient,unspecified,India,,SRC-UKFCT,D505,source_mapped
+GF-ING-00608,"Ginger, ground",ingredient,unspecified,India,,SRC-UKFCT,G554,source_mapped
+GF-ING-00609,Ham,ingredient,unspecified,India,,SRC-UKFCT,O501,source_mapped
+GF-ING-00610,"Hazelnuts, kernel only",ingredient,unspecified,India,,SRC-UKFCT,H502,source_mapped
+GF-ING-00611,Honey,ingredient,unspecified,India,,SRC-UKFCT,I507,source_mapped
+GF-ING-00612,"Ice cream, dairy, vanilla, soft scoop",ingredient,unspecified,India,,SRC-UKFCT,I501,source_mapped
+GF-ING-00613,"Jelly, made with water",ingredient,unspecified,India,,SRC-UKFCT,W501,source_mapped
+GF-ING-00614,"Kiwi fruit, flesh only, raw",ingredient,raw,India,,SRC-UKFCT,E502,source_mapped
+GF-ING-00615,"Lamb, mince, raw",ingredient,raw,India,,SRC-UKFCT,O502,source_mapped
+GF-ING-00616,"Lemons, flesh only, raw, weighed with peel and pips",ingredient,raw,India,,SRC-UKFCT,E520,source_mapped
+GF-ING-00617,Marmalade,ingredient,unspecified,India,,SRC-UKFCT,W502,source_mapped
+GF-ING-00618,"Mayonnaise, standard, retail",ingredient,unspecified,India,,SRC-UKFCT,L507,source_mapped
+GF-ING-00619,Melon seeds,ingredient,unspecified,India,,SRC-UKFCT,H500,source_mapped
+GF-ING-00620,"Milk, condensed, whole, sweetened",ingredient,whole,India,,SRC-UKFCT,L508,source_mapped
+GF-ING-00621,"Milk, evaporated, light",ingredient,unspecified,India,,SRC-UKFCT,L509,source_mapped
+GF-ING-00622,"Milk, skimmed, dried, fortified",ingredient,dried,India,,SRC-UKFCT,L510,source_mapped
+GF-ING-00623,"Mint sauce, homemade",ingredient,unspecified,India,,SRC-UKFCT,X512,source_mapped
+GF-ING-00624,Mixed curry spices,ingredient,unspecified,India,,SRC-UKFCT,G515,source_mapped
+GF-ING-00625,"Mixed herbs, dried",ingredient,dried,India,,SRC-UKFCT,G521,source_mapped
+GF-ING-00626,Mustard powder,ingredient,powder,India,,SRC-UKFCT,G533,source_mapped
+GF-ING-00627,"Oil, coconut",ingredient,unspecified,India,,SRC-UKFCT,T507,source_mapped
+GF-ING-00628,"Oil, olive",ingredient,unspecified,India,,SRC-UKFCT,T502,source_mapped
+GF-ING-00629,"Oil, sesame",ingredient,unspecified,India,,SRC-UKFCT,T509,source_mapped
+GF-ING-00630,"Oil, sunflower",ingredient,unspecified,India,,SRC-UKFCT,T508,source_mapped
+GF-ING-00631,"Olives, green, in brine, drained, flesh and skin",ingredient,unspecified,India,,SRC-UKFCT,D504,source_mapped
+GF-ING-00632,"Orange juice, freshly squeezed",ingredient,fresh,India,,SRC-UKFCT,E518,source_mapped
+GF-ING-00633,"Oregano, dried, ground",ingredient,dried,India,,SRC-UKFCT,G526,source_mapped
+GF-ING-00634,Paprika,ingredient,unspecified,India,,SRC-UKFCT,G545,source_mapped
+GF-ING-00635,"Pasta, white, dried, raw",ingredient,raw,India,,SRC-UKFCT,A507,source_mapped
+GF-ING-00636,"Peaches, canned in syrup, whole contents",ingredient,whole,India,,SRC-UKFCT,E508,source_mapped
+GF-ING-00637,"Peanut butter, smooth",ingredient,unspecified,India,,SRC-UKFCT,B504,source_mapped
+GF-ING-00638,"Peanuts, dry roasted",ingredient,roasted,India,,SRC-UKFCT,B505,source_mapped
+GF-ING-00639,"Pears, canned in juice, whole contents",ingredient,whole,India,,SRC-UKFCT,E509,source_mapped
+GF-ING-00640,"Pepper, white",ingredient,unspecified,India,,SRC-UKFCT,G527,source_mapped
+GF-ING-00641,"Pickle, sweet",ingredient,unspecified,India,,SRC-UKFCT,D506,source_mapped
+GF-ING-00642,"Pineapple juice, unsweetened",ingredient,unspecified,India,,SRC-UKFCT,V509,source_mapped
+GF-ING-00643,"Pizza base, raw",ingredient,raw,India,,SRC-UKFCT,X513,source_mapped
+GF-ING-00644,"Porridge oats, unfortified",ingredient,unspecified,India,,SRC-UKFCT,A508,source_mapped
+GF-ING-00645,Pumpkin seeds,ingredient,unspecified,India,,SRC-UKFCT,H518,source_mapped
+GF-ING-00646,"Redcurrants, raw",ingredient,raw,India,,SRC-UKFCT,E505,source_mapped
+GF-ING-00647,"Rosemary, dried",ingredient,dried,India,,SRC-UKFCT,G525,source_mapped
+GF-ING-00648,Saffron,ingredient,unspecified,India,,SRC-UKFCT,G529,source_mapped
+GF-ING-00649,"Sago, raw",ingredient,raw,India,,SRC-UKFCT,I508,source_mapped
+GF-ING-00650,Salami,ingredient,unspecified,India,,SRC-UKFCT,O503,source_mapped
+GF-ING-00651,Salt,ingredient,unspecified,India,,SRC-UKFCT,G528,source_mapped
+GF-ING-00652,"Sauces, Indian cook in, other",ingredient,unspecified,India,,SRC-UKFCT,X500,source_mapped
+GF-ING-00653,"Sausages, premium, raw",ingredient,raw,India,,SRC-UKFCT,O504,source_mapped
+GF-ING-00654,Sesame seeds,ingredient,unspecified,India,,SRC-UKFCT,G513,source_mapped
+GF-ING-00655,"Shallots, raw",ingredient,raw,India,,SRC-UKFCT,G546,source_mapped
+GF-ING-00656,"Soy sauce, light and dark varieties",ingredient,unspecified,India,,SRC-UKFCT,X501,source_mapped
+GF-ING-00657,"Spirits, 40% volume",ingredient,unspecified,India,,SRC-UKFCT,K502,source_mapped
+GF-ING-00658,"Spring onions, bulbs and tops, raw",ingredient,raw,India,,SRC-UKFCT,G547,source_mapped
+GF-ING-00659,"Spring onions, bulbs only, raw",ingredient,raw,India,,SRC-UKFCT,G501,source_mapped
+GF-ING-00660,"Stock cubes, chicken",ingredient,unspecified,India,,SRC-UKFCT,K506,source_mapped
+GF-ING-00661,"Stock cubes, vegetable",ingredient,unspecified,India,,SRC-UKFCT,K507,source_mapped
+GF-ING-00662,"Sugar, brown",ingredient,unspecified,India,,SRC-UKFCT,I503,source_mapped
+GF-ING-00663,"Sugar, icing",ingredient,unspecified,India,,SRC-UKFCT,I504,source_mapped
+GF-ING-00664,"Sugar, white",ingredient,unspecified,India,,SRC-UKFCT,I502,source_mapped
+GF-ING-00665,Sultanas,ingredient,unspecified,India,,SRC-UKFCT,E506,source_mapped
+GF-ING-00666,"Sweetcorn, kernels, raw",ingredient,raw,India,,SRC-UKFCT,D503,source_mapped
+GF-ING-00667,"Syrup, corn, dark",ingredient,unspecified,India,,SRC-UKFCT,I505,source_mapped
+GF-ING-00668,"Tea, black, infusion, average",ingredient,unspecified,India,,SRC-UKFCT,V510,source_mapped
+GF-ING-00669,"Tea, green, infusion",ingredient,unspecified,India,,SRC-UKFCT,V511,source_mapped
+GF-ING-00670,"Thyme, dried, ground",ingredient,dried,India,,SRC-UKFCT,G531,source_mapped
+GF-ING-00671,"Tofu, soya bean, steamed",ingredient,unspecified,India,,SRC-UKFCT,B506,source_mapped
+GF-ING-00672,Tomato ketchup,ingredient,unspecified,India,,SRC-UKFCT,X503,source_mapped
+GF-ING-00673,Tomato puree,ingredient,unspecified,India,,SRC-UKFCT,X504,source_mapped
+GF-ING-00674,"Tomato sauce, homemade",ingredient,unspecified,India,,SRC-UKFCT,X505,source_mapped
+GF-ING-00675,"Tomatoes, cherry, raw",ingredient,raw,India,,SRC-UKFCT,D502,source_mapped
+GF-ING-00676,"Turnip, flesh only, raw",ingredient,raw,India,,SRC-UKFCT,F501,source_mapped
+GF-ING-00677,Vinegar,ingredient,unspecified,India,,SRC-UKFCT,G532,source_mapped
+GF-ING-00678,"Wafers, plain ice cream wafers, not filled",ingredient,unspecified,India,,SRC-UKFCT,U509,source_mapped
+GF-ING-00679,"Water, distilled",ingredient,unspecified,India,,SRC-UKFCT,K505,source_mapped
+GF-ING-00680,"Watercress, raw",ingredient,raw,India,,SRC-UKFCT,C502,source_mapped
+GF-ING-00681,"White sauce, savoury, made with whole milk, homemade",ingredient,whole,India,,SRC-UKFCT,X506,source_mapped
+GF-ING-00682,Worcestershire sauce,ingredient,unspecified,India,,SRC-UKFCT,X507,source_mapped
+GF-ING-00683,Yeast extract,ingredient,unspecified,India,,SRC-UKFCT,G534,source_mapped
+GF-ING-00684,"Yogurt, whole milk, plain",ingredient,whole,India,,SRC-UKFCT,L520,source_mapped
+GF-ING-00685,AJWAIN SEED WHOLE ORGANIC SPICES,ingredient,whole,India,,SRC-USDA-FCT,G536,source_mapped
+GF-ING-00686,"ALMOND FLOUR, ALMOND",ingredient,unspecified,India,,SRC-USDA-FCT,A513,source_mapped
+GF-ING-00687,ALMOND MILK,ingredient,unspecified,India,,SRC-USDA-FCT,H507,source_mapped
+GF-ING-00688,BALSAMIC VINEGAR,ingredient,unspecified,India,,SRC-USDA-FCT,G539,source_mapped
+GF-ING-00689,BLACK BEANS,ingredient,unspecified,India,,SRC-USDA-FCT,B507,source_mapped
+GF-ING-00690,BLACK RICE,ingredient,unspecified,India,,SRC-USDA-FCT,A509,source_mapped
+GF-ING-00691,"CAJUN SEASONING, CAJUN",ingredient,unspecified,India,,SRC-USDA-FCT,X517,source_mapped
+GF-ING-00692,"Candies, gum drops, no sugar or low calorie (sorbitol)",ingredient,unspecified,India,,SRC-USDA-FCT,I510,source_mapped
+GF-ING-00693,"Capers, canned",ingredient,unspecified,India,,SRC-USDA-FCT,G542,source_mapped
+GF-ING-00694,"Cheese spread, cream cheese, regular",ingredient,unspecified,India,,SRC-USDA-FCT,L501,source_mapped
+GF-ING-00695,"Cheese, cream, low fat",ingredient,unspecified,India,,SRC-USDA-FCT,L518,source_mapped
+GF-ING-00696,"Cheese, provolone",ingredient,unspecified,India,,SRC-USDA-FCT,L513,source_mapped
+GF-ING-00697,Chia seeds,ingredient,unspecified,India,,SRC-USDA-FCT,H506,source_mapped
+GF-ING-00698,"Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",ingredient,raw,India,,SRC-USDA-FCT,B509,source_mapped
+GF-ING-00699,CRACKED WHEAT,ingredient,unspecified,India,,SRC-USDA-FCT,A510,source_mapped
+GF-ING-00700,"Cream, fluid, light (coffee cream or table cream)",ingredient,unspecified,India,,SRC-USDA-FCT,L515,source_mapped
+GF-ING-00701,CREAMED CORN,ingredient,unspecified,India,,SRC-USDA-FCT,X518,source_mapped
+GF-ING-00702,"DIJON MUSTARD, DIJON",ingredient,unspecified,India,,SRC-USDA-FCT,X515,source_mapped
+GF-ING-00703,DRIED MANGO,ingredient,dried,India,,SRC-USDA-FCT,E514,source_mapped
+GF-ING-00704,"GINGER JUICE, GINGER",ingredient,unspecified,India,,SRC-USDA-FCT,G548,source_mapped
+GF-ING-00705,"Gooseberries, raw",ingredient,raw,India,,SRC-USDA-FCT,E515,source_mapped
+GF-ING-00706,HIMALAYAN BLACK SALT,ingredient,unspecified,India,,SRC-USDA-FCT,G540,source_mapped
+GF-ING-00707,HOT DOG BUNS,ingredient,unspecified,India,,SRC-USDA-FCT,U506,source_mapped
+GF-ING-00708,JAM,ingredient,unspecified,India,,SRC-USDA-FCT,W504,source_mapped
+GF-ING-00709,"Lemon grass (citronella), raw",ingredient,raw,India,,SRC-USDA-FCT,G551,source_mapped
+GF-ING-00710,"Lemon peel, raw",ingredient,raw,India,,SRC-USDA-FCT,G550,source_mapped
+GF-ING-00711,MARGARINE,ingredient,unspecified,India,,SRC-USDA-FCT,T504,source_mapped
+GF-ING-00712,"Milk, buttermilk, fluid, whole",ingredient,whole,India,,SRC-USDA-FCT,L521,source_mapped
+GF-ING-00713,"Milk, dry, nonfat, regular, without added vitamin A and vitamin D",ingredient,unspecified,India,,SRC-USDA-FCT,L516,source_mapped
+GF-ING-00714,"MIXED NUTS CASHEWS, ALMONDS, HAZELNUTS, PISTACHIOS, PECANS, MIXED NUTS",ingredient,unspecified,India,,SRC-USDA-FCT,H505,source_mapped
+GF-ING-00715,MSG MONOSODIUM GLUTAMATE,ingredient,unspecified,India,,SRC-USDA-FCT,G541,source_mapped
+GF-ING-00716,MUSTARD SAUCE,ingredient,unspecified,India,,SRC-USDA-FCT,X514,source_mapped
+GF-ING-00717,"Nuts, coconut water (liquid from coconuts)",ingredient,unspecified,India,,SRC-USDA-FCT,H508,source_mapped
+GF-ING-00718,"Oil, mustard",ingredient,unspecified,India,,SRC-USDA-FCT,T510,source_mapped
+GF-ING-00719,"Orange peel, raw",ingredient,raw,India,,SRC-USDA-FCT,G552,source_mapped
+GF-ING-00720,"Peppers, jalapeno, raw",ingredient,raw,India,,SRC-USDA-FCT,G549,source_mapped
+GF-ING-00721,PITTED BLACK OLIVES,ingredient,unspecified,India,,SRC-USDA-FCT,D507,source_mapped
+GF-ING-00722,"Raspberries, raw",ingredient,raw,India,,SRC-USDA-FCT,E513,source_mapped
+GF-ING-00723,RICE VINEGAR,ingredient,unspecified,India,,SRC-USDA-FCT,G543,source_mapped
+GF-ING-00724,ROASTED CHICKPEAS,ingredient,roasted,India,,SRC-USDA-FCT,B511,source_mapped
+GF-ING-00725,"Seeds, lotus seeds, dried",ingredient,dried,India,,SRC-USDA-FCT,H503,source_mapped
+GF-ING-00726,"SIVA'S, AMHUR POWDER (DRY MANGO POWDER)",ingredient,powder,India,,SRC-USDA-FCT,G535,source_mapped
+GF-ING-00727,"Sour cream, regular",ingredient,unspecified,India,,SRC-USDA-FCT,L514,source_mapped
+GF-ING-00728,"Soybeans, mature seeds, raw",ingredient,raw,India,,SRC-USDA-FCT,B508,source_mapped
+GF-ING-00729,"Spices, onion powder",ingredient,powder,India,,SRC-USDA-FCT,G555,source_mapped
+GF-ING-00730,STAR ANISE,ingredient,unspecified,India,,SRC-USDA-FCT,G537,source_mapped
+GF-ING-00731,STRAWBERRY JAM,ingredient,raw,India,,SRC-USDA-FCT,W505,source_mapped
+GF-ING-00732,"SWEET SUNNAH, WHOLE BLACK SEEDS NIGELLA SATIVA",ingredient,whole,India,,SRC-USDA-FCT,A512,source_mapped
+GF-ING-00733,"TUTTI FRUTTI GUMBALLS, TUTTI FRUTTI",ingredient,unspecified,India,,SRC-USDA-FCT,I511,source_mapped
+GF-ING-00734,Vanilla extract,ingredient,unspecified,India,,SRC-USDA-FCT,G544,source_mapped
+GF-ING-00735,"Vinegar, distilled",ingredient,unspecified,India,,SRC-USDA-FCT,G538,source_mapped
+GF-ING-00736,"Whey, acid, fluid",ingredient,unspecified,India,,SRC-USDA-FCT,L517,source_mapped
+GF-ING-00737,WHITE HAMBURGER BUNS,ingredient,unspecified,India,,SRC-USDA-FCT,U507,source_mapped
+GF-ING-00738,WHOLE WHEAT HAMBURGER BUNS,ingredient,whole,India,,SRC-USDA-FCT,U508,source_mapped
+GF-REC-00001,Hot tea (Garam Chai),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC001,source_mapped
+GF-REC-00002,Instant coffee,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC002,source_mapped
+GF-REC-00003,Espreso coffee,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC003,source_mapped
+GF-REC-00004,Iced tea,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC004,source_mapped
+GF-REC-00005,Raw mango drink (Aam panna),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC005,source_mapped
+GF-REC-00006,Fruit Punch (with fresh juices),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC006,source_mapped
+GF-REC-00007,Fruit Punch (with squashes),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC007,source_mapped
+GF-REC-00008,Lemonade,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC008,source_mapped
+GF-REC-00009,Lem-o-gin,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC009,source_mapped
+GF-REC-00010,Cumin infused water (Jeere/Zeere ka pani),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC010,source_mapped
+GF-REC-00011,Coco pine cooler,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC011,source_mapped
+GF-REC-00012,Summer cooler,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC012,source_mapped
+GF-REC-00013,Hot cocoa,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC014,source_mapped
+GF-REC-00014,Cold coffee with ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC015,source_mapped
+GF-REC-00015,Banana milkshake (Kele milkshake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC016,source_mapped
+GF-REC-00016,Mango milkshake (Aam milkshake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC017,source_mapped
+GF-REC-00017,Pineapple milkshake (Ananas milkshake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC018,source_mapped
+GF-REC-00018,Orange milkshake (Narangi milkshake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC019,source_mapped
+GF-REC-00019,Egg nog,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC020,source_mapped
+GF-REC-00020,Sweet Lassi (Meethi lassi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC021,source_mapped
+GF-REC-00021,Lassi (salted),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC022,source_mapped
+GF-REC-00022,Cheese and chilli sandwich ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC023,source_mapped
+GF-REC-00023,Egg sandwich (Ande ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC024,source_mapped
+GF-REC-00024,Cucumber sandwich (Kheere ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC025,source_mapped
+GF-REC-00025,Cheese and pineapple sandwich (Cheese aur ananas ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC026,source_mapped
+GF-REC-00026,Cheese and tomato sandwich (Cheese aur tamatar ke sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC027,source_mapped
+GF-REC-00027,Chicken sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC028,source_mapped
+GF-REC-00028,Peanut and tomato sandwich (Moongfali aur tamatar ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC029,source_mapped
+GF-REC-00029,Rainbow sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC030,source_mapped
+GF-REC-00030,Club sandwich ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC031,source_mapped
+GF-REC-00031,Vegetarian club sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC032,source_mapped
+GF-REC-00032,Pin wheel sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC033,source_mapped
+GF-REC-00033,Carrot apple sandwich (Gajar aur seb ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC034,source_mapped
+GF-REC-00034,Salami sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC035,source_mapped
+GF-REC-00035,Vegetable and mayonnaise sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC036,source_mapped
+GF-REC-00036,Egg and tomato sandwich (Ande aur tamatar ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC037,source_mapped
+GF-REC-00037,Sweet open sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC038,source_mapped
+GF-REC-00038,Mushroom and cheese sandwich (toasted),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC039,source_mapped
+GF-REC-00039,Cheese and tomato sandwich (toasted) (Cheese aur tamatar ke sandwich (toasted)),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC040,source_mapped
+GF-REC-00040,Pea potato sandwich (toasted) (Matar aloo ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC041,source_mapped
+GF-REC-00041,Paneer pea sandwich (toasted) (Paneer matar ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC042,source_mapped
+GF-REC-00042,Chicken sandwich (toasted),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC043,source_mapped
+GF-REC-00043,Pea keema sandwich (toasted) (Matar aur keema ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC044,source_mapped
+GF-REC-00044,Classic club sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC045,source_mapped
+GF-REC-00045,Sesame toast,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC046,source_mapped
+GF-REC-00046,Cracked wheat porridge (Meetha daliya),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC047,source_mapped
+GF-REC-00047,Semolina porridge (Suji/Rava daliya),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC048,source_mapped
+GF-REC-00048,Oatmeal Porridge,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC050,source_mapped
+GF-REC-00049,Cornflakes with milk,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC051,source_mapped
+GF-REC-00050,Rice flakes (Chiwda/Aval),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC052,source_mapped
+GF-REC-00051,Wheat flakes,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC053,source_mapped
+GF-REC-00052,Murmura (Puffed rice),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC054,source_mapped
+GF-REC-00053,Puffed wheat (Murmure/Moori),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC055,source_mapped
+GF-REC-00054,Boiled egg (Ubla anda),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC056,source_mapped
+GF-REC-00055,Fried Egg ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC057,source_mapped
+GF-REC-00056,Poached egg,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC058,source_mapped
+GF-REC-00057,Scrambled egg (Ande ki bhurji),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC059,source_mapped
+GF-REC-00058,Baked egg ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC060,source_mapped
+GF-REC-00059,Plain omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC061,source_mapped
+GF-REC-00060,Stuffed egg omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC062,source_mapped
+GF-REC-00061,Pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC063,source_mapped
+GF-REC-00062,Keema pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC064,source_mapped
+GF-REC-00063,Vegetable pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC065,source_mapped
+GF-REC-00064,Jam and fruit pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC066,source_mapped
+GF-REC-00065,Khoa and coconut pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC067,source_mapped
+GF-REC-00066,Brown stock,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC068,source_mapped
+GF-REC-00067,Vegetable stock,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC069,source_mapped
+GF-REC-00068,Chicken stock,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC070,source_mapped
+GF-REC-00069,White sauce (thin),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC071,source_mapped
+GF-REC-00070,White sauce (medium),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC072,source_mapped
+GF-REC-00071,White sauce (thick),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC073,source_mapped
+GF-REC-00072,Cheese sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC074,source_mapped
+GF-REC-00073,Egg sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC075,source_mapped
+GF-REC-00074,Mushroom sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC076,source_mapped
+GF-REC-00075,Mustard sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC077,source_mapped
+GF-REC-00076,Brown sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC078,source_mapped
+GF-REC-00077,Clear tomato soup (Tamatar ka soup),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC079,source_mapped
+GF-REC-00078,Lentil soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC080,source_mapped
+GF-REC-00079,Chicken consomme (Clear chicken soup),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC081,source_mapped
+GF-REC-00080,Cream of tomato soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC082,source_mapped
+GF-REC-00081,Cream of green peas soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC083,source_mapped
+GF-REC-00082,Cream of spinach soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC084,source_mapped
+GF-REC-00083,Cream of mixed vegetable soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC085,source_mapped
+GF-REC-00084,Cream of mushroom soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC086,source_mapped
+GF-REC-00085,Chicken sweet corn soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC087,source_mapped
+GF-REC-00086,Minestrone soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC088,source_mapped
+GF-REC-00087,Egg drop soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC089,source_mapped
+GF-REC-00088,Chinese cabbage and meat ball soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC090,source_mapped
+GF-REC-00089,French onion soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC091,source_mapped
+GF-REC-00090,Hot and sour soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC092,source_mapped
+GF-REC-00091,Talaumein soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC093,source_mapped
+GF-REC-00092,Cold cucumber soup (Thanda kheere ka soup),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC094,source_mapped
+GF-REC-00093,Cold summer garden soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC095,source_mapped
+GF-REC-00094,Chapati/Roti,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC096,source_mapped
+GF-REC-00095,Plain parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC097,source_mapped
+GF-REC-00096,Potato parantha/paratha (Aloo ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC098,source_mapped
+GF-REC-00097,Radish parantha/paratha (Mooli ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC099,source_mapped
+GF-REC-00098,Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC100,source_mapped
+GF-REC-00099,Dal parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC101,source_mapped
+GF-REC-00100,Sprouted moong parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC102,source_mapped
+GF-REC-00101,Pea parantha/paratha (Matar ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC103,source_mapped
+GF-REC-00102,Keema parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC104,source_mapped
+GF-REC-00103,Paneer parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC105,source_mapped
+GF-REC-00104,Besan and spinach parantha/paratha (Besan aur palak ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC106,source_mapped
+GF-REC-00105,Poori,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC107,source_mapped
+GF-REC-00106,Spinach poori (Palak poori),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC108,source_mapped
+GF-REC-00107,Methi poori,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC109,source_mapped
+GF-REC-00108,Dal stuffed poori,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC110,source_mapped
+GF-REC-00109,Potato stuffed poori (Aloo ki poori),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC111,source_mapped
+GF-REC-00110,Tandoori parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC112,source_mapped
+GF-REC-00111,Boiled rice (Uble chawal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC113,source_mapped
+GF-REC-00112,Plain pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC114,source_mapped
+GF-REC-00113,Mixed vegetable pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC115,source_mapped
+GF-REC-00114,Mushroom pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC116,source_mapped
+GF-REC-00115,Sprouted moong pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC117,source_mapped
+GF-REC-00116,Paneer pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC118,source_mapped
+GF-REC-00117,Peanut pulao ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC119,source_mapped
+GF-REC-00118,Navratan pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC120,source_mapped
+GF-REC-00119,Green chickpeas pulao (Choliya pulao/Hare chane ka pulao),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC121,source_mapped
+GF-REC-00120,Mutton biryani/biriyani,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC122,source_mapped
+GF-REC-00121,Vegetable biryani/biriyani,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC123,source_mapped
+GF-REC-00122,"Lemon rice (Pulihora, Elumichai sadam, Chitranna)",recipe,prepared_recipe,India,Indian,SRC-INDB,ASC124,source_mapped
+GF-REC-00123,Sweet rice (Meethe chawal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC125,source_mapped
+GF-REC-00124,Curd rice (Dahi bhaat/Dahi chawal/ Perugu annam/Daddojanam/Thayir saadam),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC126,source_mapped
+GF-REC-00125,Tamarind rice (Chintapandu pulihora/Puliyodharai/Puli sadam/Huli anna),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC127,source_mapped
+GF-REC-00126,Spanish rice,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC128,source_mapped
+GF-REC-00127,Chinese fried rice,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC129,source_mapped
+GF-REC-00128,Classic italian pasta,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC130,source_mapped
+GF-REC-00129,Pasta spinach sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC131,source_mapped
+GF-REC-00130,Pasta cheese sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC132,source_mapped
+GF-REC-00131,Macroni cheese pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC133,source_mapped
+GF-REC-00132,Vegetable chowmein,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC134,source_mapped
+GF-REC-00133,Chicken chowmein,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC135,source_mapped
+GF-REC-00134,Cheese noodle ring,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC136,source_mapped
+GF-REC-00135,Spaghetti and cheese balls in tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC137,source_mapped
+GF-REC-00136,Penne platter,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC138,source_mapped
+GF-REC-00137,Pasta hot pot,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC139,source_mapped
+GF-REC-00138,Chicken lasagne,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC140,source_mapped
+GF-REC-00139,Fettuccine with spinach sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC141,source_mapped
+GF-REC-00140,Naan,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC142,source_mapped
+GF-REC-00141,Bhatura,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC143,source_mapped
+GF-REC-00142,Idli,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC144,source_mapped
+GF-REC-00143,Masala dosa,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC146,source_mapped
+GF-REC-00144,Semolina dosa (Suji/Rava dosa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC147,source_mapped
+GF-REC-00145,Onion tomato uttapam,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC148,source_mapped
+GF-REC-00146,Paneer kaathi roll,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC149,source_mapped
+GF-REC-00147,Makki ki roti,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC150,source_mapped
+GF-REC-00148,Washed moong dal (Dhuli moong ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC151,source_mapped
+GF-REC-00149,Washed urad dal (Dhuli urad ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC152,source_mapped
+GF-REC-00150,Split bengal gram with bottle gourd (Channa dal with ghiya/lauki),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC153,source_mapped
+GF-REC-00151,Dry washed urad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC154,source_mapped
+GF-REC-00152,Mixed dal,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC155,source_mapped
+GF-REC-00153,Whole moong (Moong ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC156,source_mapped
+GF-REC-00154,Whole masoor (Masoor ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC157,source_mapped
+GF-REC-00155,Whole moth (Moth ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC158,source_mapped
+GF-REC-00156,Whole urad (Urad ki dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC159,source_mapped
+GF-REC-00157,Moti mahal dal (Urad rajmah mix dal),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC160,source_mapped
+GF-REC-00158,Black channa curry/Bengal gram curry (Kale chane ki curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC161,source_mapped
+GF-REC-00159,Chickpeas curry (Safed channa curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC162,source_mapped
+GF-REC-00160,Lobia curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC163,source_mapped
+GF-REC-00161,Soyabean curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC164,source_mapped
+GF-REC-00162,Kidney bean curry (Rajmah curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC165,source_mapped
+GF-REC-00163,Sambar,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC167,source_mapped
+GF-REC-00164,Besan kadhi with pakodies,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC168,source_mapped
+GF-REC-00165,Khatta channa,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC169,source_mapped
+GF-REC-00166,Sprouted moong dal chat,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC170,source_mapped
+GF-REC-00167,Potato cauliflower (Aloo gobhi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC171,source_mapped
+GF-REC-00168,Potato capsicum (Shimla mirch aloo),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC172,source_mapped
+GF-REC-00169,Cabbage and peas (Pattagobhi aur matar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC173,source_mapped
+GF-REC-00170,Carrot and fenugreek leaves (Gajar methi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC174,source_mapped
+GF-REC-00171,Potato fenugreek (Aloo methi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC175,source_mapped
+GF-REC-00172,Brinjal bhartha (Baingan ka bhartha),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC177,source_mapped
+GF-REC-00173,Dry potato (Sookhe aloo),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC178,source_mapped
+GF-REC-00174,Beans with coconut (Nariyal aur sem/phali; Beans thoran),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC179,source_mapped
+GF-REC-00175,Cauliflower with coconut (Nariyal ke saath phoolgobhi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC180,source_mapped
+GF-REC-00176,Carrot and cabbage with coconut (Nariyal ke saath pattagobhi aur gajar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC181,source_mapped
+GF-REC-00177,Raw turnip with coconut ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC182,source_mapped
+GF-REC-00178,Raw papaya with coconut (Papaya thoran),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC183,source_mapped
+GF-REC-00179,Stuffed okra (Bharwa bhindi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC184,source_mapped
+GF-REC-00180,Stuffed round gourd (Bharwa tinde),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC185,source_mapped
+GF-REC-00181,Stuffed capsicum (Bharwa shimla mirch),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC186,source_mapped
+GF-REC-00182,Stuffed brinjal (Bharwa baingan),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC187,source_mapped
+GF-REC-00183,Stuffed tomatoes (Bharwa tamatar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC189,source_mapped
+GF-REC-00184,Pea potato curry (Aloo matar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC190,source_mapped
+GF-REC-00185,Pea paneer curry (Matar paneer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC191,source_mapped
+GF-REC-00186,Pea mushroom curry (Matar mushroom),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC192,source_mapped
+GF-REC-00187,Pea curry (Matar ki sabzi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC193,source_mapped
+GF-REC-00188,Pea vadi curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC194,source_mapped
+GF-REC-00189,Paneer curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC195,source_mapped
+GF-REC-00190,Lotus stem curry (Kamal kakdi curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC196,source_mapped
+GF-REC-00191,Gravy for kofta,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC197,source_mapped
+GF-REC-00192,Pea kofta curry (Matar kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC198,source_mapped
+GF-REC-00193,Spinach kofta curry (Palak kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC199,source_mapped
+GF-REC-00194,Paneer kofta curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC200,source_mapped
+GF-REC-00195,Lotus stem kofta curry (Kamal kakdi kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC201,source_mapped
+GF-REC-00196,Raw banana kofta curry (Kela kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC202,source_mapped
+GF-REC-00197,Cauliflower kofta curry (Phoolgobhi kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC203,source_mapped
+GF-REC-00198,Cabbage kofta curry (Pattagobhi kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC204,source_mapped
+GF-REC-00199,Ghiya/Lauki Kofta Curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC205,source_mapped
+GF-REC-00200,Spinach paneer kofta curry (Palak paneer kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC206,source_mapped
+GF-REC-00201,Vegetarian egg kofta curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC207,source_mapped
+GF-REC-00202,Baked vegetables,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC208,source_mapped
+GF-REC-00203,Cauliflower musallam (Phoolgobhi musallam),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC209,source_mapped
+GF-REC-00204,Baked vegetables with spinach ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC210,source_mapped
+GF-REC-00205,Baked potato with skin ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC211,source_mapped
+GF-REC-00206,Shepherd's pie (vegetarian),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC212,source_mapped
+GF-REC-00207,Baked brinjal in tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC213,source_mapped
+GF-REC-00208,Dum aloo,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC214,source_mapped
+GF-REC-00209,Spinach paneer (Palak paneer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC215,source_mapped
+GF-REC-00210,Methi chaman,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC216,source_mapped
+GF-REC-00211,Sarson ka saag,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC217,source_mapped
+GF-REC-00212,Jackfruit sabzi (Kathal ki sabzi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC218,source_mapped
+GF-REC-00213,Avial,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC219,source_mapped
+GF-REC-00214,Al yakhani,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC220,source_mapped
+GF-REC-00215,Shahi paneer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC221,source_mapped
+GF-REC-00216,Paneer in butter sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC222,source_mapped
+GF-REC-00217,Methi malai paneer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC223,source_mapped
+GF-REC-00218,Chilli paneer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC224,source_mapped
+GF-REC-00219,Paneer makhana korma,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC225,source_mapped
+GF-REC-00220,Kadhai Paneer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC226,source_mapped
+GF-REC-00221,Roghan josh,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC227,source_mapped
+GF-REC-00222,Spinach mutton (Palak mutton),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC228,source_mapped
+GF-REC-00223,Pea keema curry (Matar keema ki sabzi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC229,source_mapped
+GF-REC-00224,Keema kofta curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC230,source_mapped
+GF-REC-00225,Kashmiri mutton koftas (Gushtaba),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC231,source_mapped
+GF-REC-00226,Mutton yakhni,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC232,source_mapped
+GF-REC-00227,Chicken yakhni,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC233,source_mapped
+GF-REC-00228,Mutton do piaza,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC234,source_mapped
+GF-REC-00229,Mutton chops,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC236,source_mapped
+GF-REC-00230,Shammi kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC237,source_mapped
+GF-REC-00231,Scotch egg,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC238,source_mapped
+GF-REC-00232,Chicken curry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC240,source_mapped
+GF-REC-00233,Tandoori chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC241,source_mapped
+GF-REC-00234,Butter chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC242,source_mapped
+GF-REC-00235,Chicken kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC243,source_mapped
+GF-REC-00236,Chilli chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC244,source_mapped
+GF-REC-00237,Fried chicken with tomato sauce (Fried chicken tamatar ki chutney kay saath),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC245,source_mapped
+GF-REC-00238,Fish curry (Machli curry),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC246,source_mapped
+GF-REC-00239,Fried fish (Indian style) (Tali hui machli),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC247,source_mapped
+GF-REC-00240,Fried fish and Chips (English Style) (Tali hui machli aur chips),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC248,source_mapped
+GF-REC-00241,Tomato fish,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC249,source_mapped
+GF-REC-00242,Baked fish with cheese sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC250,source_mapped
+GF-REC-00243,Fish tikka,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC251,source_mapped
+GF-REC-00244,Tandoori fish,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC252,source_mapped
+GF-REC-00245,"Paneer, apple and pineapple salad",recipe,prepared_recipe,India,Indian,SRC-INDB,ASC253,source_mapped
+GF-REC-00246,Russian salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC254,source_mapped
+GF-REC-00247,Pasta salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC255,source_mapped
+GF-REC-00248,Deviled egg,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC256,source_mapped
+GF-REC-00249,Hawain salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC257,source_mapped
+GF-REC-00250,Mixed pulse and vegetable salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC258,source_mapped
+GF-REC-00251,Sprouted moong salad ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC259,source_mapped
+GF-REC-00252,Tossed salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC260,source_mapped
+GF-REC-00253,Mixed vegetable salad with curd sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC261,source_mapped
+GF-REC-00254,Potato salad (Aloo ka salaad),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC262,source_mapped
+GF-REC-00255,Waldroff salad,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC263,source_mapped
+GF-REC-00256,Coleslaw,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC264,source_mapped
+GF-REC-00257,Fruit salad (Phalon ka salaad),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC265,source_mapped
+GF-REC-00258,Mayonnaise,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC266,source_mapped
+GF-REC-00259,Low calorie quick mayonnaise,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC267,source_mapped
+GF-REC-00260,Thousand island dressing,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC268,source_mapped
+GF-REC-00261,Tomato onion raita (Tamatar aur pyaaz ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC269,source_mapped
+GF-REC-00262,Peanut raita (Mungfali ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC270,source_mapped
+GF-REC-00263,Sprouted moong raita ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC271,source_mapped
+GF-REC-00264,Bottle gourd raita (Ghiya/Lauki ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC272,source_mapped
+GF-REC-00265,Cucumber raita (Kheere ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC273,source_mapped
+GF-REC-00266,Carrot and spinach raita (Gajar aur palak ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC274,source_mapped
+GF-REC-00267,Mint raita (Pudinay ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC275,source_mapped
+GF-REC-00268,Potato raita (Aloo ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC276,source_mapped
+GF-REC-00269,Boondi raita,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC277,source_mapped
+GF-REC-00270,Sweet raita (Meetha raita),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC278,source_mapped
+GF-REC-00271,Dahi vadas/Dahi bhalla,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC279,source_mapped
+GF-REC-00272,Gunjia,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC280,source_mapped
+GF-REC-00273,Saunth/Sonth chutney with tamarind/imli,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC281,source_mapped
+GF-REC-00274,Rice kheer (Chawal ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC282,source_mapped
+GF-REC-00275,Makhana kheer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC283,source_mapped
+GF-REC-00276,Vermicelli kheer (Semiya/Seviyan ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC285,source_mapped
+GF-REC-00277,Semolina kheer (Suji/Rava kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC286,source_mapped
+GF-REC-00278,Paneer kheer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC287,source_mapped
+GF-REC-00279,Cabbage kheer (Pattagobhi ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC288,source_mapped
+GF-REC-00280,Carrot kheer (Gajar ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC289,source_mapped
+GF-REC-00281,Cauliflower kheer (Phoolgobhi ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC290,source_mapped
+GF-REC-00282,Moong dal kheer,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC291,source_mapped
+GF-REC-00283,Phirni,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC292,source_mapped
+GF-REC-00284,Semolina halwa (Suji ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC293,source_mapped
+GF-REC-00285,Shahi suji halwa,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC294,source_mapped
+GF-REC-00286,Carrot halwa (Gajar ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC295,source_mapped
+GF-REC-00287,Egg halwa (Ande ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC296,source_mapped
+GF-REC-00288,Potato halwa (Aloo ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC297,source_mapped
+GF-REC-00289,Pumpkin halwa (Kaddu ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC298,source_mapped
+GF-REC-00290,Moong dal halwa,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC299,source_mapped
+GF-REC-00291,Caramel custard (steamed),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC300,source_mapped
+GF-REC-00292,Baked custard,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC301,source_mapped
+GF-REC-00293,Soft Custard (stirred),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC302,source_mapped
+GF-REC-00294,Chocolate ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC304,source_mapped
+GF-REC-00295,Mango ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC305,source_mapped
+GF-REC-00296,Fruit Ice cream (Phalon ka Ice cream),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC307,source_mapped
+GF-REC-00297,Caramel ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC308,source_mapped
+GF-REC-00298,Lemon souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC309,source_mapped
+GF-REC-00299,Orange souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC310,source_mapped
+GF-REC-00300,Vanilla souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC311,source_mapped
+GF-REC-00301,Chocolate souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC312,source_mapped
+GF-REC-00302,Pineapple souffle ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC313,source_mapped
+GF-REC-00303,Apple mousse,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC314,source_mapped
+GF-REC-00304,Rich chocolate mousse,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC315,source_mapped
+GF-REC-00305,Mango mousse,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC316,source_mapped
+GF-REC-00306,Orange and pineapple cream,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC317,source_mapped
+GF-REC-00307,Charlotte rousse,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC318,source_mapped
+GF-REC-00308,Triffle pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC319,source_mapped
+GF-REC-00309,Snow flakes pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC320,source_mapped
+GF-REC-00310,Kulfi,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC321,source_mapped
+GF-REC-00311,Steamed orange pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC322,source_mapped
+GF-REC-00312,Meringue and rice pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC323,source_mapped
+GF-REC-00313,Cheese pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC324,source_mapped
+GF-REC-00314,Chocolate pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC325,source_mapped
+GF-REC-00315,Bread and butter pudding ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC326,source_mapped
+GF-REC-00316,Queen of pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC327,source_mapped
+GF-REC-00317,Pineapple upside down pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC328,source_mapped
+GF-REC-00318,Date and nut pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC329,source_mapped
+GF-REC-00319,Stewed apple with custard,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC330,source_mapped
+GF-REC-00320,Apple snowballs,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC331,source_mapped
+GF-REC-00321,Hot orange souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC332,source_mapped
+GF-REC-00322,Hot chocolate souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC333,source_mapped
+GF-REC-00323,Hot vanilla souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC334,source_mapped
+GF-REC-00324,Plain burfi (Burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC335,source_mapped
+GF-REC-00325,Coconut burfi (Nariyal ki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC336,source_mapped
+GF-REC-00326,Bottle gourd burfi (Ghiya/Lauki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC337,source_mapped
+GF-REC-00327,Chocolate burfi,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC338,source_mapped
+GF-REC-00328,Cashewnut burfi (Kaju burfi/Kaju katli),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC339,source_mapped
+GF-REC-00329,Gram flour burfi (Besan burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC340,source_mapped
+GF-REC-00330,Semolina ladoo with khoya (Suji/Rava aur khoye ke ladoo ),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC341,source_mapped
+GF-REC-00331,Semolina ladoo with coconut (Suji/Rava aur nariyal ke ladoo ),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC342,source_mapped
+GF-REC-00332,Gram flour ladoo (Besan ladoo),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC343,source_mapped
+GF-REC-00333,Sesame ladoo (Til ke ladoo),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC344,source_mapped
+GF-REC-00334,Chenna murki,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC345,source_mapped
+GF-REC-00335,Milk cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC346,source_mapped
+GF-REC-00336,Ghujia/Lavang latika,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC347,source_mapped
+GF-REC-00337,Gulab Jamun with khoya,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC348,source_mapped
+GF-REC-00338,Mal pua,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC349,source_mapped
+GF-REC-00339,Shahi tukre,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC350,source_mapped
+GF-REC-00340,Potato pakora/pakoda (Aloo pakoda),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC351,source_mapped
+GF-REC-00341,Onion pakora/pakoda (Pyaaz ke pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC352,source_mapped
+GF-REC-00342,Cauliflower pakora/pakoda (Phoolgobhi ke pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC353,source_mapped
+GF-REC-00343,Mixed vegetable pakora/pakoda,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC354,source_mapped
+GF-REC-00344,Spinach pakora/pakoda (Palak pakoda),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC355,source_mapped
+GF-REC-00345,Methi pakora/pakoda (Methi ke pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC356,source_mapped
+GF-REC-00346,Egg pakora/pakoda (Ande ke pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC357,source_mapped
+GF-REC-00347,Bread pakora/pakoda,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC358,source_mapped
+GF-REC-00348,Paneer pakora/pakoda,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC359,source_mapped
+GF-REC-00349,Potato bonda (Aloo bonda),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC360,source_mapped
+GF-REC-00350,Potato samosa (Aloo ka samosa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC361,source_mapped
+GF-REC-00351,Minced meat samosa (Keema ka samosa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC362,source_mapped
+GF-REC-00352,Paneer and pea samosa (Paneer matar ka samosa),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC363,source_mapped
+GF-REC-00353,Mathri,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC364,source_mapped
+GF-REC-00354,Khasta kachori,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC365,source_mapped
+GF-REC-00355,Vegetable cutlet,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC366,source_mapped
+GF-REC-00356,Flattened rice cutlet (Chirwa cutlet/Chivda cutlet/Poha cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC367,source_mapped
+GF-REC-00357,Peanut cutlet (Mungfali ke cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC368,source_mapped
+GF-REC-00358,Fish cutlet (Machli ka cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC369,source_mapped
+GF-REC-00359,Paneer potato cutlet (Paneer aloo cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC370,source_mapped
+GF-REC-00360,Spinach chickpeas cutlet (Palak channa dal cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC371,source_mapped
+GF-REC-00361,Cheese toast,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC372,source_mapped
+GF-REC-00362,Vegetable burger,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC375,source_mapped
+GF-REC-00363,Cheese pizza,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC376,source_mapped
+GF-REC-00364,Vegetable seekh kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC377,source_mapped
+GF-REC-00365,Masala vada,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC378,source_mapped
+GF-REC-00366,Peanut sago vada (Sabudana mungfali vada),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC379,source_mapped
+GF-REC-00367,Vegeterian scotch egg,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC380,source_mapped
+GF-REC-00368,Paneer shaslik/tikka,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC381,source_mapped
+GF-REC-00369,Peanut brittle (Moongfali ki chikki),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC382,source_mapped
+GF-REC-00370,Spring roll,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC383,source_mapped
+GF-REC-00371,Dry mango chutney (Sookhe aam ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC384,source_mapped
+GF-REC-00372,Peanut chutney (Mungfali ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC385,source_mapped
+GF-REC-00373,Coconut chutney (Nariyal ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC386,source_mapped
+GF-REC-00374,Mint and coriander chutney (Pudinay aur dhaniye ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC387,source_mapped
+GF-REC-00375,Curd dip,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC388,source_mapped
+GF-REC-00376,Short crust pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC394,source_mapped
+GF-REC-00377,Custard tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC395,source_mapped
+GF-REC-00378,Lemon tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC396,source_mapped
+GF-REC-00379,Jam tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC397,source_mapped
+GF-REC-00380,Orange cream tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC398,source_mapped
+GF-REC-00381,Pineapple tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC399,source_mapped
+GF-REC-00382,Cheese and mushroom tart,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC400,source_mapped
+GF-REC-00383,Cottage cheese pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC401,source_mapped
+GF-REC-00384,Minced meat pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC402,source_mapped
+GF-REC-00385,Apple cinnamon pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC403,source_mapped
+GF-REC-00386,Lemon meringue pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC404,source_mapped
+GF-REC-00387,Chocolate meringue pie,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC405,source_mapped
+GF-REC-00388,Choux pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC406,source_mapped
+GF-REC-00389,Cream puffs,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC407,source_mapped
+GF-REC-00390,Chocolate eclairs,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC408,source_mapped
+GF-REC-00391,Cheese balls,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC409,source_mapped
+GF-REC-00392,Flaky pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC410,source_mapped
+GF-REC-00393,Minced meat patties,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC411,source_mapped
+GF-REC-00394,Cheese patties,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC412,source_mapped
+GF-REC-00395,Hot cheese souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC413,source_mapped
+GF-REC-00396,Hot potato souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC414,source_mapped
+GF-REC-00397,Hot fish souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC415,source_mapped
+GF-REC-00398,Hot spinach souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC416,source_mapped
+GF-REC-00399,Plain cream cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC417,source_mapped
+GF-REC-00400,Apple cake (Seb ka cake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC418,source_mapped
+GF-REC-00401,Marble cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC419,source_mapped
+GF-REC-00402,Chocolate cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC420,source_mapped
+GF-REC-00403,Orange cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC421,source_mapped
+GF-REC-00404,Fruit Loaf ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC422,source_mapped
+GF-REC-00405,Banana cake (Kele ka cake),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC423,source_mapped
+GF-REC-00406,Chocolate chiffon cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC424,source_mapped
+GF-REC-00407,Christmas cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC425,source_mapped
+GF-REC-00408,Strawberry and vanilla cake with butter icing,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC426,source_mapped
+GF-REC-00409,Eggless cake,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC427,source_mapped
+GF-REC-00410,Sponge cake ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC428,source_mapped
+GF-REC-00411,Swiss roll,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC429,source_mapped
+GF-REC-00412,Pineapple pastry ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC430,source_mapped
+GF-REC-00413,Black forest pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC431,source_mapped
+GF-REC-00414,Coconut finger,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC432,source_mapped
+GF-REC-00415,Pineapple cake ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC433,source_mapped
+GF-REC-00416,Glace icing,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC434,source_mapped
+GF-REC-00417,Royal icing,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC436,source_mapped
+GF-REC-00418,American frosting,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC437,source_mapped
+GF-REC-00419,Gum icing,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC438,source_mapped
+GF-REC-00420,Chocolate walnut cookies (Chocolate aur akhrot ke cookies),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC439,source_mapped
+GF-REC-00421,Chocolate chip cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC440,source_mapped
+GF-REC-00422,Sweet plain biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC441,source_mapped
+GF-REC-00423,Chocolate biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC442,source_mapped
+GF-REC-00424,Coconut biscuit (Nariyal ke biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC443,source_mapped
+GF-REC-00425,Sweet and salty biscuit (Meethay aur namkeen biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC444,source_mapped
+GF-REC-00426,Peanut biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC445,source_mapped
+GF-REC-00427,Pin wheel biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC446,source_mapped
+GF-REC-00428,Saffron biscuit (Kesar biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC447,source_mapped
+GF-REC-00429,Masala biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC448,source_mapped
+GF-REC-00430,Ice box cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC449,source_mapped
+GF-REC-00431,Ginger bread man,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC450,source_mapped
+GF-REC-00432,Danish cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC451,source_mapped
+GF-REC-00433,Short bread cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC452,source_mapped
+GF-REC-00434,Coffee biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC453,source_mapped
+GF-REC-00435,Melting moments,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC454,source_mapped
+GF-REC-00436,Ginger biscuit (Adarak ke biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC455,source_mapped
+GF-REC-00437,Soyabean muthias,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC456,source_mapped
+GF-REC-00438,Soyabean tikki,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC457,source_mapped
+GF-REC-00439,Soyabean namak paras,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC458,source_mapped
+GF-REC-00440,Peanut burfi (Moongfali ki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC459,source_mapped
+GF-REC-00441,Spinach peanut namak paras (Palak moongfali namak paras),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC460,source_mapped
+GF-REC-00442,Gram flour and semolina chilla/cheela/savory pancake (Besan suji chilla/cheela),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC461,source_mapped
+GF-REC-00443,Rice moong dal cheela (Chawal aur moong dal ka cheela),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC462,source_mapped
+GF-REC-00444,Split bengal gram sweet rice (Channa dal sweet rice),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC463,source_mapped
+GF-REC-00445,Sweet poori (Meethi poori),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC464,source_mapped
+GF-REC-00446,Wheat flour and moong dal burfi (Atta aur moong dal ki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC465,source_mapped
+GF-REC-00447,Spinach burfi (Palak burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC466,source_mapped
+GF-REC-00448,Sweet split chickpea roti (Sweet channa dal roti/Puranpoli),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC467,source_mapped
+GF-REC-00449,Sprouted moong daliya ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC468,source_mapped
+GF-REC-00450,Sprouted moong poha ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC469,source_mapped
+GF-REC-00451,Pearl millet ladoo (Bajra ladoo),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC470,source_mapped
+GF-REC-00452,Paushtik ladoo,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC471,source_mapped
+GF-REC-00453,Paushtik roti,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC472,source_mapped
+GF-REC-00454,Semolina carrot vada (Suji gajar vada),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC473,source_mapped
+GF-REC-00455,Dhokla,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC474,source_mapped
+GF-REC-00456,Channa murmura premix,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC475,source_mapped
+GF-REC-00457,Cracked wheat and green gram dal premix (Dalia moong dal premix),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC476,source_mapped
+GF-REC-00458,Rice flakes and roasted channa ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC477,source_mapped
+GF-REC-00459,Spinach soup in milk ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC479,source_mapped
+GF-REC-00460,Vegetable soup,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC480,source_mapped
+GF-REC-00461,Mashed banana with milk,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC481,source_mapped
+GF-REC-00462,Poha with curd (Poha aur dahi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC484,source_mapped
+GF-REC-00463,Potato with curd,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC485,source_mapped
+GF-REC-00464,Sweet wheat porridge (Sweet dalia),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC486,source_mapped
+GF-REC-00465,Vegetable khichdi/khichri,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC487,source_mapped
+GF-REC-00466,Moong dal mixture,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC489,source_mapped
+GF-REC-00467,Cracked wheat khichri/khichdi (Dalia khichri/khichdi),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC490,source_mapped
+GF-REC-00468,Stewed apple,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC492,source_mapped
+GF-REC-00469,Lemon squash (Nimbu ka squash),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC493,source_mapped
+GF-REC-00470,Orange squash (Santre ka squash),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC494,source_mapped
+GF-REC-00471,Lichi squash,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC495,source_mapped
+GF-REC-00472,Mango squash (Aam ka squash),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC496,source_mapped
+GF-REC-00473,Pineapple squash (Ananas ka squash),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC497,source_mapped
+GF-REC-00474,Lemon and ginger squash (Nimbu aur adrak ka squash),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC498,source_mapped
+GF-REC-00475,Apple jam (Seb ka murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC499,source_mapped
+GF-REC-00476,Plum jam (Aloo bukhara jam),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC500,source_mapped
+GF-REC-00477,Pineapple jam ,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC501,source_mapped
+GF-REC-00478,Guava jelly (Amrood ki jelly),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC502,source_mapped
+GF-REC-00479,Orange marmalade (Santray ka murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC503,source_mapped
+GF-REC-00480,Carrot murabba (Gajar ka murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC504,source_mapped
+GF-REC-00481,Gooseberry marmalade (Amla murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC505,source_mapped
+GF-REC-00482,Ginger candy (Adrak ki candy),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC506,source_mapped
+GF-REC-00483,Mango pickle (Aam ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC507,source_mapped
+GF-REC-00484,Mixed vegetable pickle (Sabziyoon ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC509,source_mapped
+GF-REC-00485,Sweet lemon pickle (Neembu ka meetha achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC511,source_mapped
+GF-REC-00486,Plum chutney (Aloo bukhara ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC512,source_mapped
+GF-REC-00487,Raw mango chutney (Kachhe aam/Kairi ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC513,source_mapped
+GF-REC-00488,Tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC514,source_mapped
+GF-REC-00489,Tomato puree,recipe,prepared_recipe,India,Indian,SRC-INDB,ASC515,source_mapped
+GF-REC-00490,Garam masala,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP001,source_mapped
+GF-REC-00491,Chat masala,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP002,source_mapped
+GF-REC-00492,Kashmiri masala,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP003,source_mapped
+GF-REC-00493,Rasam powder (Rasam masala),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP004,source_mapped
+GF-REC-00494,Sambar powder (Sambar masala),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP005,source_mapped
+GF-REC-00495,Kashmiri tea (Kehwa),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP007,source_mapped
+GF-REC-00496,Steeped hot coffee,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP008,source_mapped
+GF-REC-00497,Hot chocolate,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP011,source_mapped
+GF-REC-00498,Cold coffee (with cream),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP013,source_mapped
+GF-REC-00499,Banana milkshake with ice cream (Kele ka milkshake ice cream ke saath),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP015,source_mapped
+GF-REC-00500,Flavoured milkshake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP019,source_mapped
+GF-REC-00501,Jal jeera,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP024,source_mapped
+GF-REC-00502,Gingo,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP026,source_mapped
+GF-REC-00503,Mintade,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP027,source_mapped
+GF-REC-00504,Canjee,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP029,source_mapped
+GF-REC-00505,Cauliflower canjee (Phoolgobhi ki canjee),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP030,source_mapped
+GF-REC-00506,Potato canjee (Aloo canjee),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP031,source_mapped
+GF-REC-00507,Vermicelli porridge (Semiya/Seviyan porridge),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP036,source_mapped
+GF-REC-00508,Semolina upma (Suji/Rava upma),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP039,source_mapped
+GF-REC-00509,Vermicelli upma (Semiya/Seviyan upma),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP040,source_mapped
+GF-REC-00510,Rice upma,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP041,source_mapped
+GF-REC-00511,Bread upma,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP042,source_mapped
+GF-REC-00512,Vegetable upma,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP043,source_mapped
+GF-REC-00513,Poha,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP044,source_mapped
+GF-REC-00514,Vegetable poha,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP045,source_mapped
+GF-REC-00515,Moong dal stuffed cheela/chilla (Moong dal ka cheela/chilla),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP046,source_mapped
+GF-REC-00516,Paneer stuffed cheela/chilla,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP047,source_mapped
+GF-REC-00517,Indian style egg bhujia (Anda bhujia (Indian style)),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP052,source_mapped
+GF-REC-00518,French omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP054,source_mapped
+GF-REC-00519,Puffy omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP055,source_mapped
+GF-REC-00520,Orange omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP056,source_mapped
+GF-REC-00521,Cheese and mushroom omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP057,source_mapped
+GF-REC-00522,Spanish omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP058,source_mapped
+GF-REC-00523,Mixed stock,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP059,source_mapped
+GF-REC-00524,Meat stock,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP060,source_mapped
+GF-REC-00525,White stock,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP062,source_mapped
+GF-REC-00526,Meat consomme (with mutton),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP065,source_mapped
+GF-REC-00527,Consomme au julienne,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP066,source_mapped
+GF-REC-00528,Consomme au vermicelli,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP067,source_mapped
+GF-REC-00529,Green pea soup (Matar ka soup),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP072,source_mapped
+GF-REC-00530,Spinach soup (Palak ka soup),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP073,source_mapped
+GF-REC-00531,Mixed vegetable soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP074,source_mapped
+GF-REC-00532,Cheese soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP075,source_mapped
+GF-REC-00533,Mulligatawny soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP076,source_mapped
+GF-REC-00534,Cream of carrot soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP079,source_mapped
+GF-REC-00535,Cream of broccoli soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP080,source_mapped
+GF-REC-00536,Cream of potato soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP082,source_mapped
+GF-REC-00537,Almond soup (Badam ka soup),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP087,source_mapped
+GF-REC-00538,Cold cucumber cream soup ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP088,source_mapped
+GF-REC-00539,Cold tomato soup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP089,source_mapped
+GF-REC-00540,Chicken stew,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP090,source_mapped
+GF-REC-00541,Veg paneer stew,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP091,source_mapped
+GF-REC-00542,Tartare sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP095,source_mapped
+GF-REC-00543,Barbeque sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP096,source_mapped
+GF-REC-00544,Bread sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP097,source_mapped
+GF-REC-00545,Onion-green chilli parantha/paratha (Pyaaz aur hari mirch ka parantha/paratha),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP108,source_mapped
+GF-REC-00546,Methi parantha/paratha,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP110,source_mapped
+GF-REC-00547,Bathua poori,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP114,source_mapped
+GF-REC-00548,Gram flour poori (Besan poori),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP115,source_mapped
+GF-REC-00549,Beetroot poori (Chukandar ki poori),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP116,source_mapped
+GF-REC-00550,Peas poori (Matar ki poori),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP117,source_mapped
+GF-REC-00551,Peas kachori (Matar kachori),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP118,source_mapped
+GF-REC-00552,Pizza,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP122,source_mapped
+GF-REC-00553,Bacon and mushroom pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP124,source_mapped
+GF-REC-00554,Cheese and tomato pancake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP125,source_mapped
+GF-REC-00555,Minced meat pancake (with chicken),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP127,source_mapped
+GF-REC-00556,Eggplant/Brinjal rice (Vangi bhat),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP132,source_mapped
+GF-REC-00557,Kashmiri 'tahar',recipe,prepared_recipe,India,Indian,SRC-INDB,BFP133,source_mapped
+GF-REC-00558,Cumin pulao (Jeera/Zeera pulao),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP134,source_mapped
+GF-REC-00559,Peas pulao (Matar pulao),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP136,source_mapped
+GF-REC-00560,Split bengal gram dal and vegetable pulao (Channa dal and vegetable pulao),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP137,source_mapped
+GF-REC-00561,Black channa pulao/ Bengal gram pulao (Kale chane ka pulao),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP138,source_mapped
+GF-REC-00562,Mutton pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP141,source_mapped
+GF-REC-00563,Chicken pulao,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP142,source_mapped
+GF-REC-00564,Mexican rice,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP143,source_mapped
+GF-REC-00565,Plain khitchdi (Plain khichri/khichdi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP144,source_mapped
+GF-REC-00566,Instant idli (with semolina),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP147,source_mapped
+GF-REC-00567,Plain dosa,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP148,source_mapped
+GF-REC-00568,Masala dosa mixed vegetable fillings,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP150,source_mapped
+GF-REC-00569,Masala dosa paneer fillings,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP151,source_mapped
+GF-REC-00570,Uttapam,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP152,source_mapped
+GF-REC-00571,Appam,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP153,source_mapped
+GF-REC-00572,Beans and macaroni,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP154,source_mapped
+GF-REC-00573,Spaghetti bolognese,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP155,source_mapped
+GF-REC-00574,Meat and macaroni casserole,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP157,source_mapped
+GF-REC-00575,Spaghetti with meat balls and tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP158,source_mapped
+GF-REC-00576,Spaghetti with paneer balls and tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP159,source_mapped
+GF-REC-00577,Lasagne with meat sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP161,source_mapped
+GF-REC-00578,Lasagne with vegetables,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP162,source_mapped
+GF-REC-00579,Green chilli sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP163,source_mapped
+GF-REC-00580,Home made plain noodles,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP164,source_mapped
+GF-REC-00581,Home made egg noodles,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP165,source_mapped
+GF-REC-00582,Dal moong,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP166,source_mapped
+GF-REC-00583,Cumin seeds baghar (Jeera baghar/tadka),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP167,source_mapped
+GF-REC-00584,Onion tomato baghar (Pyaaz tamatar ka tadka),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP168,source_mapped
+GF-REC-00585,Mustard seeds baghar (Mustard seed tadka),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP169,source_mapped
+GF-REC-00586,Sour lentils (Khatti dal),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP170,source_mapped
+GF-REC-00587,Urad special dehusked,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP171,source_mapped
+GF-REC-00588,Arhar with spinach (Arhar dal aur palak),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP172,source_mapped
+GF-REC-00589,Moong dal with vadi,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP174,source_mapped
+GF-REC-00590,Rasam with tamarind (Puli rasam/ Chintapandu rasam/ Charu/Saaru),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP176,source_mapped
+GF-REC-00591,Rasam with lemon (Nimmakaya rasam/Nimmakaya charu/Elumichai rasam/Nimbe hannina saaru),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP177,source_mapped
+GF-REC-00592,Green gram whole with baghar (Sabut moong dal with tadka),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP178,source_mapped
+GF-REC-00593,Urad sabut special,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP179,source_mapped
+GF-REC-00594,Kabuli channa curry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP185,source_mapped
+GF-REC-00595,Besan gatte curry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP187,source_mapped
+GF-REC-00596,Dry masala chops,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP190,source_mapped
+GF-REC-00597,Mutton korma,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP194,source_mapped
+GF-REC-00598,Shahi keema kofta curry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP196,source_mapped
+GF-REC-00599,Minced meat ball curry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP197,source_mapped
+GF-REC-00600,Boti kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP198,source_mapped
+GF-REC-00601,Mutton seekh kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP199,source_mapped
+GF-REC-00602,Indian lamb and egg curry (Nargisi kofta),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP201,source_mapped
+GF-REC-00603,Soya chunks sweet and sour (Nutrinugget sweet and sour),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP203,source_mapped
+GF-REC-00604,Soya chunks korma (Nutrinugget korma),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP204,source_mapped
+GF-REC-00605,Mushroom matar,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP205,source_mapped
+GF-REC-00606,Soya chunks and peas (Nutrinugget matar),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP206,source_mapped
+GF-REC-00607,Vegetable yakhni,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP207,source_mapped
+GF-REC-00608,Spinach mushroom (Palak mushroom),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP208,source_mapped
+GF-REC-00609,Vegetarian nargisi kofta curry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP210,source_mapped
+GF-REC-00610,Roast chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP212,source_mapped
+GF-REC-00611,Shahi chicken masala,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP214,source_mapped
+GF-REC-00612,Tomato chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP216,source_mapped
+GF-REC-00613,Creamy chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP217,source_mapped
+GF-REC-00614,Broccoli chicken ala king,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP218,source_mapped
+GF-REC-00615,Ginger chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP220,source_mapped
+GF-REC-00616,Chicken sweet and sour,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP221,source_mapped
+GF-REC-00617,Chicken korma,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP222,source_mapped
+GF-REC-00618,Bengal fish curry (Bengali machli curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP223,source_mapped
+GF-REC-00619,Fish finger,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP226,source_mapped
+GF-REC-00620,Fish in coconut milk (Nariyal ke doodh ke saath machli),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP229,source_mapped
+GF-REC-00621,Prawn curry (with coconut) (Jhinga curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP230,source_mapped
+GF-REC-00622,Baked stuffed fish,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP231,source_mapped
+GF-REC-00623,Fish pie,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP232,source_mapped
+GF-REC-00624,Crispy baked fish,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP233,source_mapped
+GF-REC-00625,Fish souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP234,source_mapped
+GF-REC-00626,Potato curry (Aloo ki sabzi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP239,source_mapped
+GF-REC-00627,Egg curry (Anda curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP240,source_mapped
+GF-REC-00628,Vegetable curry with coconut ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP241,source_mapped
+GF-REC-00629,Curd with potatoes (Dahi aloo),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP242,source_mapped
+GF-REC-00630,Potato kofta curry (Aloo kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP246,source_mapped
+GF-REC-00631,Yam kofta curry (Zimikand/Suran kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP249,source_mapped
+GF-REC-00632,Jackfruit kofta curry (Kathal ka kofta curry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP250,source_mapped
+GF-REC-00633,Spinach and potato (Palak aloo),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP257,source_mapped
+GF-REC-00634,Mooli bhujia,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP258,source_mapped
+GF-REC-00635,Bathua bhujia,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP259,source_mapped
+GF-REC-00636,Cabbage rolls (dry) ((Pattagobhi rolls) (dry)),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP261,source_mapped
+GF-REC-00637,Cabbage rolls (curry) ((Pattagobhi rolls)(curry)),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP262,source_mapped
+GF-REC-00638,Dry arbi (Sookhi arbi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP263,source_mapped
+GF-REC-00639,Masala arbi,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP264,source_mapped
+GF-REC-00640,Peas brinjal bhartha (Matar baingan bhartha),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP266,source_mapped
+GF-REC-00641,Okra/Lady's fingers fry (Bhindi sabzi/sabji/subji),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP269,source_mapped
+GF-REC-00642,Crispy okra/Crispy lady's fingers (Karare bhindi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP270,source_mapped
+GF-REC-00643,Beans foogath,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP272,source_mapped
+GF-REC-00644,Stuffed bittergourd (wet) (Bharwa karele),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP273,source_mapped
+GF-REC-00645,Jackfruit/Kathal (dry),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP274,source_mapped
+GF-REC-00646,Yam fried (Zimikand/Suran fried),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP275,source_mapped
+GF-REC-00647,"Cauliflower, pea and potato bhujia (Phoolgobhi, matar aur aloo bhujia)",recipe,prepared_recipe,India,Indian,SRC-INDB,BFP276,source_mapped
+GF-REC-00648,Vegetable jalfrezi,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP277,source_mapped
+GF-REC-00649,Vegetables stir fry ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP278,source_mapped
+GF-REC-00650,Broccoli delight,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP279,source_mapped
+GF-REC-00651,Dhansak (vegetarian),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP280,source_mapped
+GF-REC-00652,Cauliflower basket,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP282,source_mapped
+GF-REC-00653,Stuffed bottle gourd (Stuffed ghiya/lauki),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP284,source_mapped
+GF-REC-00654,Ducheese potato,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP286,source_mapped
+GF-REC-00655,Roast potatoes ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP287,source_mapped
+GF-REC-00656,Stuffed baked potatoes ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP288,source_mapped
+GF-REC-00657,Potato nests,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP289,source_mapped
+GF-REC-00658,Parsley potato,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP290,source_mapped
+GF-REC-00659,Creamed spinach and mushroom,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP291,source_mapped
+GF-REC-00660,Fricassee of Mushroom,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP292,source_mapped
+GF-REC-00661,Cauliflower au gratin,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP293,source_mapped
+GF-REC-00662,Vegetable and cheese pie,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP294,source_mapped
+GF-REC-00663,Spinach souffle ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP296,source_mapped
+GF-REC-00664,Beetroot and egg salad (Chukandar aur ande ka salad),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP299,source_mapped
+GF-REC-00665,Sour cream potato salad,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP300,source_mapped
+GF-REC-00666,Tossed green salad,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP301,source_mapped
+GF-REC-00667,Spring basket salad,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP302,source_mapped
+GF-REC-00668,Cucumber and yogurt salad (Kheere aur dahi ka salad),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP303,source_mapped
+GF-REC-00669,Chicken and tomato towers,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP305,source_mapped
+GF-REC-00670,Jellied sunshine fruit salad,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP306,source_mapped
+GF-REC-00671,Tomato aspic,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP307,source_mapped
+GF-REC-00672,Frozen frosty fruit salad (Phalon ka salaad),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP308,source_mapped
+GF-REC-00673,French dressing,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP310,source_mapped
+GF-REC-00674,Mayonnaise without eggs,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP312,source_mapped
+GF-REC-00675,Curd dressing ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP313,source_mapped
+GF-REC-00676,Carrot raita (Gajar ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP316,source_mapped
+GF-REC-00677,Pumpkin raita (Kaddu ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP318,source_mapped
+GF-REC-00678,Mint and peanut raita (Pudinay aur moongfali ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP320,source_mapped
+GF-REC-00679,Spinach raita (Palak ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP321,source_mapped
+GF-REC-00680,Bathua raita,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP322,source_mapped
+GF-REC-00681,Pineapple raita (Ananas ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP325,source_mapped
+GF-REC-00682,Banana raita (Kele ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP326,source_mapped
+GF-REC-00683,Mango raita (Aam ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP327,source_mapped
+GF-REC-00684,Guava raita (Amarood ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP328,source_mapped
+GF-REC-00685,Grapes raita (Angoor ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP329,source_mapped
+GF-REC-00686,Bottle gourd kheer (Ghiya/Lauki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP334,source_mapped
+GF-REC-00687,Pumpkin kheer (Kaddu ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP336,source_mapped
+GF-REC-00688,Apple kheer (Seb ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP338,source_mapped
+GF-REC-00689,Caramel custard (baked),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP345,source_mapped
+GF-REC-00690,Vanilla ice cream without egg,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP346,source_mapped
+GF-REC-00691,Vanilla ice cream with egg,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP347,source_mapped
+GF-REC-00692,Strawberry ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP348,source_mapped
+GF-REC-00693,Chocochip ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP350,source_mapped
+GF-REC-00694,Choconut ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP351,source_mapped
+GF-REC-00695,Pear chocholate sunday,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP352,source_mapped
+GF-REC-00696,Chocolate sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP353,source_mapped
+GF-REC-00697,Coffee ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP354,source_mapped
+GF-REC-00698,Coffee pear alaska,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP355,source_mapped
+GF-REC-00699,Crunchy butterscotch,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP356,source_mapped
+GF-REC-00700,Peach melba ice cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP358,source_mapped
+GF-REC-00701,Vanilla ice cream with apples in hot cherry sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP359,source_mapped
+GF-REC-00702,Hot cherry sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP360,source_mapped
+GF-REC-00703,Grape and orange whip,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP361,source_mapped
+GF-REC-00704,Honey banana cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP362,source_mapped
+GF-REC-00705,Raspberry bavarian cream,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP363,source_mapped
+GF-REC-00706,Fruit delight,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP364,source_mapped
+GF-REC-00707,Creamy chocolate mousse,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP365,source_mapped
+GF-REC-00708,Cold lemon souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP366,source_mapped
+GF-REC-00709,Cold orange souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP367,source_mapped
+GF-REC-00710,Cold pineapple souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP368,source_mapped
+GF-REC-00711,Cold vanilla souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP369,source_mapped
+GF-REC-00712,Cold chocolate souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP370,source_mapped
+GF-REC-00713,Stewed fruit (with pear),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP371,source_mapped
+GF-REC-00714,Apricot fool,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP372,source_mapped
+GF-REC-00715,Pavlova,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP373,source_mapped
+GF-REC-00716,Apple crumb pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP379,source_mapped
+GF-REC-00717,Steamed cake with chocolate sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP380,source_mapped
+GF-REC-00718,Hot lemon souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP382,source_mapped
+GF-REC-00719,Gulab jamun with milk powder,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP386,source_mapped
+GF-REC-00720,Chum chum,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP388,source_mapped
+GF-REC-00721,Dil bahar,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP389,source_mapped
+GF-REC-00722,Rasbhari,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP390,source_mapped
+GF-REC-00723,Rajbogh,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP391,source_mapped
+GF-REC-00724,Rasgulla,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP392,source_mapped
+GF-REC-00725,Rasmalai,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP393,source_mapped
+GF-REC-00726,Khoa coconut burfi,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP396,source_mapped
+GF-REC-00727,Danedar burfi,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP397,source_mapped
+GF-REC-00728,Semolina burfi (Suji/Rava burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP401,source_mapped
+GF-REC-00729,Pumpkin coconut burfi (Kaddu aur nariyal ki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP403,source_mapped
+GF-REC-00730,Khoa ladoo,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP404,source_mapped
+GF-REC-00731,Wheat and gram flour ladoo (Atta besan ladoo),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP406,source_mapped
+GF-REC-00732,Semolina ladoo with nuts (Suji/Rava ladoo with nuts),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP407,source_mapped
+GF-REC-00733,Sesame chickpeas brittle (Til aur channe ki chikki),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP412,source_mapped
+GF-REC-00734,Murmura chikki,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP413,source_mapped
+GF-REC-00735,Masala onion pakora/pakoda (Pyaaz ke pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP415,source_mapped
+GF-REC-00736,Masala green chilli pakora/pakoda (Hari mirch kay pakode),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP416,source_mapped
+GF-REC-00737,Chicken pakora/pakoda,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP420,source_mapped
+GF-REC-00738,Fish pakora/pakoda,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP421,source_mapped
+GF-REC-00739,Paneer cutlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP424,source_mapped
+GF-REC-00740,Sago cutlet/vadas (Sabudana cutlet/vadas),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP425,source_mapped
+GF-REC-00741,Poshtik cutlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP427,source_mapped
+GF-REC-00742,Egg cutlet (Anda cutlet),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP428,source_mapped
+GF-REC-00743,Minced meat cutlet,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP430,source_mapped
+GF-REC-00744,Vegetable samosa,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP431,source_mapped
+GF-REC-00745,Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP436,source_mapped
+GF-REC-00746,Masala urad dal vada,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP437,source_mapped
+GF-REC-00747,Khaman (dhokla),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP439,source_mapped
+GF-REC-00748,Instant dhokla,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP440,source_mapped
+GF-REC-00749,Tomato ginger chutney (Tamatar adarak ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP442,source_mapped
+GF-REC-00750,Mint tomato chutney (Pudinay aur tamatar ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP443,source_mapped
+GF-REC-00751,Coriander chutney (Hare dhaniye ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP444,source_mapped
+GF-REC-00752,Gooseberry chutney (Amla chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP445,source_mapped
+GF-REC-00753,Walnut chutney (Akhrot ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP446,source_mapped
+GF-REC-00754,Saunth/Sonth chutney with ginger,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP447,source_mapped
+GF-REC-00755,Gun powder chutney,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP448,source_mapped
+GF-REC-00756,Dessicated coconut chutney (Sookhe kase nariyal ki chutney) ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP450,source_mapped
+GF-REC-00757,Curd mint dip ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP451,source_mapped
+GF-REC-00758,Curd vegetable dip,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP452,source_mapped
+GF-REC-00759,Mayonnaise vegetable dip,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP453,source_mapped
+GF-REC-00760,Tomato and cucumber sandwich (Tamatar aur kheere ka sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP455,source_mapped
+GF-REC-00761,Tomato sandwich (grilled),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP456,source_mapped
+GF-REC-00762,French sandwich (toasted),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP457,source_mapped
+GF-REC-00763,Peanut butter cucumber sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP458,source_mapped
+GF-REC-00764,Mint and peanut sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP459,source_mapped
+GF-REC-00765,Spicy chutney sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP460,source_mapped
+GF-REC-00766,Chicken walnut sandwich (Chicken aur akhrot ke sandwich),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP461,source_mapped
+GF-REC-00767,Rolled sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP463,source_mapped
+GF-REC-00768,Ribbon sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP466,source_mapped
+GF-REC-00769,Checker board sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP467,source_mapped
+GF-REC-00770,Submarine sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP468,source_mapped
+GF-REC-00771,Cheese open sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP470,source_mapped
+GF-REC-00772,Sunset and sunrise open sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP471,source_mapped
+GF-REC-00773,Danish luncheon sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP472,source_mapped
+GF-REC-00774,Chicken and corn open sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP473,source_mapped
+GF-REC-00775,Chocolate sponge cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP476,source_mapped
+GF-REC-00776,Chocolate swiss roll,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP478,source_mapped
+GF-REC-00777,Lemon curd filling,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP479,source_mapped
+GF-REC-00778,Jam filling,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP480,source_mapped
+GF-REC-00779,Chocolate pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP482,source_mapped
+GF-REC-00780,Assorted pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP483,source_mapped
+GF-REC-00781,Orange gateau,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP484,source_mapped
+GF-REC-00782,Black forest gateau,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP485,source_mapped
+GF-REC-00783,Lemon cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP489,source_mapped
+GF-REC-00784,Dundee cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP491,source_mapped
+GF-REC-00785,Victorian sandwich cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP492,source_mapped
+GF-REC-00786,Chocolate eggless cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP495,source_mapped
+GF-REC-00787,Orange eggless cake,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP496,source_mapped
+GF-REC-00788,Chocolate glace icing,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP498,source_mapped
+GF-REC-00789,Butter icing,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP499,source_mapped
+GF-REC-00790,Chocolate butter icing,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP500,source_mapped
+GF-REC-00791,Almond biscuit (Badam ke biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP502,source_mapped
+GF-REC-00792,Orange biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP505,source_mapped
+GF-REC-00793,Gingerman biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP506,source_mapped
+GF-REC-00794,Coffee drops,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP507,source_mapped
+GF-REC-00795,Christmas biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP508,source_mapped
+GF-REC-00796,Christmas wreath biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP509,source_mapped
+GF-REC-00797,Christmas bell biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP510,source_mapped
+GF-REC-00798,Christmas star biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP511,source_mapped
+GF-REC-00799,Christmas tree biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP512,source_mapped
+GF-REC-00800,Chocolate cream shells,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP513,source_mapped
+GF-REC-00801,Jelly biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP516,source_mapped
+GF-REC-00802,Cherry and walnut cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP517,source_mapped
+GF-REC-00803,Cheese straws,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP518,source_mapped
+GF-REC-00804,Butterfly biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP519,source_mapped
+GF-REC-00805,Flan pastry,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP521,source_mapped
+GF-REC-00806,Fruit flan,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP522,source_mapped
+GF-REC-00807,Orange cream flan,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP523,source_mapped
+GF-REC-00808,Fruit puree tart,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP527,source_mapped
+GF-REC-00809,Apple banana pie,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP529,source_mapped
+GF-REC-00810,Lemon chiffon pie,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP531,source_mapped
+GF-REC-00811,Orange chiffon pie,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP532,source_mapped
+GF-REC-00812,Cream buns,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP534,source_mapped
+GF-REC-00813,Savoury puffs,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP535,source_mapped
+GF-REC-00814,Choux swans,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP536,source_mapped
+GF-REC-00815,Potato aigrettes,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP539,source_mapped
+GF-REC-00816,Cream horns,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP541,source_mapped
+GF-REC-00817,Savoury cheese horns,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP542,source_mapped
+GF-REC-00818,Paneer patties,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP544,source_mapped
+GF-REC-00819,Vegetable patties ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP545,source_mapped
+GF-REC-00820,Pearl millet infant food (Bajra shishu aahaar),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP546,source_mapped
+GF-REC-00821,Sajina,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP547,source_mapped
+GF-REC-00822,Cereal mix ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP548,source_mapped
+GF-REC-00823,Pulse mix,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP549,source_mapped
+GF-REC-00824,Shishu ahar,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP550,source_mapped
+GF-REC-00825,Cereal pulse mix with amylase rice flour,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP552,source_mapped
+GF-REC-00826,Banana groundnut paste/puree,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP553,source_mapped
+GF-REC-00827,Rice dal porridge (Chawal dal ki khichdi/khichri),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP554,source_mapped
+GF-REC-00828,Lentils and semolina porridge (Dal suji porridge/daliya),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP555,source_mapped
+GF-REC-00829,Spinach khichri (Palak khichri/khichdi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP556,source_mapped
+GF-REC-00830,Vegetable mix,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP557,source_mapped
+GF-REC-00831,Lentils and wheat porridge (Dal wheat porridge/daliya ),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP558,source_mapped
+GF-REC-00832,Maize porridge,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP559,source_mapped
+GF-REC-00833,Spinach peanut burfi (Palak aur mungfali ki burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP560,source_mapped
+GF-REC-00834,Split bengal gram burfi/fudge (Channa dal burfi),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP561,source_mapped
+GF-REC-00835,Chickpea flour cookies (Sweet besan rounds/cookies),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP563,source_mapped
+GF-REC-00836,Pearl millet mathri (Bajra mathri),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP564,source_mapped
+GF-REC-00837,Sesame biscuit (Til ke biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP565,source_mapped
+GF-REC-00838,Fermented bengal gram vada (Khameerikrit/Ufna hua channa dal ka vada),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP566,source_mapped
+GF-REC-00839,Poshtik namak paras,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP568,source_mapped
+GF-REC-00840,Soya chikki,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP569,source_mapped
+GF-REC-00841,Besan bathua chilla/cheela,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP570,source_mapped
+GF-REC-00842,Wheat flour and nuts ladoos (Atta nuts ladoos),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP571,source_mapped
+GF-REC-00843,Gram flour and semolina dhokla (Besan suji dhokla),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP573,source_mapped
+GF-REC-00844,Atta dal burfi ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP574,source_mapped
+GF-REC-00845,Soya roti,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP575,source_mapped
+GF-REC-00846,Poshtik khichdi/khichri,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP576,source_mapped
+GF-REC-00847,Namkeen daliya,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP577,source_mapped
+GF-REC-00848,Sprouts upma ,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP578,source_mapped
+GF-REC-00849,Semolina idli (Suji/Rava idli),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP579,source_mapped
+GF-REC-00850,Poshtik chilla/cheela,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP580,source_mapped
+GF-REC-00851,Apple jelly (Seb ki jelly),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP583,source_mapped
+GF-REC-00852,Marmalade (Murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP585,source_mapped
+GF-REC-00853,Plum squash (Aloo bukhara squash),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP589,source_mapped
+GF-REC-00854,Lemon green chilli pickle (Nimboo aur hari mirch ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP595,source_mapped
+GF-REC-00855,Brinjal pickle (Baingan ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP597,source_mapped
+GF-REC-00856,Sweet and sour tomato pickle (Khatta meetha tamatar ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP598,source_mapped
+GF-REC-00857,Jhatpat achar with carrot (Jhatpat achaar gajar ke saath),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP599,source_mapped
+GF-REC-00858,Tomato chutney (Tamatar ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP601,source_mapped
+GF-REC-00859,Tomato ketchup,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP602,source_mapped
+GF-REC-00860,Stuffed bittergourd (dry) (Bharwa karela),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP604,source_mapped
+GF-REC-00861,Cauliflower potato canjee,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP605,source_mapped
+GF-REC-00862,Creamed spinach,recipe,prepared_recipe,India,Indian,SRC-INDB,BFP606,source_mapped
+GF-REC-00863,Mango milkshake with ice cream (Aam milkshake ice cream ke saath),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP607,source_mapped
+GF-REC-00864,Pineapple milkshake with ice cream (Ananas milkshake ice cream ke saath),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP608,source_mapped
+GF-REC-00865,Orange milkshake with ice cream (Narangi milkshake ice cream ke saath),recipe,prepared_recipe,India,Indian,SRC-INDB,BFP609,source_mapped
+GF-REC-00866,Woodapple juice (Bel ka sharbat),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR001,source_mapped
+GF-REC-00867,Sattu drink,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR002,source_mapped
+GF-REC-00868,Apple and honey sorbet (Seb aur shehad ka sharbat),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR004,source_mapped
+GF-REC-00869,Thandai,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR005,source_mapped
+GF-REC-00870,Cucumber sharbat (Kheere ka sharbat),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR006,source_mapped
+GF-REC-00871,Apple oats chia seed smoothie,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR007,source_mapped
+GF-REC-00872,Nannari sharbat,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR008,source_mapped
+GF-REC-00873,Semolina milk drink (Thari kanji),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR009,source_mapped
+GF-REC-00874,Saffron milk (Kesariya doodh),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR010,source_mapped
+GF-REC-00875,Black rice kheer (Chak-hao kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR011,source_mapped
+GF-REC-00876,Coconut kheer (Nariyal ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR012,source_mapped
+GF-REC-00877,Apple sago payasam (Seb aur sabudana ki kheer),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR013,source_mapped
+GF-REC-00878,Kesari bath,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR014,source_mapped
+GF-REC-00879,Putharekulu,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR015,source_mapped
+GF-REC-00880,Mango malpua,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR016,source_mapped
+GF-REC-00881,Mango vanilla custard,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR017,source_mapped
+GF-REC-00882,Kiwi granola pudding,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR018,source_mapped
+GF-REC-00883,Oats burfi,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR019,source_mapped
+GF-REC-00884,Lotus seed halwa (Kamal gattay ka halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR020,source_mapped
+GF-REC-00885,Amaranth ladoo (Rajgira ladoo),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR021,source_mapped
+GF-REC-00886,Chhena poda,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR022,source_mapped
+GF-REC-00887,Sweet couscous dessert,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR023,source_mapped
+GF-REC-00888,Sweetened yogurt (Shrikhand),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR024,source_mapped
+GF-REC-00889,Thickened sweetened milk (Rabri),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR025,source_mapped
+GF-REC-00890,Gram flour halwa (Besan halwa),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR026,source_mapped
+GF-REC-00891,Prawn sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR027,source_mapped
+GF-REC-00892,Watercress sandwich,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR028,source_mapped
+GF-REC-00893,Fish sandwich ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR029,source_mapped
+GF-REC-00894,Kidney bean sandwich with cottage cheese,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR030,source_mapped
+GF-REC-00895,Finger millet biscuit (Ragi biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR031,source_mapped
+GF-REC-00896,Buttermilk biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR032,source_mapped
+GF-REC-00897,Lemon cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR033,source_mapped
+GF-REC-00898,Sweet potato biscuit (Shakarkand ke biscuit),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR034,source_mapped
+GF-REC-00899,Raspberry shortbread cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR035,source_mapped
+GF-REC-00900,Pumpkin cookies ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR036,source_mapped
+GF-REC-00901,Greenpea cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR037,source_mapped
+GF-REC-00902,Sunflower cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR038,source_mapped
+GF-REC-00903,Cardamom cookies (Elaichi cookies),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR039,source_mapped
+GF-REC-00904,Hazelnut cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR040,source_mapped
+GF-REC-00905,Milk cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR041,source_mapped
+GF-REC-00906,Cranberry cookies,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR042,source_mapped
+GF-REC-00907,Olive biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR043,source_mapped
+GF-REC-00908,Tutti fruitti biscuit,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR045,source_mapped
+GF-REC-00909,Peach blueberry preserves,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR046,source_mapped
+GF-REC-00910,Pear preserves (Naashpati ka murabba),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR047,source_mapped
+GF-REC-00911,Starfruit preserves ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR048,source_mapped
+GF-REC-00912,Gooseberry pickle (Amla ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR049,source_mapped
+GF-REC-00913,Lotus stem pickle (Kamal kakdi ka achar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR050,source_mapped
+GF-REC-00914,Date pickle (Khajoor ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR051,source_mapped
+GF-REC-00915,Garlic pickle (Lahasun ka achar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR052,source_mapped
+GF-REC-00916,Fermented bamboo shoot pickle (Mesu pickle),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR053,source_mapped
+GF-REC-00917,Sweet peach pickle (Aadoo ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR054,source_mapped
+GF-REC-00918,Pickled mustard greens ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR055,source_mapped
+GF-REC-00919,Small onion pickle ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR056,source_mapped
+GF-REC-00920,Green tomato pickle (Haray tamatar ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR057,source_mapped
+GF-REC-00921,Pickled cabbage ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR058,source_mapped
+GF-REC-00922,Coconut pickle (Nariyal ka aachar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR059,source_mapped
+GF-REC-00923,Potato pickle (Aloo ka achaar),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR060,source_mapped
+GF-REC-00924,Mango murabba candy,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR061,source_mapped
+GF-REC-00925,Afghani chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR062,source_mapped
+GF-REC-00926,Fish orly,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR063,source_mapped
+GF-REC-00927,Hariyali Fish Tikka,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR064,source_mapped
+GF-REC-00928,Chicken manchurian,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR065,source_mapped
+GF-REC-00929,Handi chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR066,source_mapped
+GF-REC-00930,Lemon chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR067,source_mapped
+GF-REC-00931,Lemon butter fish,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR068,source_mapped
+GF-REC-00932,Baked eggs in tomato sauce,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR069,source_mapped
+GF-REC-00933,Egg in a pepper,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR070,source_mapped
+GF-REC-00934,Spinach mushroom scrambled egg (Palak mushroom bhurji),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR071,source_mapped
+GF-REC-00935,Corn omelette/omlet,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR072,source_mapped
+GF-REC-00936,Cajun chicken,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR073,source_mapped
+GF-REC-00937,Paaner do pyaza,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR074,source_mapped
+GF-REC-00938,Cabbage manchurian (Pattagobhi manchurian),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR075,source_mapped
+GF-REC-00939,Gobi 65,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR076,source_mapped
+GF-REC-00940,Paneer lababdar,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR077,source_mapped
+GF-REC-00941,Roasted cauliflower steak,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR078,source_mapped
+GF-REC-00942,Sauteed radishes with green beans,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR079,source_mapped
+GF-REC-00943,Garlic chutney/Poondu chutney (Lahasun ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR080,source_mapped
+GF-REC-00944,Schezwan chutney,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR081,source_mapped
+GF-REC-00945,Bengal 5 Spice Blend (Panch Phoran),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR082,source_mapped
+GF-REC-00946,Onion chutney (Pyaaz ki chutney/Vengaya chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR083,source_mapped
+GF-REC-00947,Dates chutney (Khajoor ki chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR085,source_mapped
+GF-REC-00948,Chicken salad,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR086,source_mapped
+GF-REC-00949,Macaroni salad,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR087,source_mapped
+GF-REC-00950,Cabbage raita (Pattagobhi raita),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR088,source_mapped
+GF-REC-00951,Pomegranate raita (Anaar ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR089,source_mapped
+GF-REC-00952,Onion raita (Pyaaz ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR090,source_mapped
+GF-REC-00953,Green chilli raita (Hari mirch ka raita),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR091,source_mapped
+GF-REC-00954,Kale salad,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR092,source_mapped
+GF-REC-00955,Spinach and paneer souffle ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR093,source_mapped
+GF-REC-00956,Masala souffle ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR094,source_mapped
+GF-REC-00957,Chicken and cheese souffle,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR095,source_mapped
+GF-REC-00958,Tamarind chutney (Chintapandu pachadi/Puli chutney),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR096,source_mapped
+GF-REC-00959,Pav bhaji masala,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR097,source_mapped
+GF-REC-00960,Green chutney,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR098,source_mapped
+GF-REC-00961,Sago khitchdi/khichri (Sabudana khitchdi/khichri),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR099,source_mapped
+GF-REC-00962,Gram flour chilla/cheela (Besan chilla/cheela),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR100,source_mapped
+GF-REC-00963,Vegetable namkeen jave,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR101,source_mapped
+GF-REC-00964,Khakhra,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR102,source_mapped
+GF-REC-00965,Moong bean dosa (Pesarattu),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR103,source_mapped
+GF-REC-00966,Methi thepla,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR104,source_mapped
+GF-REC-00967,Rice puttu (Ari puttu),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR105,source_mapped
+GF-REC-00968,Buckwheat pancake (Khura),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR106,source_mapped
+GF-REC-00969,Quinoa khichdi/khichri,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR107,source_mapped
+GF-REC-00970,Khakhra chaat,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR108,source_mapped
+GF-REC-00971,Banana appam,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR110,source_mapped
+GF-REC-00972,Veg manchurian,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR111,source_mapped
+GF-REC-00973,Pav bhaji,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR112,source_mapped
+GF-REC-00974,Rice murukku,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR113,source_mapped
+GF-REC-00975,Bhel puri ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR114,source_mapped
+GF-REC-00976,Semolina dhokla (Suji/Rava dhokla),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR115,source_mapped
+GF-REC-00977,Spicy corn chaat ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR116,source_mapped
+GF-REC-00978,Jackfruit fritters (Ponsa mulik/Kathal ka pakora),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR118,source_mapped
+GF-REC-00979,Banana chips (Kele ke chips),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR119,source_mapped
+GF-REC-00980,Wheat cake,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR120,source_mapped
+GF-REC-00981,Mango cheesecake,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR121,source_mapped
+GF-REC-00982,Carrot cake (Gajar ka cake),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR122,source_mapped
+GF-REC-00983,Semolina cake (Suji/Rava cake),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR123,source_mapped
+GF-REC-00984,Finger millet cake (Ragi cake),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR124,source_mapped
+GF-REC-00985,Honey cake,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR125,source_mapped
+GF-REC-00986,Almond cardamom cake (Badam elaichi cake),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR126,source_mapped
+GF-REC-00987,Tutti frutti cake,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR127,source_mapped
+GF-REC-00988,Ham and Bean soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR128,source_mapped
+GF-REC-00989,Whey soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR129,source_mapped
+GF-REC-00990,Bottle gourd soup (Ghiya/Lauki soup),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR130,source_mapped
+GF-REC-00991,Baked potato soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR131,source_mapped
+GF-REC-00992,Pumpkin soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR132,source_mapped
+GF-REC-00993,Sweet corn soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR133,source_mapped
+GF-REC-00994,Paneer soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR134,source_mapped
+GF-REC-00995,Curried Cauliflower soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR135,source_mapped
+GF-REC-00996,Millet soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR136,source_mapped
+GF-REC-00997,Lemon coriander soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR137,source_mapped
+GF-REC-00998,Garlic soup,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR138,source_mapped
+GF-REC-00999,Dal makhani,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR139,source_mapped
+GF-REC-01000,Dalma,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR141,source_mapped
+GF-REC-01001,Split bengal gram dal (Channa dal),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR142,source_mapped
+GF-REC-01002,Horsegram dal (Kulthi dal) ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR143,source_mapped
+GF-REC-01003,Panchmel dal,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR144,source_mapped
+GF-REC-01004,Dal dhokli,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR145,source_mapped
+GF-REC-01005,Gujarati handvo ,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR146,source_mapped
+GF-REC-01006,Sev (Omapodi/Karapusa),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR147,source_mapped
+GF-REC-01007,Papdi,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR148,source_mapped
+GF-REC-01008,Jowar dosa,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR151,source_mapped
+GF-REC-01009,Bread roll,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR152,source_mapped
+GF-REC-01010,Soya seekh kebab,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR153,source_mapped
+GF-REC-01011,Classic seasoned black beans,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR154,source_mapped
+GF-REC-01012,Maa chaane ki dal,recipe,prepared_recipe,India,Indian,SRC-INDB,OSR155,source_mapped
+GF-REC-01013,Garlic chickpea soup (Lahasun aur chane ka shoraba),recipe,prepared_recipe,India,Indian,SRC-INDB,OSR156,source_mapped
+GF-REC-01014,Shepherd's pie (with minced meat),recipe,prepared_recipe,India,Indian,SRC-INDB,ASC239,source_mapped

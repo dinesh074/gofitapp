@@ -1,0 +1,1755 @@
+food_id,source_id,source_record_id,source_name,food_group,region_code,scientific_name,source_tags
+GF-ING-00001,SRC-IFCT2017,A001,"Amaranth seed, black",Cereals and Millets,1,Amaranthus cruentus,vegetarian eggetarian fishetarian veg
+GF-ING-00002,SRC-IFCT2017,A002,"Amaranth seed, pale brown",Cereals and Millets,6,Amaranthus cruentus,vegetarian eggetarian fishetarian veg
+GF-ING-00003,SRC-IFCT2017,A003,Bajra,Cereals and Millets,6,Pennisetum typhoideum,vegetarian eggetarian fishetarian veg
+GF-ING-00004,SRC-IFCT2017,A004,Barley,Cereals and Millets,6,Hordeum vulgare,vegetarian eggetarian fishetarian veg
+GF-ING-00005,SRC-IFCT2017,A005,Jowar,Cereals and Millets,6,Sorghum vulgare,vegetarian eggetarian fishetarian veg
+GF-ING-00006,SRC-IFCT2017,A006,"Maize, dry",Cereals and Millets,6,Zea mays,vegetarian eggetarian fishetarian veg
+GF-ING-00007,SRC-IFCT2017,A007,"Maize, tender, local",Cereals and Millets,6,Zea mays,vegetarian eggetarian fishetarian veg
+GF-ING-00008,SRC-IFCT2017,A008,"Maize, tender, sweet",Cereals and Millets,4,Zea mays,vegetarian eggetarian fishetarian veg
+GF-ING-00009,SRC-IFCT2017,A009,Quinoa,Cereals and Millets,1,Chenopodium quinoa,vegetarian eggetarian fishetarian veg
+GF-ING-00010,SRC-IFCT2017,A010,Ragi,Cereals and Millets,5,Eleusine coracana,vegetarian eggetarian fishetarian veg
+GF-ING-00011,SRC-IFCT2017,A011,"Rice, flakes",Cereals and Millets,6,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00012,SRC-IFCT2017,A012,"Rice, puffed",Cereals and Millets,6,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00013,SRC-IFCT2017,A013,"Rice, raw, brown",Cereals and Millets,6,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00014,SRC-IFCT2017,A014,"Rice, parboiled, milled",Cereals and Millets,6,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00015,SRC-IFCT2017,A015,"Rice, raw, milled",Cereals and Millets,6,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00016,SRC-IFCT2017,A016,Samai,Cereals and Millets,6,Panicum sumatrense,vegetarian eggetarian fishetarian veg
+GF-ING-00017,SRC-IFCT2017,A017,Varagu,Cereals and Millets,5,Setaria italica,vegetarian eggetarian fishetarian veg
+GF-ING-00018,SRC-IFCT2017,A018,"Wheat flour, refined",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00019,SRC-IFCT2017,A019,"Wheat flour, atta",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00020,SRC-IFCT2017,A020,"Wheat, whole",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00021,SRC-IFCT2017,A021,"Wheat, bulgur",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00022,SRC-IFCT2017,A022,"Wheat, semolina",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00023,SRC-IFCT2017,A023,"Wheat, vermicelli",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00024,SRC-IFCT2017,A024,"Wheat, vermicelli, roasted",Cereals and Millets,6,Triticum aestivum,vegetarian eggetarian fishetarian veg
+GF-ING-00025,SRC-IFCT2017,B001,"Bengal gram, dal",Grain Legumes,6,Cicer arietinum,vegetarian eggetarian fishetarian veg
+GF-ING-00026,SRC-IFCT2017,B002,"Bengal gram, whole",Grain Legumes,6,Cicer arietinum,vegetarian eggetarian fishetarian veg
+GF-ING-00027,SRC-IFCT2017,B003,"Black gram, dal",Grain Legumes,6,Phaseolus mungo,vegetarian eggetarian fishetarian veg
+GF-ING-00028,SRC-IFCT2017,B004,"Black gram, whole",Grain Legumes,6,Phaseolus mungo,vegetarian eggetarian fishetarian veg
+GF-ING-00029,SRC-IFCT2017,B005,"Cowpea, brown",Grain Legumes,6,Vigna catjang,vegetarian eggetarian fishetarian veg
+GF-ING-00030,SRC-IFCT2017,B006,"Cowpea, white",Grain Legumes,1,Vigna catjang,vegetarian eggetarian fishetarian veg
+GF-ING-00031,SRC-IFCT2017,B007,"Field bean, black",Grain Legumes,1,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00032,SRC-IFCT2017,B008,"Field bean, brown",Grain Legumes,1,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00033,SRC-IFCT2017,B009,"Field bean, white",Grain Legumes,5,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00034,SRC-IFCT2017,B010,"Green gram, dal",Grain Legumes,6,Vigna radiata,vegetarian eggetarian fishetarian veg
+GF-ING-00035,SRC-IFCT2017,B011,"Green gram, whole",Grain Legumes,6,Vigna radiata,vegetarian eggetarian fishetarian veg
+GF-ING-00036,SRC-IFCT2017,B012,"Horse gram, whole",Grain Legumes,6,Dolicus biflorus,vegetarian eggetarian fishetarian veg
+GF-ING-00037,SRC-IFCT2017,B013,"Lentil, dal",Grain Legumes,6,Lens culinaris,vegetarian eggetarian fishetarian veg
+GF-ING-00038,SRC-IFCT2017,B014,"Lentil, whole, brown",Grain Legumes,6,Lens culinaris,vegetarian eggetarian fishetarian veg
+GF-ING-00039,SRC-IFCT2017,B015,"Lentil, whole, yellowish",Grain Legumes,2,Lens culinaris,vegetarian eggetarian fishetarian veg
+GF-ING-00040,SRC-IFCT2017,B016,Moth bean,Grain Legumes,6,Vigna aconitifolia,vegetarian eggetarian fishetarian veg
+GF-ING-00041,SRC-IFCT2017,B017,"Peas, dry",Grain Legumes,6,Pisum sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00042,SRC-IFCT2017,B018,"Rajmah, black",Grain Legumes,2,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00043,SRC-IFCT2017,B019,"Rajmah, brown",Grain Legumes,6,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00044,SRC-IFCT2017,B020,"Rajmah, red",Grain Legumes,3,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00045,SRC-IFCT2017,B021,"Red gram, dal",Grain Legumes,6,Cajanus cajan,vegetarian eggetarian fishetarian veg
+GF-ING-00046,SRC-IFCT2017,B022,"Red gram, whole",Grain Legumes,6,Cajanus cajan,vegetarian eggetarian fishetarian veg
+GF-ING-00047,SRC-IFCT2017,B023,Ricebean,Grain Legumes,1,Vigna umbellata,vegetarian eggetarian fishetarian veg
+GF-ING-00048,SRC-IFCT2017,B024,"Soya bean, brown",Grain Legumes,6,Glycine max,vegetarian eggetarian fishetarian veg
+GF-ING-00049,SRC-IFCT2017,B025,"Soya bean, white",Grain Legumes,1,Glycine max Merr,vegetarian eggetarian fishetarian veg
+GF-ING-00050,SRC-IFCT2017,C001,Agathi leaves,Green Leafy Vegetables,1,Sesbania grandiflora,vegetarian eggetarian fishetarian veg
+GF-ING-00051,SRC-IFCT2017,C002,"Amaranth leaves, green",Green Leafy Vegetables,6,Amaranthus gangeticus,vegetarian eggetarian fishetarian veg
+GF-ING-00052,SRC-IFCT2017,C003,"Amaranth leaves, red",Green Leafy Vegetables,1,Amaranthus gangeticus,vegetarian eggetarian fishetarian veg
+GF-ING-00053,SRC-IFCT2017,C004,"Amaranth leaves, red and green",Green Leafy Vegetables,4,Amaranthus gangeticus,vegetarian eggetarian fishetarian veg
+GF-ING-00054,SRC-IFCT2017,C005,"Amaranth, spinous, leaves, green",Green Leafy Vegetables,4,Amaranth spinosus,vegetarian eggetarian fishetarian veg
+GF-ING-00055,SRC-IFCT2017,C006,"Amaranth, spinous, leaves, red and green",Green Leafy Vegetables,2,Amaranth spinosus,vegetarian eggetarian fishetarian veg
+GF-ING-00056,SRC-IFCT2017,C007,Basella leaves,Green Leafy Vegetables,2,Basella alba,vegetarian eggetarian fishetarian veg
+GF-ING-00057,SRC-IFCT2017,C008,Bathua leaves,Green Leafy Vegetables,2,Chenopodium album.,vegetarian eggetarian fishetarian veg
+GF-ING-00058,SRC-IFCT2017,C009,Beetroot leaves,Green Leafy Vegetables,6,Beta vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00059,SRC-IFCT2017,C010,"Betel leaves, big (kolkata)",Green Leafy Vegetables,6,Piper betle,vegetarian eggetarian fishetarian veg
+GF-ING-00060,SRC-IFCT2017,C011,"Betel leaves, small",Green Leafy Vegetables,4,Piper betle,vegetarian eggetarian fishetarian veg
+GF-ING-00061,SRC-IFCT2017,C012,Brussels sprouts,Green Leafy Vegetables,1,Brassica oleracea var. gemmifera,vegetarian eggetarian fishetarian veg
+GF-ING-00062,SRC-IFCT2017,C013,"Cabbage, Chinese",Green Leafy Vegetables,1,Brassica rupa,vegetarian eggetarian fishetarian veg
+GF-ING-00063,SRC-IFCT2017,C014,"Cabbage, collard greens",Green Leafy Vegetables,1,Brassica oleracea var. Viridis,vegetarian eggetarian fishetarian veg
+GF-ING-00064,SRC-IFCT2017,C015,"Cabbage, green",Green Leafy Vegetables,6,Brassica oleracea var. capitata f. alba,vegetarian eggetarian fishetarian veg
+GF-ING-00065,SRC-IFCT2017,C016,"Cabbage, violet",Green Leafy Vegetables,2,Brassica oleracea var. capitata f. rubra,vegetarian eggetarian fishetarian veg
+GF-ING-00066,SRC-IFCT2017,C017,Cauliflower leaves,Green Leafy Vegetables,6,Brassica oleracea var. botrytis,vegetarian eggetarian fishetarian veg
+GF-ING-00067,SRC-IFCT2017,C018,"Colocasia leaves, green",Green Leafy Vegetables,6,Colocasia antiquorum,vegetarian eggetarian fishetarian veg
+GF-ING-00068,SRC-IFCT2017,C019,Drumstick leaves,Green Leafy Vegetables,3,Moringa oleifera,vegetarian eggetarian fishetarian veg
+GF-ING-00069,SRC-IFCT2017,C020,Fenugreek leaves,Green Leafy Vegetables,5,Trigonella foenum-graecum,vegetarian eggetarian fishetarian veg
+GF-ING-00070,SRC-IFCT2017,C021,Garden cress,Green Leafy Vegetables,2,Lepidium sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00071,SRC-IFCT2017,C022,"Gogu leaves, green stem",Green Leafy Vegetables,4,Hibiscus cannabinus,vegetarian eggetarian fishetarian veg
+GF-ING-00072,SRC-IFCT2017,C023,"Gogu leaves, red stem",Green Leafy Vegetables,1,Hibiscus cannabinus,vegetarian eggetarian fishetarian veg
+GF-ING-00073,SRC-IFCT2017,C024,"Knol-Khol, leaves",Green Leafy Vegetables,2,Brassica oleracea,vegetarian eggetarian fishetarian veg
+GF-ING-00074,SRC-IFCT2017,C025,Lettuce,Green Leafy Vegetables,3,Lactuca sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00075,SRC-IFCT2017,C026,Mustard leaves,Green Leafy Vegetables,3,Brassica juncea,vegetarian eggetarian fishetarian veg
+GF-ING-00076,SRC-IFCT2017,C027,Pak Choi leaves,Green Leafy Vegetables,1,Brassica rapa var. chinensis,vegetarian eggetarian fishetarian veg
+GF-ING-00077,SRC-IFCT2017,C028,Parsley,Green Leafy Vegetables,3,Petroselinum crispum,vegetarian eggetarian fishetarian veg
+GF-ING-00078,SRC-IFCT2017,C029,Ponnaganni,Green Leafy Vegetables,2,Alternanthera sessilis,vegetarian eggetarian fishetarian veg
+GF-ING-00079,SRC-IFCT2017,C030,"Pumpkin leaves, tender",Green Leafy Vegetables,6,Cucurbit maxima,vegetarian eggetarian fishetarian veg
+GF-ING-00080,SRC-IFCT2017,C031,Radish leaves,Green Leafy Vegetables,6,Raphanus sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00081,SRC-IFCT2017,C032,Rumex leaves,Green Leafy Vegetables,2,Rumex patientia,vegetarian eggetarian fishetarian veg
+GF-ING-00082,SRC-IFCT2017,C033,Spinach,Green Leafy Vegetables,6,Spinacia oleracea,vegetarian eggetarian fishetarian veg
+GF-ING-00083,SRC-IFCT2017,C034,"Tamarind leaves, tender",Green Leafy Vegetables,3,Tamaridus indica,vegetarian eggetarian fishetarian veg
+GF-ING-00084,SRC-IFCT2017,D001,Ash gourd,Other Vegetables,6,Benincasa hispida,vegetarian eggetarian fishetarian veg
+GF-ING-00085,SRC-IFCT2017,D002,"Bamboo shoot, tender",Other Vegetables,1,Bambusa vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00086,SRC-IFCT2017,D003,"Bean scarlet, tender",Other Vegetables,5,Phaseolus coccineus,vegetarian eggetarian fishetarian veg
+GF-ING-00087,SRC-IFCT2017,D004,"Bitter gourd, jagged, teeth ridges, elongate",Other Vegetables,6,Momordica charantia,vegetarian eggetarian fishetarian veg
+GF-ING-00088,SRC-IFCT2017,D005,"Bitter gourd, jagged, teeth ridges, short",Other Vegetables,4,Momordica charantia,vegetarian eggetarian fishetarian veg
+GF-ING-00089,SRC-IFCT2017,D006,"Bitter gourd, jagged, smooth ridges, elongate",Other Vegetables,1,Momordica charantia,vegetarian eggetarian fishetarian veg
+GF-ING-00090,SRC-IFCT2017,D007,"Bottle gourd, elongate, pale green",Other Vegetables,6,Lagenaria vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00091,SRC-IFCT2017,D008,"Bottle gourd, round, pale green",Other Vegetables,5,Lagenaria vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00092,SRC-IFCT2017,D009,"Bottle gourd, elongate, dark green",Other Vegetables,1,Lagenaria vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00093,SRC-IFCT2017,D010,Brinjal 1,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00094,SRC-IFCT2017,D011,Brinjal 2,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00095,SRC-IFCT2017,D012,Brinjal 3,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00096,SRC-IFCT2017,D013,Brinjal 4,Other Vegetables,4,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00097,SRC-IFCT2017,D014,Brinjal 5,Other Vegetables,3,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00098,SRC-IFCT2017,D015,Brinjal 6,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00099,SRC-IFCT2017,D016,Brinjal 7,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00100,SRC-IFCT2017,D017,Brinjal 8,Other Vegetables,3,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00101,SRC-IFCT2017,D018,Brinjal 9,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00102,SRC-IFCT2017,D019,Brinjal 10,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00103,SRC-IFCT2017,D020,Brinjal 11,Other Vegetables,6,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00104,SRC-IFCT2017,D021,Brinjal 12,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00105,SRC-IFCT2017,D022,Brinjal 13,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00106,SRC-IFCT2017,D023,Brinjal 14,Other Vegetables,3,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00107,SRC-IFCT2017,D024,Brinjal 15,Other Vegetables,4,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00108,SRC-IFCT2017,D025,Brinjal 16,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00109,SRC-IFCT2017,D026,Brinjal 17,Other Vegetables,1,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00110,SRC-IFCT2017,D027,Brinjal 18,Other Vegetables,3,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00111,SRC-IFCT2017,D028,Brinjal 19,Other Vegetables,3,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00112,SRC-IFCT2017,D029,Brinjal 20,Other Vegetables,5,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00113,SRC-IFCT2017,D030,Brinjal 21,Other Vegetables,2,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00114,SRC-IFCT2017,D031,Brinjal - all varieties,Other Vegetables,6,Solanum melongena,vegetarian eggetarian fishetarian veg
+GF-ING-00115,SRC-IFCT2017,D032,Broad beans,Other Vegetables,3,Vicia faba,vegetarian eggetarian fishetarian veg
+GF-ING-00116,SRC-IFCT2017,D033,"Capsicum, green",Other Vegetables,6,Capsicum annuum,vegetarian eggetarian fishetarian veg
+GF-ING-00117,SRC-IFCT2017,D034,"Capsicum, red",Other Vegetables,4,Capsicum annuum,vegetarian eggetarian fishetarian veg
+GF-ING-00118,SRC-IFCT2017,D035,"Capsicum, yellow",Other Vegetables,4,Capsicum annuum,vegetarian eggetarian fishetarian veg
+GF-ING-00119,SRC-IFCT2017,D036,Cauliflower,Other Vegetables,6,Brassica oleracea var. botrytis,vegetarian eggetarian fishetarian veg
+GF-ING-00120,SRC-IFCT2017,D037,Celery stalk,Other Vegetables,3,Apium graveolens,vegetarian eggetarian fishetarian veg
+GF-ING-00121,SRC-IFCT2017,D038,Cho-cho-marrow,Other Vegetables,4,Sechium edule,vegetarian eggetarian fishetarian veg
+GF-ING-00122,SRC-IFCT2017,D039,Cluster beans,Other Vegetables,6,Cyamopsis tetragonobola,vegetarian eggetarian fishetarian veg
+GF-ING-00123,SRC-IFCT2017,D040,"Colocasia, stem, black",Other Vegetables,1,Colocasia esculenta,vegetarian eggetarian fishetarian veg
+GF-ING-00124,SRC-IFCT2017,D041,"Colocasia, stem, green",Other Vegetables,5,Colocasia esculenta,vegetarian eggetarian fishetarian veg
+GF-ING-00125,SRC-IFCT2017,D042,"Corn, baby",Other Vegetables,6,Zea mays,vegetarian eggetarian fishetarian veg
+GF-ING-00126,SRC-IFCT2017,D043,"Cucumber, green, elongate",Other Vegetables,6,Cucumis sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00127,SRC-IFCT2017,D044,"Cucumber, green, short",Other Vegetables,6,Cucumis sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00128,SRC-IFCT2017,D045,"Cucumber, orange, round",Other Vegetables,2,Cucumis sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00129,SRC-IFCT2017,D046,Drumstick,Other Vegetables,6,Moringa oleifera,vegetarian eggetarian fishetarian veg
+GF-ING-00130,SRC-IFCT2017,D047,"Field beans, tender, broad",Other Vegetables,2,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00131,SRC-IFCT2017,D048,"Field beans, tender, lean",Other Vegetables,6,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00132,SRC-IFCT2017,D049,"French beans, country",Other Vegetables,5,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00133,SRC-IFCT2017,D050,"French beans, hybrid",Other Vegetables,2,Phaseolus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00134,SRC-IFCT2017,D051,"Jack fruit, raw",Other Vegetables,5,Artocarpus heterophyllus,vegetarian eggetarian fishetarian veg
+GF-ING-00135,SRC-IFCT2017,D052,"Jack fruit, seeds, mature",Other Vegetables,5,Artocarpus heterophyllus,vegetarian eggetarian fishetarian veg
+GF-ING-00136,SRC-IFCT2017,D053,Knol - Khol,Other Vegetables,6,Brassica oleracea,vegetarian eggetarian fishetarian veg
+GF-ING-00137,SRC-IFCT2017,D054,"Kovai, big",Other Vegetables,6,Coccinia cordifolia,vegetarian eggetarian fishetarian veg
+GF-ING-00138,SRC-IFCT2017,D055,"Kovai, small",Other Vegetables,1,Coccinia cordifolia,vegetarian eggetarian fishetarian veg
+GF-ING-00139,SRC-IFCT2017,D056,Ladies finger,Other Vegetables,6,Abelmoschus esculentus,vegetarian eggetarian fishetarian veg
+GF-ING-00140,SRC-IFCT2017,D057,"Mango, green, raw",Other Vegetables,6,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00141,SRC-IFCT2017,D058,"Onion, stalk",Other Vegetables,6,Allium wakegi,vegetarian eggetarian fishetarian veg
+GF-ING-00142,SRC-IFCT2017,D059,"Papaya, raw",Other Vegetables,6,Carica papaya,vegetarian eggetarian fishetarian veg
+GF-ING-00143,SRC-IFCT2017,D060,Parwar,Other Vegetables,6,Trichosanthes dioica,vegetarian eggetarian fishetarian veg
+GF-ING-00144,SRC-IFCT2017,D061,"Peas, fresh",Other Vegetables,6,Pisum sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00145,SRC-IFCT2017,D062,"Plantain, flower",Other Vegetables,6,Musa sapientum,vegetarian eggetarian fishetarian veg
+GF-ING-00146,SRC-IFCT2017,D063,"Plantain, green",Other Vegetables,6,Musa sapientum,vegetarian eggetarian fishetarian veg
+GF-ING-00147,SRC-IFCT2017,D064,"Plantain, stem",Other Vegetables,6,Musa sapientum,vegetarian eggetarian fishetarian veg
+GF-ING-00148,SRC-IFCT2017,D065,"Pumpkin, green, cylindrical",Other Vegetables,1,Cucurbita maxima,vegetarian eggetarian fishetarian veg
+GF-ING-00149,SRC-IFCT2017,D066,"Pumpkin, orange, round",Other Vegetables,6,Cucurbita maxima,vegetarian eggetarian fishetarian veg
+GF-ING-00150,SRC-IFCT2017,D067,"Red gram, tender, fresh",Other Vegetables,1,Cajanus cajan,vegetarian eggetarian fishetarian veg
+GF-ING-00151,SRC-IFCT2017,D068,Ridge gourd,Other Vegetables,6,Luffa acutangula,vegetarian eggetarian fishetarian veg
+GF-ING-00152,SRC-IFCT2017,D069,"Ridge gourd, smooth skin",Other Vegetables,3,Luffa acutangula,vegetarian eggetarian fishetarian veg
+GF-ING-00153,SRC-IFCT2017,D070,"Snake gourd, long, pale green",Other Vegetables,6,Trichosanthes anguina,vegetarian eggetarian fishetarian veg
+GF-ING-00154,SRC-IFCT2017,D071,"Snake gourd, long, dark green",Other Vegetables,2,Trichosanthes anguina,vegetarian eggetarian fishetarian veg
+GF-ING-00155,SRC-IFCT2017,D072,"Snake gourd, short",Other Vegetables,1,Trichosanthes anguina,vegetarian eggetarian fishetarian veg
+GF-ING-00156,SRC-IFCT2017,D073,"Tinda, tender",Other Vegetables,6,Praecitrullus fistulosus,vegetarian eggetarian fishetarian veg
+GF-ING-00157,SRC-IFCT2017,D074,"Tomato, green",Other Vegetables,6,Solanum lycopersicum,vegetarian eggetarian fishetarian veg
+GF-ING-00158,SRC-IFCT2017,D075,"Tomato, ripe, hybrid",Other Vegetables,6,Solanum lycopersicum,vegetarian eggetarian fishetarian veg
+GF-ING-00159,SRC-IFCT2017,D076,"Tomato, ripe, local",Other Vegetables,6,Solanum lycopersicum,vegetarian eggetarian fishetarian veg
+GF-ING-00160,SRC-IFCT2017,D077,"Zucchini, green",Other Vegetables,2,Cucurbita pepo,vegetarian eggetarian fishetarian veg
+GF-ING-00161,SRC-IFCT2017,D078,"Zucchini, yellow",Other Vegetables,2,Cucurbita pepo,vegetarian eggetarian fishetarian veg
+GF-ING-00162,SRC-IFCT2017,E001,"Apple, big",Fruits,6,Malus domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00163,SRC-IFCT2017,E002,"Apple, green",Fruits,6,Malus domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00164,SRC-IFCT2017,E003,"Apple, small",Fruits,6,Malus domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00165,SRC-IFCT2017,E004,"Apple, small, Kashmir",Fruits,1,Malus domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00166,SRC-IFCT2017,E005,"Apricot, dried",Fruits,6,Prunus armeniaca,vegetarian eggetarian fishetarian veg
+GF-ING-00167,SRC-IFCT2017,E006,"Apricot, processed",Fruits,3,Prunus armeniaca,vegetarian eggetarian fishetarian veg
+GF-ING-00168,SRC-IFCT2017,E007,Avocado fruit,Fruits,1,Persea  americana,vegetarian eggetarian fishetarian veg
+GF-ING-00169,SRC-IFCT2017,E008,Bael fruit,Fruits,1,Aegle marmelos,vegetarian eggetarian fishetarian veg
+GF-ING-00170,SRC-IFCT2017,E009,"Banana, ripe, montham",Fruits,1,Musa x paradisiaca,vegetarian eggetarian fishetarian veg
+GF-ING-00171,SRC-IFCT2017,E010,"Banana, ripe, poovam",Fruits,2,Musa x paradisiaca,vegetarian eggetarian fishetarian veg
+GF-ING-00172,SRC-IFCT2017,E011,"Banana, ripe, red",Fruits,1,Musa paradisiaca,vegetarian eggetarian fishetarian veg
+GF-ING-00173,SRC-IFCT2017,E012,"Banana, ripe, robusta",Fruits,6,Musa x paradisiaca,vegetarian eggetarian fishetarian veg
+GF-ING-00174,SRC-IFCT2017,E013,Black berry,Fruits,5,Rubus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00175,SRC-IFCT2017,E014,"Cherries, red",Fruits,4,Prunus avium,vegetarian eggetarian fishetarian veg
+GF-ING-00176,SRC-IFCT2017,E015,"Currants, black",Fruits,1,Ribes nigrum,vegetarian eggetarian fishetarian veg
+GF-ING-00177,SRC-IFCT2017,E016,Custard apple,Fruits,1,Annona squamosa,vegetarian eggetarian fishetarian veg
+GF-ING-00178,SRC-IFCT2017,E017,"Dates, dry, pale brown",Fruits,6,Phoenix dactylifera,vegetarian eggetarian fishetarian veg
+GF-ING-00179,SRC-IFCT2017,E018,"Dates, dry, dark brown",Fruits,2,Phoenix dactylifera,vegetarian eggetarian fishetarian veg
+GF-ING-00180,SRC-IFCT2017,E019,"Dates, processed",Fruits,2,Phoenix dactylifera,vegetarian eggetarian fishetarian veg
+GF-ING-00181,SRC-IFCT2017,E020,Fig,Fruits,6,Ficus Carica,vegetarian eggetarian fishetarian veg
+GF-ING-00182,SRC-IFCT2017,E021,Goosberry,Fruits,5,Emblica officinalis,vegetarian eggetarian fishetarian veg
+GF-ING-00183,SRC-IFCT2017,E022,"Grapes, seeded, round, black",Fruits,4,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00184,SRC-IFCT2017,E023,"Grapes, seeded, round, green",Fruits,5,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00185,SRC-IFCT2017,E024,"Grapes, seeded, round, red",Fruits,5,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00186,SRC-IFCT2017,E025,"Grapes, seedless, oval, black",Fruits,5,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00187,SRC-IFCT2017,E026,"Grapes, seedless, round, green",Fruits,5,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00188,SRC-IFCT2017,E027,"Grapes, seedless, round, black",Fruits,5,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00189,SRC-IFCT2017,E028,"Guava, white flesh",Fruits,5,Psidium guajava,vegetarian eggetarian fishetarian veg
+GF-ING-00190,SRC-IFCT2017,E029,"Guava, pink flesh",Fruits,5,Psidium guajava,vegetarian eggetarian fishetarian veg
+GF-ING-00191,SRC-IFCT2017,E030,"Jack fruit, ripe",Fruits,5,Artocarpus heterophyllus,vegetarian eggetarian fishetarian veg
+GF-ING-00192,SRC-IFCT2017,E031,"Jambu fruit, ripe",Fruits,2,Syzygium samarangense,vegetarian eggetarian fishetarian veg
+GF-ING-00193,SRC-IFCT2017,E032,Karonda fruit,Fruits,1,Carissa carandas,vegetarian eggetarian fishetarian veg
+GF-ING-00194,SRC-IFCT2017,E033,"Lemon, juice",Fruits,6,Citrus limon,vegetarian eggetarian fishetarian veg
+GF-ING-00195,SRC-IFCT2017,E034,"Lime, sweet, pulp",Fruits,6,Citrus limetta,vegetarian eggetarian fishetarian veg
+GF-ING-00196,SRC-IFCT2017,E035,Litchi,Fruits,4,Litchi chinensis,vegetarian eggetarian fishetarian veg
+GF-ING-00197,SRC-IFCT2017,E036,"Mango, ripe, banganapalli",Fruits,6,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00198,SRC-IFCT2017,E037,"Mango, ripe, gulabkhas",Fruits,2,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00199,SRC-IFCT2017,E038,"Mango, ripe, himsagar",Fruits,3,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00200,SRC-IFCT2017,E039,"Mango, ripe, kesar",Fruits,4,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00201,SRC-IFCT2017,E040,"Mango, ripe, neelam",Fruits,2,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00202,SRC-IFCT2017,E041,"Mango, ripe, paheri",Fruits,2,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00203,SRC-IFCT2017,E042,"Mango, ripe, totapari",Fruits,1,Mangifera indica,vegetarian eggetarian fishetarian veg
+GF-ING-00204,SRC-IFCT2017,E043,Mangosteen,Fruits,1,Garcinia mangostana,vegetarian eggetarian fishetarian veg
+GF-ING-00205,SRC-IFCT2017,E044,Manila tamarind,Fruits,1,Pithecellobium dulce,vegetarian eggetarian fishetarian veg
+GF-ING-00206,SRC-IFCT2017,E045,"Musk melon, orange flesh",Fruits,5,Cucumis melon,vegetarian eggetarian fishetarian veg
+GF-ING-00207,SRC-IFCT2017,E046,"Musk melon, yellow flesh",Fruits,6,Cucumis melo,vegetarian eggetarian fishetarian veg
+GF-ING-00208,SRC-IFCT2017,E047,"Orange, pulp",Fruits,6,Citrus aurantium,vegetarian eggetarian fishetarian veg
+GF-ING-00209,SRC-IFCT2017,E048,"Palm fruit, tender",Fruits,1,Borassus flabellifer,vegetarian eggetarian fishetarian veg
+GF-ING-00210,SRC-IFCT2017,E049,"Papaya, ripe",Fruits,6,Carcia papaya,vegetarian eggetarian fishetarian veg
+GF-ING-00211,SRC-IFCT2017,E050,Peach,Fruits,1,Prunus communis,vegetarian eggetarian fishetarian veg
+GF-ING-00212,SRC-IFCT2017,E051,Pear,Fruits,6,Pyrus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00213,SRC-IFCT2017,E052,Phalsa,Fruits,2,Grewia asiatica,vegetarian eggetarian fishetarian veg
+GF-ING-00214,SRC-IFCT2017,E053,Pineapple,Fruits,6,Ananas comosus,vegetarian eggetarian fishetarian veg
+GF-ING-00215,SRC-IFCT2017,E054,Plum,Fruits,3,Prunus domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00216,SRC-IFCT2017,E055,"Pomegranate, maroon seeds",Fruits,6,Punica granatum,vegetarian eggetarian fishetarian veg
+GF-ING-00217,SRC-IFCT2017,E056,Pummelo,Fruits,3,Citrus maxima,vegetarian eggetarian fishetarian veg
+GF-ING-00218,SRC-IFCT2017,E057,"Raisins, dried, black",Fruits,6,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00219,SRC-IFCT2017,E058,"Raisins, dried, golden",Fruits,6,Vitis vinifera,vegetarian eggetarian fishetarian veg
+GF-ING-00220,SRC-IFCT2017,E059,Rambutan,Fruits,1,Nephelium lappaceum,vegetarian eggetarian fishetarian veg
+GF-ING-00221,SRC-IFCT2017,E060,Sapota,Fruits,6,Achras sapota,vegetarian eggetarian fishetarian veg
+GF-ING-00222,SRC-IFCT2017,E061,Soursop,Fruits,1,Annona muricata,vegetarian eggetarian fishetarian veg
+GF-ING-00223,SRC-IFCT2017,E062,Star fruit,Fruits,1,Averrhoa carambola,vegetarian eggetarian fishetarian veg
+GF-ING-00224,SRC-IFCT2017,E063,Strawberry,Fruits,6,Fragaria ananassa,vegetarian eggetarian fishetarian veg
+GF-ING-00225,SRC-IFCT2017,E064,"Tamarind, pulp",Fruits,6,Tamarindus indicus,vegetarian eggetarian fishetarian veg
+GF-ING-00226,SRC-IFCT2017,E065,"Water melon, dark green (sugar baby)",Fruits,6,Citrullus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00227,SRC-IFCT2017,E066,"Water melon, pale green",Fruits,6,Citrullus vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00228,SRC-IFCT2017,E067,Wood apple,Fruits,3,Limonia acidissima,vegetarian eggetarian fishetarian veg
+GF-ING-00229,SRC-IFCT2017,E068,Zizyphus,Fruits,1,Zizyphus jujuba,vegetarian eggetarian fishetarian veg
+GF-ING-00230,SRC-IFCT2017,F001,Beetroot,Roots and Tubers,6,Beta vulgaris,vegetarian eggetarian fishetarian veg
+GF-ING-00231,SRC-IFCT2017,F002,"Carrot, orange",Roots and Tubers,6,Dacus carota,vegetarian eggetarian fishetarian veg
+GF-ING-00232,SRC-IFCT2017,F003,"Carrot, red",Roots and Tubers,4,Dacus carota,vegetarian eggetarian fishetarian veg
+GF-ING-00233,SRC-IFCT2017,F004,Colocasia,Roots and Tubers,6,Colocasia antiquorum,vegetarian eggetarian fishetarian veg
+GF-ING-00234,SRC-IFCT2017,F005,Lotus root,Roots and Tubers,3,Nelumbium nelumbo,vegetarian eggetarian fishetarian veg
+GF-ING-00235,SRC-IFCT2017,F006,"Potato, brown skin, big",Roots and Tubers,6,Solanum tuberosum,vegetarian eggetarian fishetarian veg
+GF-ING-00236,SRC-IFCT2017,F007,"Potato, brown skin, small",Roots and Tubers,1,Solanum tuberosum,vegetarian eggetarian fishetarian veg
+GF-ING-00237,SRC-IFCT2017,F008,"Potato, red skin",Roots and Tubers,1,Solanum tuberosum,vegetarian eggetarian fishetarian veg
+GF-ING-00238,SRC-IFCT2017,F009,"Radish, elongate, red skin",Roots and Tubers,3,Raphanus sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00239,SRC-IFCT2017,F010,"Radish, elongate, white skin",Roots and Tubers,6,Raphanus sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00240,SRC-IFCT2017,F011,"Radish, round, red skin",Roots and Tubers,1,Raphanus sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00241,SRC-IFCT2017,F012,"Radish, round, white skin",Roots and Tubers,2,Raphanus sativus,vegetarian eggetarian fishetarian veg
+GF-ING-00242,SRC-IFCT2017,F013,"Sweet potato, brown skin",Roots and Tubers,4,Ipomoea batatas,vegetarian eggetarian fishetarian veg
+GF-ING-00243,SRC-IFCT2017,F014,"Sweet potato, pink skin",Roots and Tubers,3,Ipomoea batatas,vegetarian eggetarian fishetarian veg
+GF-ING-00244,SRC-IFCT2017,F015,Tapioca,Roots and Tubers,3,Manihot esculenta,vegetarian eggetarian fishetarian veg
+GF-ING-00245,SRC-IFCT2017,F016,Water Chestnut,Roots and Tubers,1,Eleocharis dulcis,vegetarian eggetarian fishetarian veg
+GF-ING-00246,SRC-IFCT2017,F017,"Yam, elephant",Roots and Tubers,6,Amorphophallus paeoniifolius,vegetarian eggetarian fishetarian veg
+GF-ING-00247,SRC-IFCT2017,F018,"Yam, ordinary",Roots and Tubers,4,Dioscorea strydomiana,vegetarian eggetarian fishetarian veg
+GF-ING-00248,SRC-IFCT2017,F019,"Yam, wild",Roots and Tubers,2,Dioscorea villosa,vegetarian eggetarian fishetarian veg
+GF-ING-00249,SRC-IFCT2017,G001,"Chillies, green-1",Condiments and Spices,5,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00250,SRC-IFCT2017,G002,"Chillies, green-2",Condiments and Spices,3,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00251,SRC-IFCT2017,G003,"Chillies, green-3",Condiments and Spices,5,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00252,SRC-IFCT2017,G004,"Chillies, green-4",Condiments and Spices,3,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00253,SRC-IFCT2017,G005,"Chillies, green-5",Condiments and Spices,2,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00254,SRC-IFCT2017,G006,"Chillies, green-6",Condiments and Spices,1,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00255,SRC-IFCT2017,G007,"Chillies, green-7",Condiments and Spices,1,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00256,SRC-IFCT2017,G008,"Chillies, green - all varieties",Condiments and Spices,6,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00257,SRC-IFCT2017,G009,Coriander leaves,Condiments and Spices,6,Coriandrum sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00258,SRC-IFCT2017,G010,Curry leaves,Condiments and Spices,6,Murraya koenigii,vegetarian eggetarian fishetarian veg
+GF-ING-00259,SRC-IFCT2017,G011,"Garlic, big cloves",Condiments and Spices,6,Allium sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00260,SRC-IFCT2017,G012,"Garlic, small cloves",Condiments and Spices,3,Allium sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00261,SRC-IFCT2017,G013,"Garlic, single clove, Kashmir",Condiments and Spices,1,Allium sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00262,SRC-IFCT2017,G014,"Ginger, fresh",Condiments and Spices,6,Zinziber officinale,vegetarian eggetarian fishetarian veg
+GF-ING-00263,SRC-IFCT2017,G015,Mango ginger,Condiments and Spices,3,Curcuma amada,vegetarian eggetarian fishetarian veg
+GF-ING-00264,SRC-IFCT2017,G016,Mint leaves,Condiments and Spices,4,Mentha spicata,vegetarian eggetarian fishetarian veg
+GF-ING-00265,SRC-IFCT2017,G017,"Onion, big",Condiments and Spices,6,Allium cepa,vegetarian eggetarian fishetarian veg
+GF-ING-00266,SRC-IFCT2017,G018,"Onion, small",Condiments and Spices,5,Allium cepa,vegetarian eggetarian fishetarian veg
+GF-ING-00267,SRC-IFCT2017,G019,Asafoetida,Condiments and Spices,6,Ferula assa-foetida,vegetarian eggetarian fishetarian veg
+GF-ING-00268,SRC-IFCT2017,G020,"Cardamom, green",Condiments and Spices,6,Elettaria cardamomum,vegetarian eggetarian fishetarian veg
+GF-ING-00269,SRC-IFCT2017,G021,"Cardamom, black",Condiments and Spices,4,Elettaria cardamomum,vegetarian eggetarian fishetarian veg
+GF-ING-00270,SRC-IFCT2017,G022,"Chillies, red",Condiments and Spices,6,Capsicum annum,vegetarian eggetarian fishetarian veg
+GF-ING-00271,SRC-IFCT2017,G023,Cloves,Condiments and Spices,6,Syzygium aromaticum,vegetarian eggetarian fishetarian veg
+GF-ING-00272,SRC-IFCT2017,G024,Coriander seeds,Condiments and Spices,6,Coriandrum sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00273,SRC-IFCT2017,G025,Cumin seeds,Condiments and Spices,6,Cuminum cyminum,vegetarian eggetarian fishetarian veg
+GF-ING-00274,SRC-IFCT2017,G026,Fenugreek seeds,Condiments and Spices,6,Trigonella foenum graecum,vegetarian eggetarian fishetarian veg
+GF-ING-00275,SRC-IFCT2017,G027,Mace,Condiments and Spices,6,Myristica fragrans,vegetarian eggetarian fishetarian veg
+GF-ING-00276,SRC-IFCT2017,G028,Nutmeg,Condiments and Spices,6,Myristica fragrans,vegetarian eggetarian fishetarian veg
+GF-ING-00277,SRC-IFCT2017,G029,Omum,Condiments and Spices,6,Trachyspermum ammi,vegetarian eggetarian fishetarian veg
+GF-ING-00278,SRC-IFCT2017,G030,Pippali,Condiments and Spices,6,Piper longum,vegetarian eggetarian fishetarian veg
+GF-ING-00279,SRC-IFCT2017,G031,"Pepper, black",Condiments and Spices,6,Piper nigrum,vegetarian eggetarian fishetarian veg
+GF-ING-00280,SRC-IFCT2017,G032,Poppy seeds,Condiments and Spices,6,Papaver somniferum,vegetarian eggetarian fishetarian veg
+GF-ING-00281,SRC-IFCT2017,G033,Turmeric powder,Condiments and Spices,6,Curcuma domestica,vegetarian eggetarian fishetarian veg
+GF-ING-00282,SRC-IFCT2017,H001,Almond,Nuts and Oil Seeds,6,Prunus amygdalus,vegetarian eggetarian fishetarian veg
+GF-ING-00283,SRC-IFCT2017,H002,"Arecanut, dried, brown",Nuts and Oil Seeds,6,Areca catechu,vegetarian eggetarian fishetarian veg
+GF-ING-00284,SRC-IFCT2017,H003,"Arecanut, dried, red color",Nuts and Oil Seeds,3,Areca catechu,vegetarian eggetarian fishetarian veg
+GF-ING-00285,SRC-IFCT2017,H004,"Arecanut, fresh",Nuts and Oil Seeds,2,Areca catechu,vegetarian eggetarian fishetarian veg
+GF-ING-00286,SRC-IFCT2017,H005,Cashew nut,Nuts and Oil Seeds,6,Anacardium occidentale,vegetarian eggetarian fishetarian veg
+GF-ING-00287,SRC-IFCT2017,H006,"Coconut, kernel, dry",Nuts and Oil Seeds,6,Cocos nucifera,vegetarian eggetarian fishetarian veg
+GF-ING-00288,SRC-IFCT2017,H007,"Coconut, kernel, fresh",Nuts and Oil Seeds,6,Cocos nucifera,vegetarian eggetarian fishetarian veg
+GF-ING-00289,SRC-IFCT2017,H008,"Garden cress, seeds",Nuts and Oil Seeds,5,Lepidium sativum,vegetarian eggetarian fishetarian veg
+GF-ING-00290,SRC-IFCT2017,H009,"Gingelly seeds, black",Nuts and Oil Seeds,6,Sesamum indicum,vegetarian eggetarian fishetarian veg
+GF-ING-00291,SRC-IFCT2017,H010,"Gingelly seeds, brown",Nuts and Oil Seeds,4,Sesamum indicum,vegetarian eggetarian fishetarian veg
+GF-ING-00292,SRC-IFCT2017,H011,"Gingelly seeds, white",Nuts and Oil Seeds,5,Sesamum indicum,vegetarian eggetarian fishetarian veg
+GF-ING-00293,SRC-IFCT2017,H012,Ground nut,Nuts and Oil Seeds,6,Arachis hypogea,vegetarian eggetarian fishetarian veg
+GF-ING-00294,SRC-IFCT2017,H013,Mustard seeds,Nuts and Oil Seeds,6,Brassica nigra,vegetarian eggetarian fishetarian veg
+GF-ING-00295,SRC-IFCT2017,H014,Linseeds,Nuts and Oil Seeds,6,Linum usitatissimum,vegetarian eggetarian fishetarian veg
+GF-ING-00296,SRC-IFCT2017,H015,"Niger seeds, black",Nuts and Oil Seeds,4,Guizotia abyssinica,vegetarian eggetarian fishetarian veg
+GF-ING-00297,SRC-IFCT2017,H016,"Niger seeds, grey",Nuts and Oil Seeds,5,Guizotia abyssinica,vegetarian eggetarian fishetarian veg
+GF-ING-00298,SRC-IFCT2017,H017,Pine seeds,Nuts and Oil Seeds,5,Pinus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00299,SRC-IFCT2017,H018,Pistachio nuts,Nuts and Oil Seeds,6,Pistacia vera,vegetarian eggetarian fishetarian veg
+GF-ING-00300,SRC-IFCT2017,H019,Safflower seeds,Nuts and Oil Seeds,5,Carthamus tinctorius,vegetarian eggetarian fishetarian veg
+GF-ING-00301,SRC-IFCT2017,H020,Sunflower seeds,Nuts and Oil Seeds,5,Helianthus annuus,vegetarian eggetarian fishetarian veg
+GF-ING-00302,SRC-IFCT2017,H021,Walnut,Nuts and Oil Seeds,6,Juglans regia,vegetarian eggetarian fishetarian veg
+GF-ING-00303,SRC-IFCT2017,I001,"Jaggery, cane",Sugars,6,Saccharum officinarum,vegetarian eggetarian fishetarian veg
+GF-ING-00304,SRC-IFCT2017,I002,"Sugarcane, juice",Sugars,6,Saccharum officinarum,vegetarian eggetarian fishetarian veg
+GF-ING-00305,SRC-IFCT2017,J001,"Button mushroom, fresh",Mushrooms,1,Agaricus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00306,SRC-IFCT2017,J002,"Chicken mushroom, fresh",Mushrooms,1,Lactiporus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00307,SRC-IFCT2017,J003,"Shiitake mushroom, fresh",Mushrooms,1,Lentinula sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00308,SRC-IFCT2017,J004,"Oyster mushroom, dried",Mushrooms,1,Pleurotus sp.,vegetarian eggetarian fishetarian veg
+GF-ING-00309,SRC-IFCT2017,K001,Toddy,Miscellaneous Foods,10,,vegetarian eggetarian fishetarian veg
+GF-ING-00310,SRC-IFCT2017,K002,Coconut water,Miscellaneous Foods,6,Cocos nucifera,vegetarian eggetarian fishetarian veg
+GF-ING-00311,SRC-IFCT2017,L001,"Milk, whole, Buffalo",Milk and Milk Products,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00312,SRC-IFCT2017,L002,"Milk, whole, Cow",Milk and Milk Products,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00313,SRC-IFCT2017,L003,Paneer,Milk and Milk Products,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00314,SRC-IFCT2017,L004,Khoa,Milk and Milk Products,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00315,SRC-IFCT2017,M001,"Egg, poultry, whole, raw",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00316,SRC-IFCT2017,M002,"Egg, poultry, white, raw",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00317,SRC-IFCT2017,M003,"Egg, poultry, yolk, raw",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00318,SRC-IFCT2017,M004,"Egg, poultry, whole, boiled",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00319,SRC-IFCT2017,M005,"Egg, poultry, white, boiled",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00320,SRC-IFCT2017,M006,"Egg, poultry, yolk, boiled",Egg and Egg Products,6,,eggetarian fishetarian nonveg
+GF-ING-00321,SRC-IFCT2017,M007,"Egg, poultry, omlet",Egg and Egg Products,3,,eggetarian fishetarian nonveg
+GF-ING-00322,SRC-IFCT2017,M008,"Egg, country hen, whole, raw",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00323,SRC-IFCT2017,M009,"Egg, country hen, whole, boiled",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00324,SRC-IFCT2017,M010,"Egg, country hen, omlet",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00325,SRC-IFCT2017,M011,"Egg, duck, whole, boiled",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00326,SRC-IFCT2017,M012,"Egg, duck, whole, raw",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00327,SRC-IFCT2017,M013,"Egg, duck, whole, omlet",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00328,SRC-IFCT2017,M014,"Egg, quial, whole, raw",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00329,SRC-IFCT2017,M015,"Egg, quial, whole, boiled",Egg and Egg Products,1,,eggetarian fishetarian nonveg
+GF-ING-00330,SRC-IFCT2017,N001,"Chicken, poultry, leg, skinless",Poultry,4,,nonveg
+GF-ING-00331,SRC-IFCT2017,N002,"Chicken, poultry, thigh, skinless",Poultry,6,,nonveg
+GF-ING-00332,SRC-IFCT2017,N003,"Chicken, poultry, breast, skinless",Poultry,5,,nonveg
+GF-ING-00333,SRC-IFCT2017,N004,"Chicken, poultry, wing, skinless",Poultry,5,,nonveg
+GF-ING-00334,SRC-IFCT2017,N005,"Poultry, chicken, liver",Poultry,1,,nonveg
+GF-ING-00335,SRC-IFCT2017,N006,"Poultry, chicken, gizzard",Poultry,1,,nonveg
+GF-ING-00336,SRC-IFCT2017,N007,"Country hen, leg, with skin",Poultry,1,,nonveg
+GF-ING-00337,SRC-IFCT2017,N008,"Country hen, thigh, with skin",Poultry,1,,nonveg
+GF-ING-00338,SRC-IFCT2017,N009,"Country hen, breast, with skin",Poultry,1,,nonveg
+GF-ING-00339,SRC-IFCT2017,N010,"Country hen, wing, with skin",Poultry,1,,nonveg
+GF-ING-00340,SRC-IFCT2017,N011,"Duck, meat, with skin",Poultry,1,,nonveg
+GF-ING-00341,SRC-IFCT2017,N012,"Emu, meat, skinless",Poultry,1,,nonveg
+GF-ING-00342,SRC-IFCT2017,N013,"Guinea fowl, meat, with skin",Poultry,1,,nonveg
+GF-ING-00343,SRC-IFCT2017,N014,"Pigeon, meat, with skin",Poultry,1,,nonveg
+GF-ING-00344,SRC-IFCT2017,N015,"Quail, meat, skinless",Poultry,1,,nonveg
+GF-ING-00345,SRC-IFCT2017,N016,"Turkey, leg, with skin",Poultry,1,,nonveg
+GF-ING-00346,SRC-IFCT2017,N017,"Turkey, thigh, with skin",Poultry,1,,nonveg
+GF-ING-00347,SRC-IFCT2017,N018,"Turkey, breast, with skin",Poultry,1,,nonveg
+GF-ING-00348,SRC-IFCT2017,N019,"Turkey, wing, with skin",Poultry,1,,nonveg
+GF-ING-00349,SRC-IFCT2017,O001,"Goat, shoulder, meat",Animal Meat,6,,nonveg
+GF-ING-00350,SRC-IFCT2017,O002,"Goat, chops",Animal Meat,6,,nonveg
+GF-ING-00351,SRC-IFCT2017,O003,"Goat, legs",Animal Meat,6,,nonveg
+GF-ING-00352,SRC-IFCT2017,O004,"Goat, brain",Animal Meat,5,,nonveg
+GF-ING-00353,SRC-IFCT2017,O005,"Goat, tongue",Animal Meat,4,,nonveg
+GF-ING-00354,SRC-IFCT2017,O006,"Goat, lungs",Animal Meat,4,,nonveg
+GF-ING-00355,SRC-IFCT2017,O007,"Goat, heart",Animal Meat,5,,nonveg
+GF-ING-00356,SRC-IFCT2017,O008,"Goat, liver",Animal Meat,6,,nonveg
+GF-ING-00357,SRC-IFCT2017,O009,"Goat, tripe",Animal Meat,5,,nonveg
+GF-ING-00358,SRC-IFCT2017,O010,"Goat, spleen",Animal Meat,4,,nonveg
+GF-ING-00359,SRC-IFCT2017,O011,"Goat, kidneys",Animal Meat,4,,nonveg
+GF-ING-00360,SRC-IFCT2017,O012,"Goat, tube (small intestine)",Animal Meat,3,,nonveg
+GF-ING-00361,SRC-IFCT2017,O013,"Goat, testis",Animal Meat,2,,nonveg
+GF-ING-00362,SRC-IFCT2017,O014,"Sheep, shoulder",Animal Meat,5,,nonveg
+GF-ING-00363,SRC-IFCT2017,O015,"Sheep, chops",Animal Meat,4,,nonveg
+GF-ING-00364,SRC-IFCT2017,O016,"Sheep, leg",Animal Meat,5,,nonveg
+GF-ING-00365,SRC-IFCT2017,O017,"Sheep, brain",Animal Meat,1,,nonveg
+GF-ING-00366,SRC-IFCT2017,O018,"Sheep, tongue",Animal Meat,1,,nonveg
+GF-ING-00367,SRC-IFCT2017,O019,"Sheep, lungs",Animal Meat,2,,nonveg
+GF-ING-00368,SRC-IFCT2017,O020,"Sheep, heart",Animal Meat,1,,nonveg
+GF-ING-00369,SRC-IFCT2017,O021,"Sheep, liver",Animal Meat,4,,nonveg
+GF-ING-00370,SRC-IFCT2017,O022,"Sheep, tripe",Animal Meat,2,,nonveg
+GF-ING-00371,SRC-IFCT2017,O023,"Sheep, spleen",Animal Meat,1,,nonveg
+GF-ING-00372,SRC-IFCT2017,O024,"Sheep, kidneys",Animal Meat,2,,nonveg
+GF-ING-00373,SRC-IFCT2017,O025,"Beef, shoulder",Animal Meat,6,,nonveg
+GF-ING-00374,SRC-IFCT2017,O026,"Beef, chops",Animal Meat,4,,nonveg
+GF-ING-00375,SRC-IFCT2017,O027,"Beef, round (leg)",Animal Meat,6,,nonveg
+GF-ING-00376,SRC-IFCT2017,O028,"Beef, brain",Animal Meat,4,,nonveg
+GF-ING-00377,SRC-IFCT2017,O029,"Beef, tongue",Animal Meat,4,,nonveg
+GF-ING-00378,SRC-IFCT2017,O030,"Beef, lungs",Animal Meat,3,,nonveg
+GF-ING-00379,SRC-IFCT2017,O031,"Beef, heart",Animal Meat,5,,nonveg
+GF-ING-00380,SRC-IFCT2017,O032,"Beef, liver",Animal Meat,6,,nonveg
+GF-ING-00381,SRC-IFCT2017,O033,"Beef, tripe",Animal Meat,5,,nonveg
+GF-ING-00382,SRC-IFCT2017,O034,"Beef, spleen",Animal Meat,6,,nonveg
+GF-ING-00383,SRC-IFCT2017,O035,"Beef, kidneys",Animal Meat,3,,nonveg
+GF-ING-00384,SRC-IFCT2017,O036,"Calf, shoulder",Animal Meat,2,,nonveg
+GF-ING-00385,SRC-IFCT2017,O037,"Calf, chops",Animal Meat,2,,nonveg
+GF-ING-00386,SRC-IFCT2017,O038,"Calf, round (leg)",Animal Meat,2,,nonveg
+GF-ING-00387,SRC-IFCT2017,O039,"Calf, brain",Animal Meat,2,,nonveg
+GF-ING-00388,SRC-IFCT2017,O040,"Calf, tongue",Animal Meat,2,,nonveg
+GF-ING-00389,SRC-IFCT2017,O041,"Calf, heart",Animal Meat,1,,nonveg
+GF-ING-00390,SRC-IFCT2017,O042,"Calf, liver",Animal Meat,1,,nonveg
+GF-ING-00391,SRC-IFCT2017,O043,"Calf, spleen",Animal Meat,1,,nonveg
+GF-ING-00392,SRC-IFCT2017,O044,"Calf, kidneys",Animal Meat,2,,nonveg
+GF-ING-00393,SRC-IFCT2017,O045,"Mithun, shoulder",Animal Meat,1,,nonveg
+GF-ING-00394,SRC-IFCT2017,O046,"Mithun, chops",Animal Meat,1,,nonveg
+GF-ING-00395,SRC-IFCT2017,O047,"Mithun, round (leg)",Animal Meat,1,,nonveg
+GF-ING-00396,SRC-IFCT2017,O048,"Pork, shoulder",Animal Meat,6,,nonveg
+GF-ING-00397,SRC-IFCT2017,O049,"Pork, chops",Animal Meat,6,,nonveg
+GF-ING-00398,SRC-IFCT2017,O050,"Pork, ham",Animal Meat,6,,nonveg
+GF-ING-00399,SRC-IFCT2017,O051,"Pork, lungs",Animal Meat,4,,nonveg
+GF-ING-00400,SRC-IFCT2017,O052,"Pork, heart",Animal Meat,4,,nonveg
+GF-ING-00401,SRC-IFCT2017,O053,"Pork, liver",Animal Meat,5,,nonveg
+GF-ING-00402,SRC-IFCT2017,O054,"Pork, stomach",Animal Meat,1,,nonveg
+GF-ING-00403,SRC-IFCT2017,O055,"Pork, spleen",Animal Meat,3,,nonveg
+GF-ING-00404,SRC-IFCT2017,O056,"Pork, kidneys",Animal Meat,5,,nonveg
+GF-ING-00405,SRC-IFCT2017,O057,"Pork, tube (small intestine)",Animal Meat,1,,nonveg
+GF-ING-00406,SRC-IFCT2017,O058,"Hare, shoulder",Animal Meat,1,,nonveg
+GF-ING-00407,SRC-IFCT2017,O059,"Hare, chops",Animal Meat,1,,nonveg
+GF-ING-00408,SRC-IFCT2017,O060,"Hare, leg",Animal Meat,1,,nonveg
+GF-ING-00409,SRC-IFCT2017,O061,"Rabbit, shoulder",Animal Meat,1,,nonveg
+GF-ING-00410,SRC-IFCT2017,O062,"Rabbit, chops",Animal Meat,1,,nonveg
+GF-ING-00411,SRC-IFCT2017,O063,"Rabbit, leg",Animal Meat,1,,nonveg
+GF-ING-00412,SRC-IFCT2017,P001,Allathi,Marine Fish,1,Elops machnata,fishetarian nonveg
+GF-ING-00413,SRC-IFCT2017,P002,Aluva,Marine Fish,3,Parastromateus niger,fishetarian nonveg
+GF-ING-00414,SRC-IFCT2017,P003,Anchovy,Marine Fish,2,Stolephorus indicus,fishetarian nonveg
+GF-ING-00415,SRC-IFCT2017,P004,Ari fish,Marine Fish,1,Aprion virescens,fishetarian nonveg
+GF-ING-00416,SRC-IFCT2017,P005,Betki,Marine Fish,1,Lates calcarifer,fishetarian nonveg
+GF-ING-00417,SRC-IFCT2017,P006,Black snapper,Marine Fish,1,Macolor niger,fishetarian nonveg
+GF-ING-00418,SRC-IFCT2017,P007,Bombay duck,Marine Fish,2,Harpadon nehereus,fishetarian nonveg
+GF-ING-00419,SRC-IFCT2017,P008,Bommuralu,Marine Fish,3,Muraenesox cinerius,fishetarian nonveg
+GF-ING-00420,SRC-IFCT2017,P009,Cat fish,Marine Fish,1,Tachysurus thalassinus,fishetarian nonveg
+GF-ING-00421,SRC-IFCT2017,P010,Chakla,Marine Fish,5,Rachycentron canadum,fishetarian nonveg
+GF-ING-00422,SRC-IFCT2017,P011,Chappal,Marine Fish,1,Aluterus monoceros,fishetarian nonveg
+GF-ING-00423,SRC-IFCT2017,P012,Chelu,Marine Fish,2,Elagatis bipinnulata,fishetarian nonveg
+GF-ING-00424,SRC-IFCT2017,P013,Chembali,Marine Fish,1,Lutjanus quinquelineatus,fishetarian nonveg
+GF-ING-00425,SRC-IFCT2017,P014,Eri meen,Marine Fish,1,Pristipomoides filamentosus,fishetarian nonveg
+GF-ING-00426,SRC-IFCT2017,P015,Gobro,Marine Fish,2,Epinephelus diacanthus,fishetarian nonveg
+GF-ING-00427,SRC-IFCT2017,P016,Guitar fish,Marine Fish,1,Rhinobatus prahli,fishetarian nonveg
+GF-ING-00428,SRC-IFCT2017,P017,Hilsa,Marine Fish,2,Tenualosa ilisha,fishetarian nonveg
+GF-ING-00429,SRC-IFCT2017,P018,Jallal,Marine Fish,1,Arius sp.,fishetarian nonveg
+GF-ING-00430,SRC-IFCT2017,P019,Jathi vela meen,Marine Fish,2,Lethrinus lentjan,fishetarian nonveg
+GF-ING-00431,SRC-IFCT2017,P020,Kadal bral,Marine Fish,1,Synodus indicus,fishetarian nonveg
+GF-ING-00432,SRC-IFCT2017,P021,Kadali,Marine Fish,1,Nemipterus mesoprion,fishetarian nonveg
+GF-ING-00433,SRC-IFCT2017,P022,Kalamaara,Marine Fish,2,Leptomelanosoma indicum,fishetarian nonveg
+GF-ING-00434,SRC-IFCT2017,P023,Kalava,Marine Fish,1,Epinephelus coioides,fishetarian nonveg
+GF-ING-00435,SRC-IFCT2017,P024,Kanamayya,Marine Fish,2,Lutjanus rivulatus,fishetarian nonveg
+GF-ING-00436,SRC-IFCT2017,P025,Kannadi paarai,Marine Fish,3,Alectis indicus,fishetarian nonveg
+GF-ING-00437,SRC-IFCT2017,P026,Karimeen,Marine Fish,1,Etroplus suratensis,fishetarian nonveg
+GF-ING-00438,SRC-IFCT2017,P027,Karnagawala,Marine Fish,1,Anchoa hepsetus,fishetarian nonveg
+GF-ING-00439,SRC-IFCT2017,P028,Kayrai,Marine Fish,2,Thunnus albacares,fishetarian nonveg
+GF-ING-00440,SRC-IFCT2017,P029,Kiriyan,Marine Fish,1,Atule mate,fishetarian nonveg
+GF-ING-00441,SRC-IFCT2017,P030,Kite fish,Marine Fish,1,Mobula kuhlii,fishetarian nonveg
+GF-ING-00442,SRC-IFCT2017,P031,Korka,Marine Fish,1,Terapon jarbua,fishetarian nonveg
+GF-ING-00443,SRC-IFCT2017,P032,Kulam paarai,Marine Fish,1,Carangoides fulvoguttatus,fishetarian nonveg
+GF-ING-00444,SRC-IFCT2017,P033,Maagaa,Marine Fish,1,Polynemus plebeius,fishetarian nonveg
+GF-ING-00445,SRC-IFCT2017,P034,Mackerel,Marine Fish,3,Rastrelliger kanagurta,fishetarian nonveg
+GF-ING-00446,SRC-IFCT2017,P035,Manda clathi,Marine Fish,1,Naso reticulatus,fishetarian nonveg
+GF-ING-00447,SRC-IFCT2017,P036,Matha,Marine Fish,2,Acanthurus mata,fishetarian nonveg
+GF-ING-00448,SRC-IFCT2017,P037,Milk fish,Marine Fish,1,Chanos chanos,fishetarian nonveg
+GF-ING-00449,SRC-IFCT2017,P038,Moon fish,Marine Fish,1,Mene maculata,fishetarian nonveg
+GF-ING-00450,SRC-IFCT2017,P039,Mullet,Marine Fish,3,Mugil cephalus,fishetarian nonveg
+GF-ING-00451,SRC-IFCT2017,P040,Mural,Marine Fish,1,Tylosurus crocodilus crocodilus,fishetarian nonveg
+GF-ING-00452,SRC-IFCT2017,P041,Myil meen,Marine Fish,2,Istiophorus platypterus,fishetarian nonveg
+GF-ING-00453,SRC-IFCT2017,P042,Nalla bontha,Marine Fish,1,Epinephelus sp,fishetarian nonveg
+GF-ING-00454,SRC-IFCT2017,P043,Narba,Marine Fish,2,Caranx sexfasciatus,fishetarian nonveg
+GF-ING-00455,SRC-IFCT2017,P044,Paarai,Marine Fish,1,Caranx heberi,fishetarian nonveg
+GF-ING-00456,SRC-IFCT2017,P045,Padayappa,Marine Fish,1,Canthidermis maculata,fishetarian nonveg
+GF-ING-00457,SRC-IFCT2017,P046,Pali kora,Marine Fish,1,Panna microdon,fishetarian nonveg
+GF-ING-00458,SRC-IFCT2017,P047,Pambada,Marine Fish,2,Lepturacanthus savala,fishetarian nonveg
+GF-ING-00459,SRC-IFCT2017,P048,Pandukopa,Marine Fish,1,Pseudosciaena manchurica,fishetarian nonveg
+GF-ING-00460,SRC-IFCT2017,P049,Parava,Marine Fish,1,Lactarius lactarius,fishetarian nonveg
+GF-ING-00461,SRC-IFCT2017,P050,Parcus,Marine Fish,1,Psettodes erumei,fishetarian nonveg
+GF-ING-00462,SRC-IFCT2017,P051,Parrot fish,Marine Fish,1,Scarus ghobban,fishetarian nonveg
+GF-ING-00463,SRC-IFCT2017,P052,Perinkilichai,Marine Fish,1,Pinjalo pinjalo,fishetarian nonveg
+GF-ING-00464,SRC-IFCT2017,P053,Phopat,Marine Fish,4,Coryphaena hippurus,fishetarian nonveg
+GF-ING-00465,SRC-IFCT2017,P054,Piranha,Marine Fish,1,Pygopristis sp.,fishetarian nonveg
+GF-ING-00466,SRC-IFCT2017,P055,"Pomfret, black",Marine Fish,2,Parastromateus niger,fishetarian nonveg
+GF-ING-00467,SRC-IFCT2017,P056,"Pomfret, snub nose",Marine Fish,2,Trachinotus blochii,fishetarian nonveg
+GF-ING-00468,SRC-IFCT2017,P057,"Pomfret, white",Marine Fish,2,Pampus argenteus,fishetarian nonveg
+GF-ING-00469,SRC-IFCT2017,P058,Pranel,Marine Fish,1,Gerres sp.,fishetarian nonveg
+GF-ING-00470,SRC-IFCT2017,P059,Pulli paarai,Marine Fish,1,Gnathanodon speciosus,fishetarian nonveg
+GF-ING-00471,SRC-IFCT2017,P060,Queen fish,Marine Fish,3,Scomberoides commersonianus,fishetarian nonveg
+GF-ING-00472,SRC-IFCT2017,P061,Raai fish,Marine Fish,2,Lobotes surinamensis,fishetarian nonveg
+GF-ING-00473,SRC-IFCT2017,P062,Raai vanthu,Marine Fish,1,Epinephelus chlorostigma,fishetarian nonveg
+GF-ING-00474,SRC-IFCT2017,P063,Rani,Marine Fish,1,Pink perch,fishetarian nonveg
+GF-ING-00475,SRC-IFCT2017,P064,"Ray fish, bow head, spotted",Marine Fish,1,Rhina ancylostoma,fishetarian nonveg
+GF-ING-00476,SRC-IFCT2017,P065,Red snapper,Marine Fish,1,Lutjanus argentimaculatus,fishetarian nonveg
+GF-ING-00477,SRC-IFCT2017,P066,"Red snapper, small",Marine Fish,1,Priacanthus hamrur,fishetarian nonveg
+GF-ING-00478,SRC-IFCT2017,P067,Sadaya,Marine Fish,1,Platax orbicularis,fishetarian nonveg
+GF-ING-00479,SRC-IFCT2017,P068,Salmon,Marine Fish,1,Salmo salar,fishetarian nonveg
+GF-ING-00480,SRC-IFCT2017,P069,Sangada,Marine Fish,1,Nemipterus japonicus,fishetarian nonveg
+GF-ING-00481,SRC-IFCT2017,P070,Sankata parai,Marine Fish,1,Caranx ignobilis,fishetarian nonveg
+GF-ING-00482,SRC-IFCT2017,P071,Sardine,Marine Fish,1,Sardinella longiceps,fishetarian nonveg
+GF-ING-00483,SRC-IFCT2017,P072,Shark,Marine Fish,2,Carcharhinus sorrah,fishetarian nonveg
+GF-ING-00484,SRC-IFCT2017,P073,"Shark, hammer head",Marine Fish,1,Sphyrna mokarran,fishetarian nonveg
+GF-ING-00485,SRC-IFCT2017,P074,"Shark, spotted",Marine Fish,1,Stegostoma fasciatum,fishetarian nonveg
+GF-ING-00486,SRC-IFCT2017,P075,Shelavu,Marine Fish,4,Sphyraena jello,fishetarian nonveg
+GF-ING-00487,SRC-IFCT2017,P076,Silan,Marine Fish,1,Silonia silondia,fishetarian nonveg
+GF-ING-00488,SRC-IFCT2017,P077,Silk fish,Marine Fish,1,Beryx sp.,fishetarian nonveg
+GF-ING-00489,SRC-IFCT2017,P078,Silver carp,Marine Fish,1,Hypophthalmichthys molitrix,fishetarian nonveg
+GF-ING-00490,SRC-IFCT2017,P079,Sole fish,Marine Fish,1,Cynoglossus arel,fishetarian nonveg
+GF-ING-00491,SRC-IFCT2017,P080,Stingray,Marine Fish,1,Dasyatis pastinaca,fishetarian nonveg
+GF-ING-00492,SRC-IFCT2017,P081,Tarlava,Marine Fish,2,Drepane punctata,fishetarian nonveg
+GF-ING-00493,SRC-IFCT2017,P082,Tholam,Marine Fish,2,Plectorhinchus schotaf,fishetarian nonveg
+GF-ING-00494,SRC-IFCT2017,P083,Tilapia,Marine Fish,1,Oreochromis niloticus,fishetarian nonveg
+GF-ING-00495,SRC-IFCT2017,P084,Tuna,Marine Fish,5,Euthynnus affinis,fishetarian nonveg
+GF-ING-00496,SRC-IFCT2017,P085,"Tuna, striped",Marine Fish,1,Katsuwonus pelamis,fishetarian nonveg
+GF-ING-00497,SRC-IFCT2017,P086,Valava,Marine Fish,1,Chirocentrus nudus,fishetarian nonveg
+GF-ING-00498,SRC-IFCT2017,P087,Vanjaram,Marine Fish,2,Scomberomorus commerson,fishetarian nonveg
+GF-ING-00499,SRC-IFCT2017,P088,Vela meen,Marine Fish,1,Aprion virescens,fishetarian nonveg
+GF-ING-00500,SRC-IFCT2017,P089,Vora,Marine Fish,2,Siganus javus,fishetarian nonveg
+GF-ING-00501,SRC-IFCT2017,P090,Whale shark,Marine Fish,1,Galeocerdo cuvier,fishetarian nonveg
+GF-ING-00502,SRC-IFCT2017,P091,Xiphinis,Marine Fish,1,Xiphias gladius,fishetarian nonveg
+GF-ING-00503,SRC-IFCT2017,P092,"Eggs, cat fish",Marine Fish,1,Ompok bimaculatus,fishetarian nonveg
+GF-ING-00504,SRC-IFCT2017,Q001,Crab,Marine Shellfish,1,Menippe mercenaria,fishetarian nonveg
+GF-ING-00505,SRC-IFCT2017,Q002,"Crab, sea",Marine Shellfish,1,Portunus sanguinolentus,fishetarian nonveg
+GF-ING-00506,SRC-IFCT2017,Q003,"Lobster, brown",Marine Shellfish,1,Thenus orientalis,fishetarian nonveg
+GF-ING-00507,SRC-IFCT2017,Q004,"Lobster, king size",Marine Shellfish,1,Thenus orientalis,fishetarian nonveg
+GF-ING-00508,SRC-IFCT2017,Q005,Mud crab,Marine Shellfish,1,Scylla tranquebarica,fishetarian nonveg
+GF-ING-00509,SRC-IFCT2017,Q006,Oyster,Marine Shellfish,1,Crassostrea sp.,fishetarian nonveg
+GF-ING-00510,SRC-IFCT2017,Q007,"Tiger prawns, brown",Marine Shellfish,1,Solenocera crassicornis,fishetarian nonveg
+GF-ING-00511,SRC-IFCT2017,Q008,"Tiger Prawns, orange",Marine Shellfish,1,Penaeus monodon,fishetarian nonveg
+GF-ING-00512,SRC-IFCT2017,R001,"Clam, green shell",Marine Mollusks,1,Perna viridis,fishetarian nonveg
+GF-ING-00513,SRC-IFCT2017,R002,"Clam, white shell, ribbed",Marine Mollusks,1,Meretrix meretrix,fishetarian nonveg
+GF-ING-00514,SRC-IFCT2017,R003,Octopus,Marine Mollusks,1,Octopus vulgaris,fishetarian nonveg
+GF-ING-00515,SRC-IFCT2017,R004,"Squid, black",Marine Mollusks,1,Loligo sp.,fishetarian nonveg
+GF-ING-00516,SRC-IFCT2017,R005,"Squid, hard shell",Marine Mollusks,1,Sepia pharaonis,fishetarian nonveg
+GF-ING-00517,SRC-IFCT2017,R006,"Squid, red",Marine Mollusks,2,Loligo duvauceli,fishetarian nonveg
+GF-ING-00518,SRC-IFCT2017,R007,"Squid, white, small",Marine Mollusks,1,Uroteuthis duvauceli,fishetarian nonveg
+GF-ING-00420,SRC-IFCT2017,S001,Cat fish,Fresh Water Fish and Shellfish,2,Tandanus tandanus,fishetarian nonveg
+GF-ING-00519,SRC-IFCT2017,S002,Catla,Fresh Water Fish and Shellfish,6,Catla catla,fishetarian nonveg
+GF-ING-00520,SRC-IFCT2017,S003,Fresh water Eel,Fresh Water Fish and Shellfish,1,Anguilla anguilla,fishetarian nonveg
+GF-ING-00521,SRC-IFCT2017,S004,Gold fish,Fresh Water Fish and Shellfish,1,Carassius auratus,fishetarian nonveg
+GF-ING-00522,SRC-IFCT2017,S005,Pangas,Fresh Water Fish and Shellfish,2,Pangasianodon hypophthalmus,fishetarian nonveg
+GF-ING-00523,SRC-IFCT2017,S006,Rohu,Fresh Water Fish and Shellfish,6,Labeo rohita,fishetarian nonveg
+GF-ING-00504,SRC-IFCT2017,S007,Crab,Fresh Water Fish and Shellfish,1,Pachygrapsus sp.,fishetarian nonveg
+GF-ING-00524,SRC-IFCT2017,S008,"Prawns, big",Fresh Water Fish and Shellfish,3,Macrobrachium rosenbergii,fishetarian nonveg
+GF-ING-00525,SRC-IFCT2017,S009,"Prawns, small",Fresh Water Fish and Shellfish,6,Macrobrachium sp.,fishetarian nonveg
+GF-ING-00526,SRC-IFCT2017,S010,Tiger prawns,Fresh Water Fish and Shellfish,2,Macrobrachium sp.,fishetarian nonveg
+GF-ING-00527,SRC-IFCT2017,T001,Coconut oil,Edible Oils and Fats,1,Cocos nucifera,vegetarian eggetarian fishetarian veg
+GF-ING-00528,SRC-IFCT2017,T002,Corn oil,Edible Oils and Fats,1,Zea mays,vegetarian eggetarian fishetarian veg
+GF-ING-00529,SRC-IFCT2017,T003,Cotton seed oil,Edible Oils and Fats,1,Gossypium spp.,vegetarian eggetarian fishetarian veg
+GF-ING-00530,SRC-IFCT2017,T004,Gingelly oil,Edible Oils and Fats,6,Sesamum indicum,vegetarian eggetarian fishetarian veg
+GF-ING-00531,SRC-IFCT2017,T005,Groundnut oil,Edible Oils and Fats,5,Arachis hypogaea,vegetarian eggetarian fishetarian veg
+GF-ING-00532,SRC-IFCT2017,T006,Mustard oil,Edible Oils and Fats,6,Brassica spp.,vegetarian eggetarian fishetarian veg
+GF-ING-00533,SRC-IFCT2017,T007,Palm oil,Edible Oils and Fats,4,Elaeis guineensis,vegetarian eggetarian fishetarian veg
+GF-ING-00534,SRC-IFCT2017,T008,Rice bran oil,Edible Oils and Fats,5,Oryza sativa,vegetarian eggetarian fishetarian veg
+GF-ING-00535,SRC-IFCT2017,T009,Safflower oil,Edible Oils and Fats,1,Carthamus tinctorius,vegetarian eggetarian fishetarian veg
+GF-ING-00536,SRC-IFCT2017,T010,Safflower oil (blended),Edible Oils and Fats,4,,vegetarian eggetarian fishetarian veg
+GF-ING-00537,SRC-IFCT2017,T011,Soyabean oil,Edible Oils and Fats,6,Glycine max,vegetarian eggetarian fishetarian veg
+GF-ING-00538,SRC-IFCT2017,T012,Sunflower oil,Edible Oils and Fats,6,Helianthus annuus,vegetarian eggetarian fishetarian veg
+GF-ING-00539,SRC-IFCT2017,T013,Ghee,Edible Oils and Fats,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00540,SRC-IFCT2017,T014,Vanaspati,Edible Oils and Fats,6,,vegetarian eggetarian fishetarian veg
+GF-ING-00541,SRC-UKFCT,G509,"Agar, dried",,,,
+GF-ING-00542,SRC-UKFCT,E507,Amla,,,,
+GF-ING-00543,SRC-UKFCT,V500,"Apple juice, clear, ambient and chilled",,,,
+GF-ING-00544,SRC-UKFCT,O500,"Bacon rashers, back, raw",,,,
+GF-ING-00545,SRC-UKFCT,K500,Baking powder,,,,
+GF-ING-00546,SRC-UKFCT,E503,"Bananas, raw, flesh only, weighed with skin",,,,
+GF-ING-00547,SRC-UKFCT,G511,"Basil, dried, ground",,,,
+GF-ING-00548,SRC-UKFCT,G512,"Bay leaf, dried",,,,
+GF-ING-00549,SRC-UKFCT,D508,"Beans, broad, whole, raw",,,,
+GF-ING-00550,SRC-UKFCT,B500,"Beans, chick peas, Kabuli, whole, dried, raw",,,,
+GF-ING-00551,SRC-UKFCT,B501,"Beansprouts, mung, boiled in unsalted water",,,,
+GF-ING-00552,SRC-UKFCT,K501,Bicarbonate of soda,,,,
+GF-ING-00553,SRC-UKFCT,U500,"Biscuits, digestive, plain",,,,
+GF-ING-00554,SRC-UKFCT,E500,Blueberries,,,,
+GF-ING-00555,SRC-UKFCT,U501,"Bread, brown, average",,,,
+GF-ING-00556,SRC-UKFCT,U502,"Bread, brown, toasted",,,,
+GF-ING-00557,SRC-UKFCT,U511,"Bread, white, average",,,,
+GF-ING-00558,SRC-UKFCT,A501,"Breakfast cereal, crunchy clusters type, without nuts, unfortified",,,,
+GF-ING-00559,SRC-UKFCT,C500,"Broccoli, green, raw",,,,
+GF-ING-00560,SRC-UKFCT,A514,"Buckwheat, groats",,,,
+GF-ING-00561,SRC-UKFCT,T500,"Butter, salted",,,,
+GF-ING-00562,SRC-UKFCT,T501,"Butter, unsalted",,,,
+GF-ING-00563,SRC-UKFCT,L500,"Cheese, Cheddar, English",,,,
+GF-ING-00564,SRC-UKFCT,L502,"Cheese, cottage, plain",,,,
+GF-ING-00565,SRC-UKFCT,L506,"Cheese, Feta",,,,
+GF-ING-00566,SRC-UKFCT,L503,"Cheese, Mozzarella, fresh",,,,
+GF-ING-00567,SRC-UKFCT,L505,"Cheese, processed, plain",,,,
+GF-ING-00568,SRC-UKFCT,L511,"Cheese, Ricotta",,,,
+GF-ING-00569,SRC-UKFCT,E511,"Cherries, glace",,,,
+GF-ING-00570,SRC-UKFCT,E504,"Cherries, West Indian, flesh only",,,,
+GF-ING-00571,SRC-UKFCT,N500,"Chicken, whole, corn-fed, raw, meat and skin, weighed with bone",,,,
+GF-ING-00572,SRC-UKFCT,G516,Chilli powder,,,,
+GF-ING-00573,SRC-UKFCT,G517,Chilli sauce,,,,
+GF-ING-00574,SRC-UKFCT,I509,"Chocolate, plain",,,,
+GF-ING-00575,SRC-UKFCT,G518,"Cinnamon, ground",,,,
+GF-ING-00576,SRC-UKFCT,V501,Cocoa powder,,,,
+GF-ING-00577,SRC-UKFCT,H501,Coconut milk,,,,
+GF-ING-00578,SRC-UKFCT,V502,"Coffee, powder, instant",,,,
+GF-ING-00579,SRC-UKFCT,V503,Cola,,,,
+GF-ING-00580,SRC-UKFCT,A502,"Couscous, plain, raw",,,,
+GF-ING-00581,SRC-UKFCT,E501,Cranberries,,,,
+GF-ING-00582,SRC-UKFCT,U505,Cream of tartar,,,,
+GF-ING-00583,SRC-UKFCT,L519,"Cream, fresh, single",,,,
+GF-ING-00584,SRC-UKFCT,L512,"Cream, fresh, whipping",,,,
+GF-ING-00585,SRC-UKFCT,D500,"Curly kale, raw",,,,
+GF-ING-00586,SRC-UKFCT,E510,Currants,,,,
+GF-ING-00587,SRC-UKFCT,G520,Curry powder,,,,
+GF-ING-00588,SRC-UKFCT,K503,Custard powder,,,,
+GF-ING-00589,SRC-UKFCT,X508,"Dips, sour-cream based, assorted flavours",,,,
+GF-ING-00590,SRC-UKFCT,X510,"Dressing, French",,,,
+GF-ING-00591,SRC-UKFCT,X509,"Dressing, thousand island",,,,
+GF-ING-00592,SRC-UKFCT,V504,"Drinking chocolate, powder",,,,
+GF-ING-00593,SRC-UKFCT,V505,"Energy drink, carbonated",,,,
+GF-ING-00594,SRC-UKFCT,G510,Fennel seeds,,,,
+GF-ING-00595,SRC-UKFCT,A503,"Flour, corn",,,,
+GF-ING-00596,SRC-UKFCT,A504,"Flour, gram",,,,
+GF-ING-00597,SRC-UKFCT,A505,"Flour, rice",,,,
+GF-ING-00598,SRC-UKFCT,B503,"Flour, soya",,,,
+GF-ING-00599,SRC-UKFCT,E516,"Fruit cocktail, canned in juice, whole contents",,,,
+GF-ING-00600,SRC-UKFCT,V506,"Fruit cocktail, canned in syrup, whole contents",,,,
+GF-ING-00601,SRC-UKFCT,V507,"Fruit juice drink/squash, diluted",,,,
+GF-ING-00602,SRC-UKFCT,V508,"Fruit juice drink/squash, undiluted",,,,
+GF-ING-00603,SRC-UKFCT,G523,Garam masala,,,,
+GF-ING-00604,SRC-UKFCT,G524,Garlic powder,,,,
+GF-ING-00605,SRC-UKFCT,K504,Gelatine,,,,
+GF-ING-00606,SRC-UKFCT,T506,"Ghee, butter",,,,
+GF-ING-00607,SRC-UKFCT,D505,"Gherkins, pickled, drained",,,,
+GF-ING-00608,SRC-UKFCT,G554,"Ginger, ground",,,,
+GF-ING-00609,SRC-UKFCT,O501,Ham,,,,
+GF-ING-00610,SRC-UKFCT,H502,"Hazelnuts, kernel only",,,,
+GF-ING-00611,SRC-UKFCT,I507,Honey,,,,
+GF-ING-00612,SRC-UKFCT,I501,"Ice cream, dairy, vanilla, soft scoop",,,,
+GF-ING-00613,SRC-UKFCT,W501,"Jelly, made with water",,,,
+GF-ING-00614,SRC-UKFCT,E502,"Kiwi fruit, flesh only, raw",,,,
+GF-ING-00615,SRC-UKFCT,O502,"Lamb, mince, raw",,,,
+GF-ING-00616,SRC-UKFCT,E520,"Lemons, flesh only, raw, weighed with peel and pips",,,,
+GF-ING-00617,SRC-UKFCT,W502,Marmalade,,,,
+GF-ING-00618,SRC-UKFCT,L507,"Mayonnaise, standard, retail",,,,
+GF-ING-00619,SRC-UKFCT,H500,Melon seeds,,,,
+GF-ING-00620,SRC-UKFCT,L508,"Milk, condensed, whole, sweetened",,,,
+GF-ING-00621,SRC-UKFCT,L509,"Milk, evaporated, light",,,,
+GF-ING-00622,SRC-UKFCT,L510,"Milk, skimmed, dried, fortified",,,,
+GF-ING-00623,SRC-UKFCT,X512,"Mint sauce, homemade",,,,
+GF-ING-00624,SRC-UKFCT,G515,Mixed curry spices,,,,
+GF-ING-00625,SRC-UKFCT,G521,"Mixed herbs, dried",,,,
+GF-ING-00626,SRC-UKFCT,G533,Mustard powder,,,,
+GF-ING-00627,SRC-UKFCT,T507,"Oil, coconut",,,,
+GF-ING-00628,SRC-UKFCT,T502,"Oil, olive",,,,
+GF-ING-00629,SRC-UKFCT,T509,"Oil, sesame",,,,
+GF-ING-00630,SRC-UKFCT,T508,"Oil, sunflower",,,,
+GF-ING-00631,SRC-UKFCT,D504,"Olives, green, in brine, drained, flesh and skin",,,,
+GF-ING-00632,SRC-UKFCT,E518,"Orange juice, freshly squeezed",,,,
+GF-ING-00633,SRC-UKFCT,G526,"Oregano, dried, ground",,,,
+GF-ING-00634,SRC-UKFCT,G545,Paprika,,,,
+GF-ING-00635,SRC-UKFCT,A507,"Pasta, white, dried, raw",,,,
+GF-ING-00636,SRC-UKFCT,E508,"Peaches, canned in syrup, whole contents",,,,
+GF-ING-00637,SRC-UKFCT,B504,"Peanut butter, smooth",,,,
+GF-ING-00638,SRC-UKFCT,B505,"Peanuts, dry roasted",,,,
+GF-ING-00639,SRC-UKFCT,E509,"Pears, canned in juice, whole contents",,,,
+GF-ING-00640,SRC-UKFCT,G527,"Pepper, white",,,,
+GF-ING-00641,SRC-UKFCT,D506,"Pickle, sweet",,,,
+GF-ING-00642,SRC-UKFCT,V509,"Pineapple juice, unsweetened",,,,
+GF-ING-00643,SRC-UKFCT,X513,"Pizza base, raw",,,,
+GF-ING-00644,SRC-UKFCT,A508,"Porridge oats, unfortified",,,,
+GF-ING-00645,SRC-UKFCT,H518,Pumpkin seeds,,,,
+GF-ING-00646,SRC-UKFCT,E505,"Redcurrants, raw",,,,
+GF-ING-00647,SRC-UKFCT,G525,"Rosemary, dried",,,,
+GF-ING-00648,SRC-UKFCT,G529,Saffron,,,,
+GF-ING-00649,SRC-UKFCT,I508,"Sago, raw",,,,
+GF-ING-00650,SRC-UKFCT,O503,Salami,,,,
+GF-ING-00651,SRC-UKFCT,G528,Salt,,,,
+GF-ING-00652,SRC-UKFCT,X500,"Sauces, Indian cook in, other",,,,
+GF-ING-00653,SRC-UKFCT,O504,"Sausages, premium, raw",,,,
+GF-ING-00654,SRC-UKFCT,G513,Sesame seeds,,,,
+GF-ING-00655,SRC-UKFCT,G546,"Shallots, raw",,,,
+GF-ING-00656,SRC-UKFCT,X501,"Soy sauce, light and dark varieties",,,,
+GF-ING-00657,SRC-UKFCT,K502,"Spirits, 40% volume",,,,
+GF-ING-00658,SRC-UKFCT,G547,"Spring onions, bulbs and tops, raw",,,,
+GF-ING-00659,SRC-UKFCT,G501,"Spring onions, bulbs only, raw",,,,
+GF-ING-00660,SRC-UKFCT,K506,"Stock cubes, chicken",,,,
+GF-ING-00661,SRC-UKFCT,K507,"Stock cubes, vegetable",,,,
+GF-ING-00662,SRC-UKFCT,I503,"Sugar, brown",,,,
+GF-ING-00663,SRC-UKFCT,I504,"Sugar, icing",,,,
+GF-ING-00664,SRC-UKFCT,I502,"Sugar, white",,,,
+GF-ING-00665,SRC-UKFCT,E506,Sultanas,,,,
+GF-ING-00666,SRC-UKFCT,D503,"Sweetcorn, kernels, raw",,,,
+GF-ING-00667,SRC-UKFCT,I505,"Syrup, corn, dark",,,,
+GF-ING-00668,SRC-UKFCT,V510,"Tea, black, infusion, average",,,,
+GF-ING-00669,SRC-UKFCT,V511,"Tea, green, infusion",,,,
+GF-ING-00670,SRC-UKFCT,G531,"Thyme, dried, ground",,,,
+GF-ING-00671,SRC-UKFCT,B506,"Tofu, soya bean, steamed",,,,
+GF-ING-00672,SRC-UKFCT,X503,Tomato ketchup,,,,
+GF-ING-00673,SRC-UKFCT,X504,Tomato puree,,,,
+GF-ING-00674,SRC-UKFCT,X505,"Tomato sauce, homemade",,,,
+GF-ING-00675,SRC-UKFCT,D502,"Tomatoes, cherry, raw",,,,
+GF-ING-00676,SRC-UKFCT,F501,"Turnip, flesh only, raw",,,,
+GF-ING-00677,SRC-UKFCT,G532,Vinegar,,,,
+GF-ING-00678,SRC-UKFCT,U509,"Wafers, plain ice cream wafers, not filled",,,,
+GF-ING-00679,SRC-UKFCT,K505,"Water, distilled",,,,
+GF-ING-00680,SRC-UKFCT,C502,"Watercress, raw",,,,
+GF-ING-00681,SRC-UKFCT,X506,"White sauce, savoury, made with whole milk, homemade",,,,
+GF-ING-00682,SRC-UKFCT,X507,Worcestershire sauce,,,,
+GF-ING-00683,SRC-UKFCT,G534,Yeast extract,,,,
+GF-ING-00684,SRC-UKFCT,L520,"Yogurt, whole milk, plain",,,,
+GF-ING-00685,SRC-USDA-FCT,G536,AJWAIN SEED WHOLE ORGANIC SPICES,,,,
+GF-ING-00686,SRC-USDA-FCT,A513,"ALMOND FLOUR, ALMOND",,,,
+GF-ING-00687,SRC-USDA-FCT,H507,ALMOND MILK,,,,
+GF-ING-00688,SRC-USDA-FCT,G539,BALSAMIC VINEGAR,,,,
+GF-ING-00689,SRC-USDA-FCT,B507,BLACK BEANS,,,,
+GF-ING-00690,SRC-USDA-FCT,A509,BLACK RICE,,,,
+GF-ING-00691,SRC-USDA-FCT,X517,"CAJUN SEASONING, CAJUN",,,,
+GF-ING-00692,SRC-USDA-FCT,I510,"Candies, gum drops, no sugar or low calorie (sorbitol)",,,,
+GF-ING-00693,SRC-USDA-FCT,G542,"Capers, canned",,,,
+GF-ING-00694,SRC-USDA-FCT,L501,"Cheese spread, cream cheese, regular",,,,
+GF-ING-00695,SRC-USDA-FCT,L518,"Cheese, cream, low fat",,,,
+GF-ING-00696,SRC-USDA-FCT,L513,"Cheese, provolone",,,,
+GF-ING-00697,SRC-USDA-FCT,H506,Chia seeds,,,,
+GF-ING-00698,SRC-USDA-FCT,B509,"Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",,,,
+GF-ING-00699,SRC-USDA-FCT,A510,CRACKED WHEAT,,,,
+GF-ING-00700,SRC-USDA-FCT,L515,"Cream, fluid, light (coffee cream or table cream)",,,,
+GF-ING-00701,SRC-USDA-FCT,X518,CREAMED CORN,,,,
+GF-ING-00702,SRC-USDA-FCT,X515,"DIJON MUSTARD, DIJON",,,,
+GF-ING-00703,SRC-USDA-FCT,E514,DRIED MANGO,,,,
+GF-ING-00704,SRC-USDA-FCT,G548,"GINGER JUICE, GINGER",,,,
+GF-ING-00705,SRC-USDA-FCT,E515,"Gooseberries, raw",,,,
+GF-ING-00706,SRC-USDA-FCT,G540,HIMALAYAN BLACK SALT,,,,
+GF-ING-00707,SRC-USDA-FCT,U506,HOT DOG BUNS,,,,
+GF-ING-00708,SRC-USDA-FCT,W504,JAM,,,,
+GF-ING-00709,SRC-USDA-FCT,G551,"Lemon grass (citronella), raw",,,,
+GF-ING-00710,SRC-USDA-FCT,G550,"Lemon peel, raw",,,,
+GF-ING-00711,SRC-USDA-FCT,T504,MARGARINE,,,,
+GF-ING-00712,SRC-USDA-FCT,L521,"Milk, buttermilk, fluid, whole",,,,
+GF-ING-00713,SRC-USDA-FCT,L516,"Milk, dry, nonfat, regular, without added vitamin A and vitamin D",,,,
+GF-ING-00714,SRC-USDA-FCT,H505,"MIXED NUTS CASHEWS, ALMONDS, HAZELNUTS, PISTACHIOS, PECANS, MIXED NUTS",,,,
+GF-ING-00715,SRC-USDA-FCT,G541,MSG MONOSODIUM GLUTAMATE,,,,
+GF-ING-00716,SRC-USDA-FCT,X514,MUSTARD SAUCE,,,,
+GF-ING-00717,SRC-USDA-FCT,H508,"Nuts, coconut water (liquid from coconuts)",,,,
+GF-ING-00718,SRC-USDA-FCT,T510,"Oil, mustard",,,,
+GF-ING-00719,SRC-USDA-FCT,G552,"Orange peel, raw",,,,
+GF-ING-00720,SRC-USDA-FCT,G549,"Peppers, jalapeno, raw",,,,
+GF-ING-00721,SRC-USDA-FCT,D507,PITTED BLACK OLIVES,,,,
+GF-ING-00722,SRC-USDA-FCT,E513,"Raspberries, raw",,,,
+GF-ING-00723,SRC-USDA-FCT,G543,RICE VINEGAR,,,,
+GF-ING-00724,SRC-USDA-FCT,B511,ROASTED CHICKPEAS,,,,
+GF-ING-00725,SRC-USDA-FCT,H503,"Seeds, lotus seeds, dried",,,,
+GF-ING-00726,SRC-USDA-FCT,G535,"SIVA'S, AMHUR POWDER (DRY MANGO POWDER)",,,,
+GF-ING-00727,SRC-USDA-FCT,L514,"Sour cream, regular",,,,
+GF-ING-00728,SRC-USDA-FCT,B508,"Soybeans, mature seeds, raw",,,,
+GF-ING-00729,SRC-USDA-FCT,G555,"Spices, onion powder",,,,
+GF-ING-00730,SRC-USDA-FCT,G537,STAR ANISE,,,,
+GF-ING-00731,SRC-USDA-FCT,W505,STRAWBERRY JAM,,,,
+GF-ING-00732,SRC-USDA-FCT,A512,"SWEET SUNNAH, WHOLE BLACK SEEDS NIGELLA SATIVA",,,,
+GF-ING-00733,SRC-USDA-FCT,I511,"TUTTI FRUTTI GUMBALLS, TUTTI FRUTTI",,,,
+GF-ING-00734,SRC-USDA-FCT,G544,Vanilla extract,,,,
+GF-ING-00735,SRC-USDA-FCT,G538,"Vinegar, distilled",,,,
+GF-ING-00736,SRC-USDA-FCT,L517,"Whey, acid, fluid",,,,
+GF-ING-00737,SRC-USDA-FCT,U507,WHITE HAMBURGER BUNS,,,,
+GF-ING-00738,SRC-USDA-FCT,U508,WHOLE WHEAT HAMBURGER BUNS,,,,
+GF-REC-00001,SRC-INDB,ASC001,Hot tea (Garam Chai),,,,
+GF-REC-00002,SRC-INDB,ASC002,Instant coffee,,,,
+GF-REC-00003,SRC-INDB,ASC003,Espreso coffee,,,,
+GF-REC-00004,SRC-INDB,ASC004,Iced tea,,,,
+GF-REC-00005,SRC-INDB,ASC005,Raw mango drink (Aam panna),,,,
+GF-REC-00006,SRC-INDB,ASC006,Fruit Punch (with fresh juices),,,,
+GF-REC-00007,SRC-INDB,ASC007,Fruit Punch (with squashes),,,,
+GF-REC-00008,SRC-INDB,ASC008,Lemonade,,,,
+GF-REC-00009,SRC-INDB,ASC009,Lem-o-gin,,,,
+GF-REC-00010,SRC-INDB,ASC010,Cumin infused water (Jeere/Zeere ka pani),,,,
+GF-REC-00011,SRC-INDB,ASC011,Coco pine cooler,,,,
+GF-REC-00012,SRC-INDB,ASC012,Summer cooler,,,,
+GF-REC-00013,SRC-INDB,ASC014,Hot cocoa,,,,
+GF-REC-00014,SRC-INDB,ASC015,Cold coffee with ice cream,,,,
+GF-REC-00015,SRC-INDB,ASC016,Banana milkshake (Kele milkshake),,,,
+GF-REC-00016,SRC-INDB,ASC017,Mango milkshake (Aam milkshake),,,,
+GF-REC-00017,SRC-INDB,ASC018,Pineapple milkshake (Ananas milkshake),,,,
+GF-REC-00018,SRC-INDB,ASC019,Orange milkshake (Narangi milkshake),,,,
+GF-REC-00019,SRC-INDB,ASC020,Egg nog,,,,
+GF-REC-00020,SRC-INDB,ASC021,Sweet Lassi (Meethi lassi),,,,
+GF-REC-00021,SRC-INDB,ASC022,Lassi (salted),,,,
+GF-REC-00022,SRC-INDB,ASC023,Cheese and chilli sandwich ,,,,
+GF-REC-00023,SRC-INDB,ASC024,Egg sandwich (Ande ka sandwich),,,,
+GF-REC-00024,SRC-INDB,ASC025,Cucumber sandwich (Kheere ka sandwich),,,,
+GF-REC-00025,SRC-INDB,ASC026,Cheese and pineapple sandwich (Cheese aur ananas ka sandwich),,,,
+GF-REC-00026,SRC-INDB,ASC027,Cheese and tomato sandwich (Cheese aur tamatar ke sandwich),,,,
+GF-REC-00027,SRC-INDB,ASC028,Chicken sandwich,,,,
+GF-REC-00028,SRC-INDB,ASC029,Peanut and tomato sandwich (Moongfali aur tamatar ka sandwich),,,,
+GF-REC-00029,SRC-INDB,ASC030,Rainbow sandwich,,,,
+GF-REC-00030,SRC-INDB,ASC031,Club sandwich ,,,,
+GF-REC-00031,SRC-INDB,ASC032,Vegetarian club sandwich,,,,
+GF-REC-00032,SRC-INDB,ASC033,Pin wheel sandwich,,,,
+GF-REC-00033,SRC-INDB,ASC034,Carrot apple sandwich (Gajar aur seb ka sandwich),,,,
+GF-REC-00034,SRC-INDB,ASC035,Salami sandwich,,,,
+GF-REC-00035,SRC-INDB,ASC036,Vegetable and mayonnaise sandwich,,,,
+GF-REC-00036,SRC-INDB,ASC037,Egg and tomato sandwich (Ande aur tamatar ka sandwich),,,,
+GF-REC-00037,SRC-INDB,ASC038,Sweet open sandwich,,,,
+GF-REC-00038,SRC-INDB,ASC039,Mushroom and cheese sandwich (toasted),,,,
+GF-REC-00039,SRC-INDB,ASC040,Cheese and tomato sandwich (toasted) (Cheese aur tamatar ke sandwich (toasted)),,,,
+GF-REC-00040,SRC-INDB,ASC041,Pea potato sandwich (toasted) (Matar aloo ka sandwich),,,,
+GF-REC-00041,SRC-INDB,ASC042,Paneer pea sandwich (toasted) (Paneer matar ka sandwich),,,,
+GF-REC-00042,SRC-INDB,ASC043,Chicken sandwich (toasted),,,,
+GF-REC-00043,SRC-INDB,ASC044,Pea keema sandwich (toasted) (Matar aur keema ka sandwich),,,,
+GF-REC-00044,SRC-INDB,ASC045,Classic club sandwich,,,,
+GF-REC-00045,SRC-INDB,ASC046,Sesame toast,,,,
+GF-REC-00046,SRC-INDB,ASC047,Cracked wheat porridge (Meetha daliya),,,,
+GF-REC-00047,SRC-INDB,ASC048,Semolina porridge (Suji/Rava daliya),,,,
+GF-REC-00048,SRC-INDB,ASC050,Oatmeal Porridge,,,,
+GF-REC-00049,SRC-INDB,ASC051,Cornflakes with milk,,,,
+GF-REC-00050,SRC-INDB,ASC052,Rice flakes (Chiwda/Aval),,,,
+GF-REC-00051,SRC-INDB,ASC053,Wheat flakes,,,,
+GF-REC-00052,SRC-INDB,ASC054,Murmura (Puffed rice),,,,
+GF-REC-00053,SRC-INDB,ASC055,Puffed wheat (Murmure/Moori),,,,
+GF-REC-00054,SRC-INDB,ASC056,Boiled egg (Ubla anda),,,,
+GF-REC-00055,SRC-INDB,ASC057,Fried Egg ,,,,
+GF-REC-00056,SRC-INDB,ASC058,Poached egg,,,,
+GF-REC-00057,SRC-INDB,ASC059,Scrambled egg (Ande ki bhurji),,,,
+GF-REC-00058,SRC-INDB,ASC060,Baked egg ,,,,
+GF-REC-00059,SRC-INDB,ASC061,Plain omelette/omlet,,,,
+GF-REC-00060,SRC-INDB,ASC062,Stuffed egg omelette/omlet,,,,
+GF-REC-00061,SRC-INDB,ASC063,Pancake,,,,
+GF-REC-00062,SRC-INDB,ASC064,Keema pancake,,,,
+GF-REC-00063,SRC-INDB,ASC065,Vegetable pancake,,,,
+GF-REC-00064,SRC-INDB,ASC066,Jam and fruit pancake,,,,
+GF-REC-00065,SRC-INDB,ASC067,Khoa and coconut pancake,,,,
+GF-REC-00066,SRC-INDB,ASC068,Brown stock,,,,
+GF-REC-00067,SRC-INDB,ASC069,Vegetable stock,,,,
+GF-REC-00068,SRC-INDB,ASC070,Chicken stock,,,,
+GF-REC-00069,SRC-INDB,ASC071,White sauce (thin),,,,
+GF-REC-00070,SRC-INDB,ASC072,White sauce (medium),,,,
+GF-REC-00071,SRC-INDB,ASC073,White sauce (thick),,,,
+GF-REC-00072,SRC-INDB,ASC074,Cheese sauce,,,,
+GF-REC-00073,SRC-INDB,ASC075,Egg sauce,,,,
+GF-REC-00074,SRC-INDB,ASC076,Mushroom sauce,,,,
+GF-REC-00075,SRC-INDB,ASC077,Mustard sauce,,,,
+GF-REC-00076,SRC-INDB,ASC078,Brown sauce,,,,
+GF-REC-00077,SRC-INDB,ASC079,Clear tomato soup (Tamatar ka soup),,,,
+GF-REC-00078,SRC-INDB,ASC080,Lentil soup,,,,
+GF-REC-00079,SRC-INDB,ASC081,Chicken consomme (Clear chicken soup),,,,
+GF-REC-00080,SRC-INDB,ASC082,Cream of tomato soup,,,,
+GF-REC-00081,SRC-INDB,ASC083,Cream of green peas soup,,,,
+GF-REC-00082,SRC-INDB,ASC084,Cream of spinach soup,,,,
+GF-REC-00083,SRC-INDB,ASC085,Cream of mixed vegetable soup,,,,
+GF-REC-00084,SRC-INDB,ASC086,Cream of mushroom soup,,,,
+GF-REC-00085,SRC-INDB,ASC087,Chicken sweet corn soup,,,,
+GF-REC-00086,SRC-INDB,ASC088,Minestrone soup,,,,
+GF-REC-00087,SRC-INDB,ASC089,Egg drop soup,,,,
+GF-REC-00088,SRC-INDB,ASC090,Chinese cabbage and meat ball soup,,,,
+GF-REC-00089,SRC-INDB,ASC091,French onion soup,,,,
+GF-REC-00090,SRC-INDB,ASC092,Hot and sour soup,,,,
+GF-REC-00091,SRC-INDB,ASC093,Talaumein soup,,,,
+GF-REC-00092,SRC-INDB,ASC094,Cold cucumber soup (Thanda kheere ka soup),,,,
+GF-REC-00093,SRC-INDB,ASC095,Cold summer garden soup,,,,
+GF-REC-00094,SRC-INDB,ASC096,Chapati/Roti,,,,
+GF-REC-00095,SRC-INDB,ASC097,Plain parantha/paratha,,,,
+GF-REC-00096,SRC-INDB,ASC098,Potato parantha/paratha (Aloo ka parantha/paratha),,,,
+GF-REC-00097,SRC-INDB,ASC099,Radish parantha/paratha (Mooli ka parantha/paratha),,,,
+GF-REC-00098,SRC-INDB,ASC100,Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha),,,,
+GF-REC-00099,SRC-INDB,ASC101,Dal parantha/paratha,,,,
+GF-REC-00100,SRC-INDB,ASC102,Sprouted moong parantha/paratha,,,,
+GF-REC-00101,SRC-INDB,ASC103,Pea parantha/paratha (Matar ka parantha/paratha),,,,
+GF-REC-00102,SRC-INDB,ASC104,Keema parantha/paratha,,,,
+GF-REC-00103,SRC-INDB,ASC105,Paneer parantha/paratha,,,,
+GF-REC-00104,SRC-INDB,ASC106,Besan and spinach parantha/paratha (Besan aur palak ka parantha/paratha),,,,
+GF-REC-00105,SRC-INDB,ASC107,Poori,,,,
+GF-REC-00106,SRC-INDB,ASC108,Spinach poori (Palak poori),,,,
+GF-REC-00107,SRC-INDB,ASC109,Methi poori,,,,
+GF-REC-00108,SRC-INDB,ASC110,Dal stuffed poori,,,,
+GF-REC-00109,SRC-INDB,ASC111,Potato stuffed poori (Aloo ki poori),,,,
+GF-REC-00110,SRC-INDB,ASC112,Tandoori parantha/paratha,,,,
+GF-REC-00111,SRC-INDB,ASC113,Boiled rice (Uble chawal),,,,
+GF-REC-00112,SRC-INDB,ASC114,Plain pulao,,,,
+GF-REC-00113,SRC-INDB,ASC115,Mixed vegetable pulao,,,,
+GF-REC-00114,SRC-INDB,ASC116,Mushroom pulao,,,,
+GF-REC-00115,SRC-INDB,ASC117,Sprouted moong pulao,,,,
+GF-REC-00116,SRC-INDB,ASC118,Paneer pulao,,,,
+GF-REC-00117,SRC-INDB,ASC119,Peanut pulao ,,,,
+GF-REC-00118,SRC-INDB,ASC120,Navratan pulao,,,,
+GF-REC-00119,SRC-INDB,ASC121,Green chickpeas pulao (Choliya pulao/Hare chane ka pulao),,,,
+GF-REC-00120,SRC-INDB,ASC122,Mutton biryani/biriyani,,,,
+GF-REC-00121,SRC-INDB,ASC123,Vegetable biryani/biriyani,,,,
+GF-REC-00122,SRC-INDB,ASC124,"Lemon rice (Pulihora, Elumichai sadam, Chitranna)",,,,
+GF-REC-00123,SRC-INDB,ASC125,Sweet rice (Meethe chawal),,,,
+GF-REC-00124,SRC-INDB,ASC126,Curd rice (Dahi bhaat/Dahi chawal/ Perugu annam/Daddojanam/Thayir saadam),,,,
+GF-REC-00125,SRC-INDB,ASC127,Tamarind rice (Chintapandu pulihora/Puliyodharai/Puli sadam/Huli anna),,,,
+GF-REC-00126,SRC-INDB,ASC128,Spanish rice,,,,
+GF-REC-00127,SRC-INDB,ASC129,Chinese fried rice,,,,
+GF-REC-00128,SRC-INDB,ASC130,Classic italian pasta,,,,
+GF-REC-00129,SRC-INDB,ASC131,Pasta spinach sauce,,,,
+GF-REC-00130,SRC-INDB,ASC132,Pasta cheese sauce,,,,
+GF-REC-00131,SRC-INDB,ASC133,Macroni cheese pie,,,,
+GF-REC-00132,SRC-INDB,ASC134,Vegetable chowmein,,,,
+GF-REC-00133,SRC-INDB,ASC135,Chicken chowmein,,,,
+GF-REC-00134,SRC-INDB,ASC136,Cheese noodle ring,,,,
+GF-REC-00135,SRC-INDB,ASC137,Spaghetti and cheese balls in tomato sauce,,,,
+GF-REC-00136,SRC-INDB,ASC138,Penne platter,,,,
+GF-REC-00137,SRC-INDB,ASC139,Pasta hot pot,,,,
+GF-REC-00138,SRC-INDB,ASC140,Chicken lasagne,,,,
+GF-REC-00139,SRC-INDB,ASC141,Fettuccine with spinach sauce,,,,
+GF-REC-00140,SRC-INDB,ASC142,Naan,,,,
+GF-REC-00141,SRC-INDB,ASC143,Bhatura,,,,
+GF-REC-00142,SRC-INDB,ASC144,Idli,,,,
+GF-REC-00143,SRC-INDB,ASC146,Masala dosa,,,,
+GF-REC-00144,SRC-INDB,ASC147,Semolina dosa (Suji/Rava dosa),,,,
+GF-REC-00145,SRC-INDB,ASC148,Onion tomato uttapam,,,,
+GF-REC-00146,SRC-INDB,ASC149,Paneer kaathi roll,,,,
+GF-REC-00147,SRC-INDB,ASC150,Makki ki roti,,,,
+GF-REC-00148,SRC-INDB,ASC151,Washed moong dal (Dhuli moong ki dal),,,,
+GF-REC-00149,SRC-INDB,ASC152,Washed urad dal (Dhuli urad ki dal),,,,
+GF-REC-00150,SRC-INDB,ASC153,Split bengal gram with bottle gourd (Channa dal with ghiya/lauki),,,,
+GF-REC-00151,SRC-INDB,ASC154,Dry washed urad,,,,
+GF-REC-00152,SRC-INDB,ASC155,Mixed dal,,,,
+GF-REC-00153,SRC-INDB,ASC156,Whole moong (Moong ki dal),,,,
+GF-REC-00154,SRC-INDB,ASC157,Whole masoor (Masoor ki dal),,,,
+GF-REC-00155,SRC-INDB,ASC158,Whole moth (Moth ki dal),,,,
+GF-REC-00156,SRC-INDB,ASC159,Whole urad (Urad ki dal),,,,
+GF-REC-00157,SRC-INDB,ASC160,Moti mahal dal (Urad rajmah mix dal),,,,
+GF-REC-00158,SRC-INDB,ASC161,Black channa curry/Bengal gram curry (Kale chane ki curry),,,,
+GF-REC-00159,SRC-INDB,ASC162,Chickpeas curry (Safed channa curry),,,,
+GF-REC-00160,SRC-INDB,ASC163,Lobia curry,,,,
+GF-REC-00161,SRC-INDB,ASC164,Soyabean curry,,,,
+GF-REC-00162,SRC-INDB,ASC165,Kidney bean curry (Rajmah curry),,,,
+GF-REC-00163,SRC-INDB,ASC167,Sambar,,,,
+GF-REC-00164,SRC-INDB,ASC168,Besan kadhi with pakodies,,,,
+GF-REC-00165,SRC-INDB,ASC169,Khatta channa,,,,
+GF-REC-00166,SRC-INDB,ASC170,Sprouted moong dal chat,,,,
+GF-REC-00167,SRC-INDB,ASC171,Potato cauliflower (Aloo gobhi),,,,
+GF-REC-00168,SRC-INDB,ASC172,Potato capsicum (Shimla mirch aloo),,,,
+GF-REC-00169,SRC-INDB,ASC173,Cabbage and peas (Pattagobhi aur matar),,,,
+GF-REC-00170,SRC-INDB,ASC174,Carrot and fenugreek leaves (Gajar methi),,,,
+GF-REC-00171,SRC-INDB,ASC175,Potato fenugreek (Aloo methi),,,,
+GF-REC-00172,SRC-INDB,ASC177,Brinjal bhartha (Baingan ka bhartha),,,,
+GF-REC-00173,SRC-INDB,ASC178,Dry potato (Sookhe aloo),,,,
+GF-REC-00174,SRC-INDB,ASC179,Beans with coconut (Nariyal aur sem/phali; Beans thoran),,,,
+GF-REC-00175,SRC-INDB,ASC180,Cauliflower with coconut (Nariyal ke saath phoolgobhi),,,,
+GF-REC-00176,SRC-INDB,ASC181,Carrot and cabbage with coconut (Nariyal ke saath pattagobhi aur gajar),,,,
+GF-REC-00177,SRC-INDB,ASC182,Raw turnip with coconut ,,,,
+GF-REC-00178,SRC-INDB,ASC183,Raw papaya with coconut (Papaya thoran),,,,
+GF-REC-00179,SRC-INDB,ASC184,Stuffed okra (Bharwa bhindi),,,,
+GF-REC-00180,SRC-INDB,ASC185,Stuffed round gourd (Bharwa tinde),,,,
+GF-REC-00181,SRC-INDB,ASC186,Stuffed capsicum (Bharwa shimla mirch),,,,
+GF-REC-00182,SRC-INDB,ASC187,Stuffed brinjal (Bharwa baingan),,,,
+GF-REC-00183,SRC-INDB,ASC189,Stuffed tomatoes (Bharwa tamatar),,,,
+GF-REC-00184,SRC-INDB,ASC190,Pea potato curry (Aloo matar),,,,
+GF-REC-00185,SRC-INDB,ASC191,Pea paneer curry (Matar paneer),,,,
+GF-REC-00186,SRC-INDB,ASC192,Pea mushroom curry (Matar mushroom),,,,
+GF-REC-00187,SRC-INDB,ASC193,Pea curry (Matar ki sabzi),,,,
+GF-REC-00188,SRC-INDB,ASC194,Pea vadi curry,,,,
+GF-REC-00189,SRC-INDB,ASC195,Paneer curry,,,,
+GF-REC-00190,SRC-INDB,ASC196,Lotus stem curry (Kamal kakdi curry),,,,
+GF-REC-00191,SRC-INDB,ASC197,Gravy for kofta,,,,
+GF-REC-00192,SRC-INDB,ASC198,Pea kofta curry (Matar kofta curry),,,,
+GF-REC-00193,SRC-INDB,ASC199,Spinach kofta curry (Palak kofta curry),,,,
+GF-REC-00194,SRC-INDB,ASC200,Paneer kofta curry,,,,
+GF-REC-00195,SRC-INDB,ASC201,Lotus stem kofta curry (Kamal kakdi kofta curry),,,,
+GF-REC-00196,SRC-INDB,ASC202,Raw banana kofta curry (Kela kofta curry),,,,
+GF-REC-00197,SRC-INDB,ASC203,Cauliflower kofta curry (Phoolgobhi kofta curry),,,,
+GF-REC-00198,SRC-INDB,ASC204,Cabbage kofta curry (Pattagobhi kofta curry),,,,
+GF-REC-00199,SRC-INDB,ASC205,Ghiya/Lauki Kofta Curry,,,,
+GF-REC-00200,SRC-INDB,ASC206,Spinach paneer kofta curry (Palak paneer kofta curry),,,,
+GF-REC-00201,SRC-INDB,ASC207,Vegetarian egg kofta curry,,,,
+GF-REC-00202,SRC-INDB,ASC208,Baked vegetables,,,,
+GF-REC-00203,SRC-INDB,ASC209,Cauliflower musallam (Phoolgobhi musallam),,,,
+GF-REC-00204,SRC-INDB,ASC210,Baked vegetables with spinach ,,,,
+GF-REC-00205,SRC-INDB,ASC211,Baked potato with skin ,,,,
+GF-REC-00206,SRC-INDB,ASC212,Shepherd's pie (vegetarian),,,,
+GF-REC-00207,SRC-INDB,ASC213,Baked brinjal in tomato sauce,,,,
+GF-REC-00208,SRC-INDB,ASC214,Dum aloo,,,,
+GF-REC-00209,SRC-INDB,ASC215,Spinach paneer (Palak paneer),,,,
+GF-REC-00210,SRC-INDB,ASC216,Methi chaman,,,,
+GF-REC-00211,SRC-INDB,ASC217,Sarson ka saag,,,,
+GF-REC-00212,SRC-INDB,ASC218,Jackfruit sabzi (Kathal ki sabzi),,,,
+GF-REC-00213,SRC-INDB,ASC219,Avial,,,,
+GF-REC-00214,SRC-INDB,ASC220,Al yakhani,,,,
+GF-REC-00215,SRC-INDB,ASC221,Shahi paneer,,,,
+GF-REC-00216,SRC-INDB,ASC222,Paneer in butter sauce,,,,
+GF-REC-00217,SRC-INDB,ASC223,Methi malai paneer,,,,
+GF-REC-00218,SRC-INDB,ASC224,Chilli paneer,,,,
+GF-REC-00219,SRC-INDB,ASC225,Paneer makhana korma,,,,
+GF-REC-00220,SRC-INDB,ASC226,Kadhai Paneer,,,,
+GF-REC-00221,SRC-INDB,ASC227,Roghan josh,,,,
+GF-REC-00222,SRC-INDB,ASC228,Spinach mutton (Palak mutton),,,,
+GF-REC-00223,SRC-INDB,ASC229,Pea keema curry (Matar keema ki sabzi),,,,
+GF-REC-00224,SRC-INDB,ASC230,Keema kofta curry,,,,
+GF-REC-00225,SRC-INDB,ASC231,Kashmiri mutton koftas (Gushtaba),,,,
+GF-REC-00226,SRC-INDB,ASC232,Mutton yakhni,,,,
+GF-REC-00227,SRC-INDB,ASC233,Chicken yakhni,,,,
+GF-REC-00228,SRC-INDB,ASC234,Mutton do piaza,,,,
+GF-REC-00229,SRC-INDB,ASC236,Mutton chops,,,,
+GF-REC-00230,SRC-INDB,ASC237,Shammi kebab,,,,
+GF-REC-00231,SRC-INDB,ASC238,Scotch egg,,,,
+GF-REC-00232,SRC-INDB,ASC240,Chicken curry,,,,
+GF-REC-00233,SRC-INDB,ASC241,Tandoori chicken,,,,
+GF-REC-00234,SRC-INDB,ASC242,Butter chicken,,,,
+GF-REC-00235,SRC-INDB,ASC243,Chicken kebab,,,,
+GF-REC-00236,SRC-INDB,ASC244,Chilli chicken,,,,
+GF-REC-00237,SRC-INDB,ASC245,Fried chicken with tomato sauce (Fried chicken tamatar ki chutney kay saath),,,,
+GF-REC-00238,SRC-INDB,ASC246,Fish curry (Machli curry),,,,
+GF-REC-00239,SRC-INDB,ASC247,Fried fish (Indian style) (Tali hui machli),,,,
+GF-REC-00240,SRC-INDB,ASC248,Fried fish and Chips (English Style) (Tali hui machli aur chips),,,,
+GF-REC-00241,SRC-INDB,ASC249,Tomato fish,,,,
+GF-REC-00242,SRC-INDB,ASC250,Baked fish with cheese sauce,,,,
+GF-REC-00243,SRC-INDB,ASC251,Fish tikka,,,,
+GF-REC-00244,SRC-INDB,ASC252,Tandoori fish,,,,
+GF-REC-00245,SRC-INDB,ASC253,"Paneer, apple and pineapple salad",,,,
+GF-REC-00246,SRC-INDB,ASC254,Russian salad,,,,
+GF-REC-00247,SRC-INDB,ASC255,Pasta salad,,,,
+GF-REC-00248,SRC-INDB,ASC256,Deviled egg,,,,
+GF-REC-00249,SRC-INDB,ASC257,Hawain salad,,,,
+GF-REC-00250,SRC-INDB,ASC258,Mixed pulse and vegetable salad,,,,
+GF-REC-00251,SRC-INDB,ASC259,Sprouted moong salad ,,,,
+GF-REC-00252,SRC-INDB,ASC260,Tossed salad,,,,
+GF-REC-00253,SRC-INDB,ASC261,Mixed vegetable salad with curd sauce,,,,
+GF-REC-00254,SRC-INDB,ASC262,Potato salad (Aloo ka salaad),,,,
+GF-REC-00255,SRC-INDB,ASC263,Waldroff salad,,,,
+GF-REC-00256,SRC-INDB,ASC264,Coleslaw,,,,
+GF-REC-00257,SRC-INDB,ASC265,Fruit salad (Phalon ka salaad),,,,
+GF-REC-00258,SRC-INDB,ASC266,Mayonnaise,,,,
+GF-REC-00259,SRC-INDB,ASC267,Low calorie quick mayonnaise,,,,
+GF-REC-00260,SRC-INDB,ASC268,Thousand island dressing,,,,
+GF-REC-00261,SRC-INDB,ASC269,Tomato onion raita (Tamatar aur pyaaz ka raita),,,,
+GF-REC-00262,SRC-INDB,ASC270,Peanut raita (Mungfali ka raita),,,,
+GF-REC-00263,SRC-INDB,ASC271,Sprouted moong raita ,,,,
+GF-REC-00264,SRC-INDB,ASC272,Bottle gourd raita (Ghiya/Lauki ka raita),,,,
+GF-REC-00265,SRC-INDB,ASC273,Cucumber raita (Kheere ka raita),,,,
+GF-REC-00266,SRC-INDB,ASC274,Carrot and spinach raita (Gajar aur palak ka raita),,,,
+GF-REC-00267,SRC-INDB,ASC275,Mint raita (Pudinay ka raita),,,,
+GF-REC-00268,SRC-INDB,ASC276,Potato raita (Aloo ka raita),,,,
+GF-REC-00269,SRC-INDB,ASC277,Boondi raita,,,,
+GF-REC-00270,SRC-INDB,ASC278,Sweet raita (Meetha raita),,,,
+GF-REC-00271,SRC-INDB,ASC279,Dahi vadas/Dahi bhalla,,,,
+GF-REC-00272,SRC-INDB,ASC280,Gunjia,,,,
+GF-REC-00273,SRC-INDB,ASC281,Saunth/Sonth chutney with tamarind/imli,,,,
+GF-REC-00274,SRC-INDB,ASC282,Rice kheer (Chawal ki kheer),,,,
+GF-REC-00275,SRC-INDB,ASC283,Makhana kheer,,,,
+GF-REC-00276,SRC-INDB,ASC285,Vermicelli kheer (Semiya/Seviyan ki kheer),,,,
+GF-REC-00277,SRC-INDB,ASC286,Semolina kheer (Suji/Rava kheer),,,,
+GF-REC-00278,SRC-INDB,ASC287,Paneer kheer,,,,
+GF-REC-00279,SRC-INDB,ASC288,Cabbage kheer (Pattagobhi ki kheer),,,,
+GF-REC-00280,SRC-INDB,ASC289,Carrot kheer (Gajar ki kheer),,,,
+GF-REC-00281,SRC-INDB,ASC290,Cauliflower kheer (Phoolgobhi ki kheer),,,,
+GF-REC-00282,SRC-INDB,ASC291,Moong dal kheer,,,,
+GF-REC-00283,SRC-INDB,ASC292,Phirni,,,,
+GF-REC-00284,SRC-INDB,ASC293,Semolina halwa (Suji ka halwa),,,,
+GF-REC-00285,SRC-INDB,ASC294,Shahi suji halwa,,,,
+GF-REC-00286,SRC-INDB,ASC295,Carrot halwa (Gajar ka halwa),,,,
+GF-REC-00287,SRC-INDB,ASC296,Egg halwa (Ande ka halwa),,,,
+GF-REC-00288,SRC-INDB,ASC297,Potato halwa (Aloo ka halwa),,,,
+GF-REC-00289,SRC-INDB,ASC298,Pumpkin halwa (Kaddu ka halwa),,,,
+GF-REC-00290,SRC-INDB,ASC299,Moong dal halwa,,,,
+GF-REC-00291,SRC-INDB,ASC300,Caramel custard (steamed),,,,
+GF-REC-00292,SRC-INDB,ASC301,Baked custard,,,,
+GF-REC-00293,SRC-INDB,ASC302,Soft Custard (stirred),,,,
+GF-REC-00294,SRC-INDB,ASC304,Chocolate ice cream,,,,
+GF-REC-00295,SRC-INDB,ASC305,Mango ice cream,,,,
+GF-REC-00296,SRC-INDB,ASC307,Fruit Ice cream (Phalon ka Ice cream),,,,
+GF-REC-00297,SRC-INDB,ASC308,Caramel ice cream,,,,
+GF-REC-00298,SRC-INDB,ASC309,Lemon souffle,,,,
+GF-REC-00299,SRC-INDB,ASC310,Orange souffle,,,,
+GF-REC-00300,SRC-INDB,ASC311,Vanilla souffle,,,,
+GF-REC-00301,SRC-INDB,ASC312,Chocolate souffle,,,,
+GF-REC-00302,SRC-INDB,ASC313,Pineapple souffle ,,,,
+GF-REC-00303,SRC-INDB,ASC314,Apple mousse,,,,
+GF-REC-00304,SRC-INDB,ASC315,Rich chocolate mousse,,,,
+GF-REC-00305,SRC-INDB,ASC316,Mango mousse,,,,
+GF-REC-00306,SRC-INDB,ASC317,Orange and pineapple cream,,,,
+GF-REC-00307,SRC-INDB,ASC318,Charlotte rousse,,,,
+GF-REC-00308,SRC-INDB,ASC319,Triffle pudding,,,,
+GF-REC-00309,SRC-INDB,ASC320,Snow flakes pudding,,,,
+GF-REC-00310,SRC-INDB,ASC321,Kulfi,,,,
+GF-REC-00311,SRC-INDB,ASC322,Steamed orange pudding,,,,
+GF-REC-00312,SRC-INDB,ASC323,Meringue and rice pudding,,,,
+GF-REC-00313,SRC-INDB,ASC324,Cheese pudding,,,,
+GF-REC-00314,SRC-INDB,ASC325,Chocolate pudding,,,,
+GF-REC-00315,SRC-INDB,ASC326,Bread and butter pudding ,,,,
+GF-REC-00316,SRC-INDB,ASC327,Queen of pudding,,,,
+GF-REC-00317,SRC-INDB,ASC328,Pineapple upside down pudding,,,,
+GF-REC-00318,SRC-INDB,ASC329,Date and nut pie,,,,
+GF-REC-00319,SRC-INDB,ASC330,Stewed apple with custard,,,,
+GF-REC-00320,SRC-INDB,ASC331,Apple snowballs,,,,
+GF-REC-00321,SRC-INDB,ASC332,Hot orange souffle,,,,
+GF-REC-00322,SRC-INDB,ASC333,Hot chocolate souffle,,,,
+GF-REC-00323,SRC-INDB,ASC334,Hot vanilla souffle,,,,
+GF-REC-00324,SRC-INDB,ASC335,Plain burfi (Burfi),,,,
+GF-REC-00325,SRC-INDB,ASC336,Coconut burfi (Nariyal ki burfi),,,,
+GF-REC-00326,SRC-INDB,ASC337,Bottle gourd burfi (Ghiya/Lauki burfi),,,,
+GF-REC-00327,SRC-INDB,ASC338,Chocolate burfi,,,,
+GF-REC-00328,SRC-INDB,ASC339,Cashewnut burfi (Kaju burfi/Kaju katli),,,,
+GF-REC-00329,SRC-INDB,ASC340,Gram flour burfi (Besan burfi),,,,
+GF-REC-00330,SRC-INDB,ASC341,Semolina ladoo with khoya (Suji/Rava aur khoye ke ladoo ),,,,
+GF-REC-00331,SRC-INDB,ASC342,Semolina ladoo with coconut (Suji/Rava aur nariyal ke ladoo ),,,,
+GF-REC-00332,SRC-INDB,ASC343,Gram flour ladoo (Besan ladoo),,,,
+GF-REC-00333,SRC-INDB,ASC344,Sesame ladoo (Til ke ladoo),,,,
+GF-REC-00334,SRC-INDB,ASC345,Chenna murki,,,,
+GF-REC-00335,SRC-INDB,ASC346,Milk cake,,,,
+GF-REC-00336,SRC-INDB,ASC347,Ghujia/Lavang latika,,,,
+GF-REC-00337,SRC-INDB,ASC348,Gulab Jamun with khoya,,,,
+GF-REC-00338,SRC-INDB,ASC349,Mal pua,,,,
+GF-REC-00339,SRC-INDB,ASC350,Shahi tukre,,,,
+GF-REC-00340,SRC-INDB,ASC351,Potato pakora/pakoda (Aloo pakoda),,,,
+GF-REC-00341,SRC-INDB,ASC352,Onion pakora/pakoda (Pyaaz ke pakode),,,,
+GF-REC-00342,SRC-INDB,ASC353,Cauliflower pakora/pakoda (Phoolgobhi ke pakode),,,,
+GF-REC-00343,SRC-INDB,ASC354,Mixed vegetable pakora/pakoda,,,,
+GF-REC-00344,SRC-INDB,ASC355,Spinach pakora/pakoda (Palak pakoda),,,,
+GF-REC-00345,SRC-INDB,ASC356,Methi pakora/pakoda (Methi ke pakode),,,,
+GF-REC-00346,SRC-INDB,ASC357,Egg pakora/pakoda (Ande ke pakode),,,,
+GF-REC-00347,SRC-INDB,ASC358,Bread pakora/pakoda,,,,
+GF-REC-00348,SRC-INDB,ASC359,Paneer pakora/pakoda,,,,
+GF-REC-00349,SRC-INDB,ASC360,Potato bonda (Aloo bonda),,,,
+GF-REC-00350,SRC-INDB,ASC361,Potato samosa (Aloo ka samosa),,,,
+GF-REC-00351,SRC-INDB,ASC362,Minced meat samosa (Keema ka samosa),,,,
+GF-REC-00352,SRC-INDB,ASC363,Paneer and pea samosa (Paneer matar ka samosa),,,,
+GF-REC-00353,SRC-INDB,ASC364,Mathri,,,,
+GF-REC-00354,SRC-INDB,ASC365,Khasta kachori,,,,
+GF-REC-00355,SRC-INDB,ASC366,Vegetable cutlet,,,,
+GF-REC-00356,SRC-INDB,ASC367,Flattened rice cutlet (Chirwa cutlet/Chivda cutlet/Poha cutlet),,,,
+GF-REC-00357,SRC-INDB,ASC368,Peanut cutlet (Mungfali ke cutlet),,,,
+GF-REC-00358,SRC-INDB,ASC369,Fish cutlet (Machli ka cutlet),,,,
+GF-REC-00359,SRC-INDB,ASC370,Paneer potato cutlet (Paneer aloo cutlet),,,,
+GF-REC-00360,SRC-INDB,ASC371,Spinach chickpeas cutlet (Palak channa dal cutlet),,,,
+GF-REC-00361,SRC-INDB,ASC372,Cheese toast,,,,
+GF-REC-00362,SRC-INDB,ASC375,Vegetable burger,,,,
+GF-REC-00363,SRC-INDB,ASC376,Cheese pizza,,,,
+GF-REC-00364,SRC-INDB,ASC377,Vegetable seekh kebab,,,,
+GF-REC-00365,SRC-INDB,ASC378,Masala vada,,,,
+GF-REC-00366,SRC-INDB,ASC379,Peanut sago vada (Sabudana mungfali vada),,,,
+GF-REC-00367,SRC-INDB,ASC380,Vegeterian scotch egg,,,,
+GF-REC-00368,SRC-INDB,ASC381,Paneer shaslik/tikka,,,,
+GF-REC-00369,SRC-INDB,ASC382,Peanut brittle (Moongfali ki chikki),,,,
+GF-REC-00370,SRC-INDB,ASC383,Spring roll,,,,
+GF-REC-00371,SRC-INDB,ASC384,Dry mango chutney (Sookhe aam ki chutney),,,,
+GF-REC-00372,SRC-INDB,ASC385,Peanut chutney (Mungfali ki chutney),,,,
+GF-REC-00373,SRC-INDB,ASC386,Coconut chutney (Nariyal ki chutney),,,,
+GF-REC-00374,SRC-INDB,ASC387,Mint and coriander chutney (Pudinay aur dhaniye ki chutney),,,,
+GF-REC-00375,SRC-INDB,ASC388,Curd dip,,,,
+GF-REC-00376,SRC-INDB,ASC394,Short crust pastry,,,,
+GF-REC-00377,SRC-INDB,ASC395,Custard tart,,,,
+GF-REC-00378,SRC-INDB,ASC396,Lemon tart,,,,
+GF-REC-00379,SRC-INDB,ASC397,Jam tart,,,,
+GF-REC-00380,SRC-INDB,ASC398,Orange cream tart,,,,
+GF-REC-00381,SRC-INDB,ASC399,Pineapple tart,,,,
+GF-REC-00382,SRC-INDB,ASC400,Cheese and mushroom tart,,,,
+GF-REC-00383,SRC-INDB,ASC401,Cottage cheese pie,,,,
+GF-REC-00384,SRC-INDB,ASC402,Minced meat pie,,,,
+GF-REC-00385,SRC-INDB,ASC403,Apple cinnamon pie,,,,
+GF-REC-00386,SRC-INDB,ASC404,Lemon meringue pie,,,,
+GF-REC-00387,SRC-INDB,ASC405,Chocolate meringue pie,,,,
+GF-REC-00388,SRC-INDB,ASC406,Choux pastry,,,,
+GF-REC-00389,SRC-INDB,ASC407,Cream puffs,,,,
+GF-REC-00390,SRC-INDB,ASC408,Chocolate eclairs,,,,
+GF-REC-00391,SRC-INDB,ASC409,Cheese balls,,,,
+GF-REC-00392,SRC-INDB,ASC410,Flaky pastry,,,,
+GF-REC-00393,SRC-INDB,ASC411,Minced meat patties,,,,
+GF-REC-00394,SRC-INDB,ASC412,Cheese patties,,,,
+GF-REC-00395,SRC-INDB,ASC413,Hot cheese souffle,,,,
+GF-REC-00396,SRC-INDB,ASC414,Hot potato souffle,,,,
+GF-REC-00397,SRC-INDB,ASC415,Hot fish souffle,,,,
+GF-REC-00398,SRC-INDB,ASC416,Hot spinach souffle,,,,
+GF-REC-00399,SRC-INDB,ASC417,Plain cream cake,,,,
+GF-REC-00400,SRC-INDB,ASC418,Apple cake (Seb ka cake),,,,
+GF-REC-00401,SRC-INDB,ASC419,Marble cake,,,,
+GF-REC-00402,SRC-INDB,ASC420,Chocolate cake,,,,
+GF-REC-00403,SRC-INDB,ASC421,Orange cake,,,,
+GF-REC-00404,SRC-INDB,ASC422,Fruit Loaf ,,,,
+GF-REC-00405,SRC-INDB,ASC423,Banana cake (Kele ka cake),,,,
+GF-REC-00406,SRC-INDB,ASC424,Chocolate chiffon cake,,,,
+GF-REC-00407,SRC-INDB,ASC425,Christmas cake,,,,
+GF-REC-00408,SRC-INDB,ASC426,Strawberry and vanilla cake with butter icing,,,,
+GF-REC-00409,SRC-INDB,ASC427,Eggless cake,,,,
+GF-REC-00410,SRC-INDB,ASC428,Sponge cake ,,,,
+GF-REC-00411,SRC-INDB,ASC429,Swiss roll,,,,
+GF-REC-00412,SRC-INDB,ASC430,Pineapple pastry ,,,,
+GF-REC-00413,SRC-INDB,ASC431,Black forest pastry,,,,
+GF-REC-00414,SRC-INDB,ASC432,Coconut finger,,,,
+GF-REC-00415,SRC-INDB,ASC433,Pineapple cake ,,,,
+GF-REC-00416,SRC-INDB,ASC434,Glace icing,,,,
+GF-REC-00417,SRC-INDB,ASC436,Royal icing,,,,
+GF-REC-00418,SRC-INDB,ASC437,American frosting,,,,
+GF-REC-00419,SRC-INDB,ASC438,Gum icing,,,,
+GF-REC-00420,SRC-INDB,ASC439,Chocolate walnut cookies (Chocolate aur akhrot ke cookies),,,,
+GF-REC-00421,SRC-INDB,ASC440,Chocolate chip cookies,,,,
+GF-REC-00422,SRC-INDB,ASC441,Sweet plain biscuit,,,,
+GF-REC-00423,SRC-INDB,ASC442,Chocolate biscuit,,,,
+GF-REC-00424,SRC-INDB,ASC443,Coconut biscuit (Nariyal ke biscuit),,,,
+GF-REC-00425,SRC-INDB,ASC444,Sweet and salty biscuit (Meethay aur namkeen biscuit),,,,
+GF-REC-00426,SRC-INDB,ASC445,Peanut biscuit,,,,
+GF-REC-00427,SRC-INDB,ASC446,Pin wheel biscuit,,,,
+GF-REC-00428,SRC-INDB,ASC447,Saffron biscuit (Kesar biscuit),,,,
+GF-REC-00429,SRC-INDB,ASC448,Masala biscuit,,,,
+GF-REC-00430,SRC-INDB,ASC449,Ice box cookies,,,,
+GF-REC-00431,SRC-INDB,ASC450,Ginger bread man,,,,
+GF-REC-00432,SRC-INDB,ASC451,Danish cookies,,,,
+GF-REC-00433,SRC-INDB,ASC452,Short bread cookies,,,,
+GF-REC-00434,SRC-INDB,ASC453,Coffee biscuit,,,,
+GF-REC-00435,SRC-INDB,ASC454,Melting moments,,,,
+GF-REC-00436,SRC-INDB,ASC455,Ginger biscuit (Adarak ke biscuit),,,,
+GF-REC-00437,SRC-INDB,ASC456,Soyabean muthias,,,,
+GF-REC-00438,SRC-INDB,ASC457,Soyabean tikki,,,,
+GF-REC-00439,SRC-INDB,ASC458,Soyabean namak paras,,,,
+GF-REC-00440,SRC-INDB,ASC459,Peanut burfi (Moongfali ki burfi),,,,
+GF-REC-00441,SRC-INDB,ASC460,Spinach peanut namak paras (Palak moongfali namak paras),,,,
+GF-REC-00442,SRC-INDB,ASC461,Gram flour and semolina chilla/cheela/savory pancake (Besan suji chilla/cheela),,,,
+GF-REC-00443,SRC-INDB,ASC462,Rice moong dal cheela (Chawal aur moong dal ka cheela),,,,
+GF-REC-00444,SRC-INDB,ASC463,Split bengal gram sweet rice (Channa dal sweet rice),,,,
+GF-REC-00445,SRC-INDB,ASC464,Sweet poori (Meethi poori),,,,
+GF-REC-00446,SRC-INDB,ASC465,Wheat flour and moong dal burfi (Atta aur moong dal ki burfi),,,,
+GF-REC-00447,SRC-INDB,ASC466,Spinach burfi (Palak burfi),,,,
+GF-REC-00448,SRC-INDB,ASC467,Sweet split chickpea roti (Sweet channa dal roti/Puranpoli),,,,
+GF-REC-00449,SRC-INDB,ASC468,Sprouted moong daliya ,,,,
+GF-REC-00450,SRC-INDB,ASC469,Sprouted moong poha ,,,,
+GF-REC-00451,SRC-INDB,ASC470,Pearl millet ladoo (Bajra ladoo),,,,
+GF-REC-00452,SRC-INDB,ASC471,Paushtik ladoo,,,,
+GF-REC-00453,SRC-INDB,ASC472,Paushtik roti,,,,
+GF-REC-00454,SRC-INDB,ASC473,Semolina carrot vada (Suji gajar vada),,,,
+GF-REC-00455,SRC-INDB,ASC474,Dhokla,,,,
+GF-REC-00456,SRC-INDB,ASC475,Channa murmura premix,,,,
+GF-REC-00457,SRC-INDB,ASC476,Cracked wheat and green gram dal premix (Dalia moong dal premix),,,,
+GF-REC-00458,SRC-INDB,ASC477,Rice flakes and roasted channa ,,,,
+GF-REC-00459,SRC-INDB,ASC479,Spinach soup in milk ,,,,
+GF-REC-00460,SRC-INDB,ASC480,Vegetable soup,,,,
+GF-REC-00461,SRC-INDB,ASC481,Mashed banana with milk,,,,
+GF-REC-00462,SRC-INDB,ASC484,Poha with curd (Poha aur dahi),,,,
+GF-REC-00463,SRC-INDB,ASC485,Potato with curd,,,,
+GF-REC-00464,SRC-INDB,ASC486,Sweet wheat porridge (Sweet dalia),,,,
+GF-REC-00465,SRC-INDB,ASC487,Vegetable khichdi/khichri,,,,
+GF-REC-00466,SRC-INDB,ASC489,Moong dal mixture,,,,
+GF-REC-00467,SRC-INDB,ASC490,Cracked wheat khichri/khichdi (Dalia khichri/khichdi),,,,
+GF-REC-00468,SRC-INDB,ASC492,Stewed apple,,,,
+GF-REC-00469,SRC-INDB,ASC493,Lemon squash (Nimbu ka squash),,,,
+GF-REC-00470,SRC-INDB,ASC494,Orange squash (Santre ka squash),,,,
+GF-REC-00471,SRC-INDB,ASC495,Lichi squash,,,,
+GF-REC-00472,SRC-INDB,ASC496,Mango squash (Aam ka squash),,,,
+GF-REC-00473,SRC-INDB,ASC497,Pineapple squash (Ananas ka squash),,,,
+GF-REC-00474,SRC-INDB,ASC498,Lemon and ginger squash (Nimbu aur adrak ka squash),,,,
+GF-REC-00475,SRC-INDB,ASC499,Apple jam (Seb ka murabba),,,,
+GF-REC-00476,SRC-INDB,ASC500,Plum jam (Aloo bukhara jam),,,,
+GF-REC-00477,SRC-INDB,ASC501,Pineapple jam ,,,,
+GF-REC-00478,SRC-INDB,ASC502,Guava jelly (Amrood ki jelly),,,,
+GF-REC-00479,SRC-INDB,ASC503,Orange marmalade (Santray ka murabba),,,,
+GF-REC-00480,SRC-INDB,ASC504,Carrot murabba (Gajar ka murabba),,,,
+GF-REC-00481,SRC-INDB,ASC505,Gooseberry marmalade (Amla murabba),,,,
+GF-REC-00482,SRC-INDB,ASC506,Ginger candy (Adrak ki candy),,,,
+GF-REC-00483,SRC-INDB,ASC507,Mango pickle (Aam ka achaar),,,,
+GF-REC-00484,SRC-INDB,ASC509,Mixed vegetable pickle (Sabziyoon ka achaar),,,,
+GF-REC-00485,SRC-INDB,ASC511,Sweet lemon pickle (Neembu ka meetha achaar),,,,
+GF-REC-00486,SRC-INDB,ASC512,Plum chutney (Aloo bukhara ki chutney),,,,
+GF-REC-00487,SRC-INDB,ASC513,Raw mango chutney (Kachhe aam/Kairi ki chutney),,,,
+GF-REC-00488,SRC-INDB,ASC514,Tomato sauce,,,,
+GF-REC-00489,SRC-INDB,ASC515,Tomato puree,,,,
+GF-REC-00490,SRC-INDB,BFP001,Garam masala,,,,
+GF-REC-00491,SRC-INDB,BFP002,Chat masala,,,,
+GF-REC-00492,SRC-INDB,BFP003,Kashmiri masala,,,,
+GF-REC-00493,SRC-INDB,BFP004,Rasam powder (Rasam masala),,,,
+GF-REC-00494,SRC-INDB,BFP005,Sambar powder (Sambar masala),,,,
+GF-REC-00495,SRC-INDB,BFP007,Kashmiri tea (Kehwa),,,,
+GF-REC-00496,SRC-INDB,BFP008,Steeped hot coffee,,,,
+GF-REC-00497,SRC-INDB,BFP011,Hot chocolate,,,,
+GF-REC-00498,SRC-INDB,BFP013,Cold coffee (with cream),,,,
+GF-REC-00499,SRC-INDB,BFP015,Banana milkshake with ice cream (Kele ka milkshake ice cream ke saath),,,,
+GF-REC-00500,SRC-INDB,BFP019,Flavoured milkshake,,,,
+GF-REC-00501,SRC-INDB,BFP024,Jal jeera,,,,
+GF-REC-00502,SRC-INDB,BFP026,Gingo,,,,
+GF-REC-00503,SRC-INDB,BFP027,Mintade,,,,
+GF-REC-00504,SRC-INDB,BFP029,Canjee,,,,
+GF-REC-00505,SRC-INDB,BFP030,Cauliflower canjee (Phoolgobhi ki canjee),,,,
+GF-REC-00506,SRC-INDB,BFP031,Potato canjee (Aloo canjee),,,,
+GF-REC-00507,SRC-INDB,BFP036,Vermicelli porridge (Semiya/Seviyan porridge),,,,
+GF-REC-00508,SRC-INDB,BFP039,Semolina upma (Suji/Rava upma),,,,
+GF-REC-00509,SRC-INDB,BFP040,Vermicelli upma (Semiya/Seviyan upma),,,,
+GF-REC-00510,SRC-INDB,BFP041,Rice upma,,,,
+GF-REC-00511,SRC-INDB,BFP042,Bread upma,,,,
+GF-REC-00512,SRC-INDB,BFP043,Vegetable upma,,,,
+GF-REC-00513,SRC-INDB,BFP044,Poha,,,,
+GF-REC-00514,SRC-INDB,BFP045,Vegetable poha,,,,
+GF-REC-00515,SRC-INDB,BFP046,Moong dal stuffed cheela/chilla (Moong dal ka cheela/chilla),,,,
+GF-REC-00516,SRC-INDB,BFP047,Paneer stuffed cheela/chilla,,,,
+GF-REC-00517,SRC-INDB,BFP052,Indian style egg bhujia (Anda bhujia (Indian style)),,,,
+GF-REC-00518,SRC-INDB,BFP054,French omelette/omlet,,,,
+GF-REC-00519,SRC-INDB,BFP055,Puffy omelette/omlet,,,,
+GF-REC-00520,SRC-INDB,BFP056,Orange omelette/omlet,,,,
+GF-REC-00521,SRC-INDB,BFP057,Cheese and mushroom omelette/omlet,,,,
+GF-REC-00522,SRC-INDB,BFP058,Spanish omelette/omlet,,,,
+GF-REC-00523,SRC-INDB,BFP059,Mixed stock,,,,
+GF-REC-00524,SRC-INDB,BFP060,Meat stock,,,,
+GF-REC-00525,SRC-INDB,BFP062,White stock,,,,
+GF-REC-00526,SRC-INDB,BFP065,Meat consomme (with mutton),,,,
+GF-REC-00527,SRC-INDB,BFP066,Consomme au julienne,,,,
+GF-REC-00528,SRC-INDB,BFP067,Consomme au vermicelli,,,,
+GF-REC-00529,SRC-INDB,BFP072,Green pea soup (Matar ka soup),,,,
+GF-REC-00530,SRC-INDB,BFP073,Spinach soup (Palak ka soup),,,,
+GF-REC-00531,SRC-INDB,BFP074,Mixed vegetable soup,,,,
+GF-REC-00532,SRC-INDB,BFP075,Cheese soup,,,,
+GF-REC-00533,SRC-INDB,BFP076,Mulligatawny soup,,,,
+GF-REC-00534,SRC-INDB,BFP079,Cream of carrot soup,,,,
+GF-REC-00535,SRC-INDB,BFP080,Cream of broccoli soup,,,,
+GF-REC-00536,SRC-INDB,BFP082,Cream of potato soup,,,,
+GF-REC-00537,SRC-INDB,BFP087,Almond soup (Badam ka soup),,,,
+GF-REC-00538,SRC-INDB,BFP088,Cold cucumber cream soup ,,,,
+GF-REC-00539,SRC-INDB,BFP089,Cold tomato soup,,,,
+GF-REC-00540,SRC-INDB,BFP090,Chicken stew,,,,
+GF-REC-00541,SRC-INDB,BFP091,Veg paneer stew,,,,
+GF-REC-00542,SRC-INDB,BFP095,Tartare sauce,,,,
+GF-REC-00543,SRC-INDB,BFP096,Barbeque sauce,,,,
+GF-REC-00544,SRC-INDB,BFP097,Bread sauce,,,,
+GF-REC-00545,SRC-INDB,BFP108,Onion-green chilli parantha/paratha (Pyaaz aur hari mirch ka parantha/paratha),,,,
+GF-REC-00546,SRC-INDB,BFP110,Methi parantha/paratha,,,,
+GF-REC-00547,SRC-INDB,BFP114,Bathua poori,,,,
+GF-REC-00548,SRC-INDB,BFP115,Gram flour poori (Besan poori),,,,
+GF-REC-00549,SRC-INDB,BFP116,Beetroot poori (Chukandar ki poori),,,,
+GF-REC-00550,SRC-INDB,BFP117,Peas poori (Matar ki poori),,,,
+GF-REC-00551,SRC-INDB,BFP118,Peas kachori (Matar kachori),,,,
+GF-REC-00552,SRC-INDB,BFP122,Pizza,,,,
+GF-REC-00553,SRC-INDB,BFP124,Bacon and mushroom pancake,,,,
+GF-REC-00554,SRC-INDB,BFP125,Cheese and tomato pancake,,,,
+GF-REC-00555,SRC-INDB,BFP127,Minced meat pancake (with chicken),,,,
+GF-REC-00556,SRC-INDB,BFP132,Eggplant/Brinjal rice (Vangi bhat),,,,
+GF-REC-00557,SRC-INDB,BFP133,Kashmiri 'tahar',,,,
+GF-REC-00558,SRC-INDB,BFP134,Cumin pulao (Jeera/Zeera pulao),,,,
+GF-REC-00559,SRC-INDB,BFP136,Peas pulao (Matar pulao),,,,
+GF-REC-00560,SRC-INDB,BFP137,Split bengal gram dal and vegetable pulao (Channa dal and vegetable pulao),,,,
+GF-REC-00561,SRC-INDB,BFP138,Black channa pulao/ Bengal gram pulao (Kale chane ka pulao),,,,
+GF-REC-00562,SRC-INDB,BFP141,Mutton pulao,,,,
+GF-REC-00563,SRC-INDB,BFP142,Chicken pulao,,,,
+GF-REC-00564,SRC-INDB,BFP143,Mexican rice,,,,
+GF-REC-00565,SRC-INDB,BFP144,Plain khitchdi (Plain khichri/khichdi),,,,
+GF-REC-00566,SRC-INDB,BFP147,Instant idli (with semolina),,,,
+GF-REC-00567,SRC-INDB,BFP148,Plain dosa,,,,
+GF-REC-00568,SRC-INDB,BFP150,Masala dosa mixed vegetable fillings,,,,
+GF-REC-00569,SRC-INDB,BFP151,Masala dosa paneer fillings,,,,
+GF-REC-00570,SRC-INDB,BFP152,Uttapam,,,,
+GF-REC-00571,SRC-INDB,BFP153,Appam,,,,
+GF-REC-00572,SRC-INDB,BFP154,Beans and macaroni,,,,
+GF-REC-00573,SRC-INDB,BFP155,Spaghetti bolognese,,,,
+GF-REC-00574,SRC-INDB,BFP157,Meat and macaroni casserole,,,,
+GF-REC-00575,SRC-INDB,BFP158,Spaghetti with meat balls and tomato sauce,,,,
+GF-REC-00576,SRC-INDB,BFP159,Spaghetti with paneer balls and tomato sauce,,,,
+GF-REC-00577,SRC-INDB,BFP161,Lasagne with meat sauce,,,,
+GF-REC-00578,SRC-INDB,BFP162,Lasagne with vegetables,,,,
+GF-REC-00579,SRC-INDB,BFP163,Green chilli sauce,,,,
+GF-REC-00580,SRC-INDB,BFP164,Home made plain noodles,,,,
+GF-REC-00581,SRC-INDB,BFP165,Home made egg noodles,,,,
+GF-REC-00582,SRC-INDB,BFP166,Dal moong,,,,
+GF-REC-00583,SRC-INDB,BFP167,Cumin seeds baghar (Jeera baghar/tadka),,,,
+GF-REC-00584,SRC-INDB,BFP168,Onion tomato baghar (Pyaaz tamatar ka tadka),,,,
+GF-REC-00585,SRC-INDB,BFP169,Mustard seeds baghar (Mustard seed tadka),,,,
+GF-REC-00586,SRC-INDB,BFP170,Sour lentils (Khatti dal),,,,
+GF-REC-00587,SRC-INDB,BFP171,Urad special dehusked,,,,
+GF-REC-00588,SRC-INDB,BFP172,Arhar with spinach (Arhar dal aur palak),,,,
+GF-REC-00589,SRC-INDB,BFP174,Moong dal with vadi,,,,
+GF-REC-00590,SRC-INDB,BFP176,Rasam with tamarind (Puli rasam/ Chintapandu rasam/ Charu/Saaru),,,,
+GF-REC-00591,SRC-INDB,BFP177,Rasam with lemon (Nimmakaya rasam/Nimmakaya charu/Elumichai rasam/Nimbe hannina saaru),,,,
+GF-REC-00592,SRC-INDB,BFP178,Green gram whole with baghar (Sabut moong dal with tadka),,,,
+GF-REC-00593,SRC-INDB,BFP179,Urad sabut special,,,,
+GF-REC-00594,SRC-INDB,BFP185,Kabuli channa curry,,,,
+GF-REC-00595,SRC-INDB,BFP187,Besan gatte curry,,,,
+GF-REC-00596,SRC-INDB,BFP190,Dry masala chops,,,,
+GF-REC-00597,SRC-INDB,BFP194,Mutton korma,,,,
+GF-REC-00598,SRC-INDB,BFP196,Shahi keema kofta curry,,,,
+GF-REC-00599,SRC-INDB,BFP197,Minced meat ball curry,,,,
+GF-REC-00600,SRC-INDB,BFP198,Boti kebab,,,,
+GF-REC-00601,SRC-INDB,BFP199,Mutton seekh kebab,,,,
+GF-REC-00602,SRC-INDB,BFP201,Indian lamb and egg curry (Nargisi kofta),,,,
+GF-REC-00603,SRC-INDB,BFP203,Soya chunks sweet and sour (Nutrinugget sweet and sour),,,,
+GF-REC-00604,SRC-INDB,BFP204,Soya chunks korma (Nutrinugget korma),,,,
+GF-REC-00605,SRC-INDB,BFP205,Mushroom matar,,,,
+GF-REC-00606,SRC-INDB,BFP206,Soya chunks and peas (Nutrinugget matar),,,,
+GF-REC-00607,SRC-INDB,BFP207,Vegetable yakhni,,,,
+GF-REC-00608,SRC-INDB,BFP208,Spinach mushroom (Palak mushroom),,,,
+GF-REC-00609,SRC-INDB,BFP210,Vegetarian nargisi kofta curry,,,,
+GF-REC-00610,SRC-INDB,BFP212,Roast chicken,,,,
+GF-REC-00611,SRC-INDB,BFP214,Shahi chicken masala,,,,
+GF-REC-00612,SRC-INDB,BFP216,Tomato chicken,,,,
+GF-REC-00613,SRC-INDB,BFP217,Creamy chicken,,,,
+GF-REC-00614,SRC-INDB,BFP218,Broccoli chicken ala king,,,,
+GF-REC-00615,SRC-INDB,BFP220,Ginger chicken,,,,
+GF-REC-00616,SRC-INDB,BFP221,Chicken sweet and sour,,,,
+GF-REC-00617,SRC-INDB,BFP222,Chicken korma,,,,
+GF-REC-00618,SRC-INDB,BFP223,Bengal fish curry (Bengali machli curry),,,,
+GF-REC-00619,SRC-INDB,BFP226,Fish finger,,,,
+GF-REC-00620,SRC-INDB,BFP229,Fish in coconut milk (Nariyal ke doodh ke saath machli),,,,
+GF-REC-00621,SRC-INDB,BFP230,Prawn curry (with coconut) (Jhinga curry),,,,
+GF-REC-00622,SRC-INDB,BFP231,Baked stuffed fish,,,,
+GF-REC-00623,SRC-INDB,BFP232,Fish pie,,,,
+GF-REC-00624,SRC-INDB,BFP233,Crispy baked fish,,,,
+GF-REC-00625,SRC-INDB,BFP234,Fish souffle,,,,
+GF-REC-00626,SRC-INDB,BFP239,Potato curry (Aloo ki sabzi),,,,
+GF-REC-00627,SRC-INDB,BFP240,Egg curry (Anda curry),,,,
+GF-REC-00628,SRC-INDB,BFP241,Vegetable curry with coconut ,,,,
+GF-REC-00629,SRC-INDB,BFP242,Curd with potatoes (Dahi aloo),,,,
+GF-REC-00630,SRC-INDB,BFP246,Potato kofta curry (Aloo kofta curry),,,,
+GF-REC-00631,SRC-INDB,BFP249,Yam kofta curry (Zimikand/Suran kofta curry),,,,
+GF-REC-00632,SRC-INDB,BFP250,Jackfruit kofta curry (Kathal ka kofta curry),,,,
+GF-REC-00633,SRC-INDB,BFP257,Spinach and potato (Palak aloo),,,,
+GF-REC-00634,SRC-INDB,BFP258,Mooli bhujia,,,,
+GF-REC-00635,SRC-INDB,BFP259,Bathua bhujia,,,,
+GF-REC-00636,SRC-INDB,BFP261,Cabbage rolls (dry) ((Pattagobhi rolls) (dry)),,,,
+GF-REC-00637,SRC-INDB,BFP262,Cabbage rolls (curry) ((Pattagobhi rolls)(curry)),,,,
+GF-REC-00638,SRC-INDB,BFP263,Dry arbi (Sookhi arbi),,,,
+GF-REC-00639,SRC-INDB,BFP264,Masala arbi,,,,
+GF-REC-00640,SRC-INDB,BFP266,Peas brinjal bhartha (Matar baingan bhartha),,,,
+GF-REC-00641,SRC-INDB,BFP269,Okra/Lady's fingers fry (Bhindi sabzi/sabji/subji),,,,
+GF-REC-00642,SRC-INDB,BFP270,Crispy okra/Crispy lady's fingers (Karare bhindi),,,,
+GF-REC-00643,SRC-INDB,BFP272,Beans foogath,,,,
+GF-REC-00644,SRC-INDB,BFP273,Stuffed bittergourd (wet) (Bharwa karele),,,,
+GF-REC-00645,SRC-INDB,BFP274,Jackfruit/Kathal (dry),,,,
+GF-REC-00646,SRC-INDB,BFP275,Yam fried (Zimikand/Suran fried),,,,
+GF-REC-00647,SRC-INDB,BFP276,"Cauliflower, pea and potato bhujia (Phoolgobhi, matar aur aloo bhujia)",,,,
+GF-REC-00648,SRC-INDB,BFP277,Vegetable jalfrezi,,,,
+GF-REC-00649,SRC-INDB,BFP278,Vegetables stir fry ,,,,
+GF-REC-00650,SRC-INDB,BFP279,Broccoli delight,,,,
+GF-REC-00651,SRC-INDB,BFP280,Dhansak (vegetarian),,,,
+GF-REC-00652,SRC-INDB,BFP282,Cauliflower basket,,,,
+GF-REC-00653,SRC-INDB,BFP284,Stuffed bottle gourd (Stuffed ghiya/lauki),,,,
+GF-REC-00654,SRC-INDB,BFP286,Ducheese potato,,,,
+GF-REC-00655,SRC-INDB,BFP287,Roast potatoes ,,,,
+GF-REC-00656,SRC-INDB,BFP288,Stuffed baked potatoes ,,,,
+GF-REC-00657,SRC-INDB,BFP289,Potato nests,,,,
+GF-REC-00658,SRC-INDB,BFP290,Parsley potato,,,,
+GF-REC-00659,SRC-INDB,BFP291,Creamed spinach and mushroom,,,,
+GF-REC-00660,SRC-INDB,BFP292,Fricassee of Mushroom,,,,
+GF-REC-00661,SRC-INDB,BFP293,Cauliflower au gratin,,,,
+GF-REC-00662,SRC-INDB,BFP294,Vegetable and cheese pie,,,,
+GF-REC-00663,SRC-INDB,BFP296,Spinach souffle ,,,,
+GF-REC-00664,SRC-INDB,BFP299,Beetroot and egg salad (Chukandar aur ande ka salad),,,,
+GF-REC-00665,SRC-INDB,BFP300,Sour cream potato salad,,,,
+GF-REC-00666,SRC-INDB,BFP301,Tossed green salad,,,,
+GF-REC-00667,SRC-INDB,BFP302,Spring basket salad,,,,
+GF-REC-00668,SRC-INDB,BFP303,Cucumber and yogurt salad (Kheere aur dahi ka salad),,,,
+GF-REC-00669,SRC-INDB,BFP305,Chicken and tomato towers,,,,
+GF-REC-00670,SRC-INDB,BFP306,Jellied sunshine fruit salad,,,,
+GF-REC-00671,SRC-INDB,BFP307,Tomato aspic,,,,
+GF-REC-00672,SRC-INDB,BFP308,Frozen frosty fruit salad (Phalon ka salaad),,,,
+GF-REC-00673,SRC-INDB,BFP310,French dressing,,,,
+GF-REC-00674,SRC-INDB,BFP312,Mayonnaise without eggs,,,,
+GF-REC-00675,SRC-INDB,BFP313,Curd dressing ,,,,
+GF-REC-00676,SRC-INDB,BFP316,Carrot raita (Gajar ka raita),,,,
+GF-REC-00677,SRC-INDB,BFP318,Pumpkin raita (Kaddu ka raita),,,,
+GF-REC-00678,SRC-INDB,BFP320,Mint and peanut raita (Pudinay aur moongfali ka raita),,,,
+GF-REC-00679,SRC-INDB,BFP321,Spinach raita (Palak ka raita),,,,
+GF-REC-00680,SRC-INDB,BFP322,Bathua raita,,,,
+GF-REC-00681,SRC-INDB,BFP325,Pineapple raita (Ananas ka raita),,,,
+GF-REC-00682,SRC-INDB,BFP326,Banana raita (Kele ka raita),,,,
+GF-REC-00683,SRC-INDB,BFP327,Mango raita (Aam ka raita),,,,
+GF-REC-00684,SRC-INDB,BFP328,Guava raita (Amarood ka raita),,,,
+GF-REC-00685,SRC-INDB,BFP329,Grapes raita (Angoor ka raita),,,,
+GF-REC-00686,SRC-INDB,BFP334,Bottle gourd kheer (Ghiya/Lauki kheer),,,,
+GF-REC-00687,SRC-INDB,BFP336,Pumpkin kheer (Kaddu ki kheer),,,,
+GF-REC-00688,SRC-INDB,BFP338,Apple kheer (Seb ki kheer),,,,
+GF-REC-00689,SRC-INDB,BFP345,Caramel custard (baked),,,,
+GF-REC-00690,SRC-INDB,BFP346,Vanilla ice cream without egg,,,,
+GF-REC-00691,SRC-INDB,BFP347,Vanilla ice cream with egg,,,,
+GF-REC-00692,SRC-INDB,BFP348,Strawberry ice cream,,,,
+GF-REC-00693,SRC-INDB,BFP350,Chocochip ice cream,,,,
+GF-REC-00694,SRC-INDB,BFP351,Choconut ice cream,,,,
+GF-REC-00695,SRC-INDB,BFP352,Pear chocholate sunday,,,,
+GF-REC-00696,SRC-INDB,BFP353,Chocolate sauce,,,,
+GF-REC-00697,SRC-INDB,BFP354,Coffee ice cream,,,,
+GF-REC-00698,SRC-INDB,BFP355,Coffee pear alaska,,,,
+GF-REC-00699,SRC-INDB,BFP356,Crunchy butterscotch,,,,
+GF-REC-00700,SRC-INDB,BFP358,Peach melba ice cream,,,,
+GF-REC-00701,SRC-INDB,BFP359,Vanilla ice cream with apples in hot cherry sauce,,,,
+GF-REC-00702,SRC-INDB,BFP360,Hot cherry sauce,,,,
+GF-REC-00703,SRC-INDB,BFP361,Grape and orange whip,,,,
+GF-REC-00704,SRC-INDB,BFP362,Honey banana cream,,,,
+GF-REC-00705,SRC-INDB,BFP363,Raspberry bavarian cream,,,,
+GF-REC-00706,SRC-INDB,BFP364,Fruit delight,,,,
+GF-REC-00707,SRC-INDB,BFP365,Creamy chocolate mousse,,,,
+GF-REC-00708,SRC-INDB,BFP366,Cold lemon souffle,,,,
+GF-REC-00709,SRC-INDB,BFP367,Cold orange souffle,,,,
+GF-REC-00710,SRC-INDB,BFP368,Cold pineapple souffle,,,,
+GF-REC-00711,SRC-INDB,BFP369,Cold vanilla souffle,,,,
+GF-REC-00712,SRC-INDB,BFP370,Cold chocolate souffle,,,,
+GF-REC-00713,SRC-INDB,BFP371,Stewed fruit (with pear),,,,
+GF-REC-00714,SRC-INDB,BFP372,Apricot fool,,,,
+GF-REC-00715,SRC-INDB,BFP373,Pavlova,,,,
+GF-REC-00716,SRC-INDB,BFP379,Apple crumb pudding,,,,
+GF-REC-00717,SRC-INDB,BFP380,Steamed cake with chocolate sauce,,,,
+GF-REC-00718,SRC-INDB,BFP382,Hot lemon souffle,,,,
+GF-REC-00719,SRC-INDB,BFP386,Gulab jamun with milk powder,,,,
+GF-REC-00720,SRC-INDB,BFP388,Chum chum,,,,
+GF-REC-00721,SRC-INDB,BFP389,Dil bahar,,,,
+GF-REC-00722,SRC-INDB,BFP390,Rasbhari,,,,
+GF-REC-00723,SRC-INDB,BFP391,Rajbogh,,,,
+GF-REC-00724,SRC-INDB,BFP392,Rasgulla,,,,
+GF-REC-00725,SRC-INDB,BFP393,Rasmalai,,,,
+GF-REC-00726,SRC-INDB,BFP396,Khoa coconut burfi,,,,
+GF-REC-00727,SRC-INDB,BFP397,Danedar burfi,,,,
+GF-REC-00728,SRC-INDB,BFP401,Semolina burfi (Suji/Rava burfi),,,,
+GF-REC-00729,SRC-INDB,BFP403,Pumpkin coconut burfi (Kaddu aur nariyal ki burfi),,,,
+GF-REC-00730,SRC-INDB,BFP404,Khoa ladoo,,,,
+GF-REC-00731,SRC-INDB,BFP406,Wheat and gram flour ladoo (Atta besan ladoo),,,,
+GF-REC-00732,SRC-INDB,BFP407,Semolina ladoo with nuts (Suji/Rava ladoo with nuts),,,,
+GF-REC-00733,SRC-INDB,BFP412,Sesame chickpeas brittle (Til aur channe ki chikki),,,,
+GF-REC-00734,SRC-INDB,BFP413,Murmura chikki,,,,
+GF-REC-00735,SRC-INDB,BFP415,Masala onion pakora/pakoda (Pyaaz ke pakode),,,,
+GF-REC-00736,SRC-INDB,BFP416,Masala green chilli pakora/pakoda (Hari mirch kay pakode),,,,
+GF-REC-00737,SRC-INDB,BFP420,Chicken pakora/pakoda,,,,
+GF-REC-00738,SRC-INDB,BFP421,Fish pakora/pakoda,,,,
+GF-REC-00739,SRC-INDB,BFP424,Paneer cutlet,,,,
+GF-REC-00740,SRC-INDB,BFP425,Sago cutlet/vadas (Sabudana cutlet/vadas),,,,
+GF-REC-00741,SRC-INDB,BFP427,Poshtik cutlet,,,,
+GF-REC-00742,SRC-INDB,BFP428,Egg cutlet (Anda cutlet),,,,
+GF-REC-00743,SRC-INDB,BFP430,Minced meat cutlet,,,,
+GF-REC-00744,SRC-INDB,BFP431,Vegetable samosa,,,,
+GF-REC-00745,SRC-INDB,BFP436,Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada),,,,
+GF-REC-00746,SRC-INDB,BFP437,Masala urad dal vada,,,,
+GF-REC-00747,SRC-INDB,BFP439,Khaman (dhokla),,,,
+GF-REC-00748,SRC-INDB,BFP440,Instant dhokla,,,,
+GF-REC-00749,SRC-INDB,BFP442,Tomato ginger chutney (Tamatar adarak ki chutney),,,,
+GF-REC-00750,SRC-INDB,BFP443,Mint tomato chutney (Pudinay aur tamatar ki chutney),,,,
+GF-REC-00751,SRC-INDB,BFP444,Coriander chutney (Hare dhaniye ki chutney),,,,
+GF-REC-00752,SRC-INDB,BFP445,Gooseberry chutney (Amla chutney),,,,
+GF-REC-00753,SRC-INDB,BFP446,Walnut chutney (Akhrot ki chutney),,,,
+GF-REC-00754,SRC-INDB,BFP447,Saunth/Sonth chutney with ginger,,,,
+GF-REC-00755,SRC-INDB,BFP448,Gun powder chutney,,,,
+GF-REC-00756,SRC-INDB,BFP450,Dessicated coconut chutney (Sookhe kase nariyal ki chutney) ,,,,
+GF-REC-00757,SRC-INDB,BFP451,Curd mint dip ,,,,
+GF-REC-00758,SRC-INDB,BFP452,Curd vegetable dip,,,,
+GF-REC-00759,SRC-INDB,BFP453,Mayonnaise vegetable dip,,,,
+GF-REC-00760,SRC-INDB,BFP455,Tomato and cucumber sandwich (Tamatar aur kheere ka sandwich),,,,
+GF-REC-00761,SRC-INDB,BFP456,Tomato sandwich (grilled),,,,
+GF-REC-00762,SRC-INDB,BFP457,French sandwich (toasted),,,,
+GF-REC-00763,SRC-INDB,BFP458,Peanut butter cucumber sandwich,,,,
+GF-REC-00764,SRC-INDB,BFP459,Mint and peanut sandwich,,,,
+GF-REC-00765,SRC-INDB,BFP460,Spicy chutney sandwich,,,,
+GF-REC-00766,SRC-INDB,BFP461,Chicken walnut sandwich (Chicken aur akhrot ke sandwich),,,,
+GF-REC-00767,SRC-INDB,BFP463,Rolled sandwich,,,,
+GF-REC-00768,SRC-INDB,BFP466,Ribbon sandwich,,,,
+GF-REC-00769,SRC-INDB,BFP467,Checker board sandwich,,,,
+GF-REC-00770,SRC-INDB,BFP468,Submarine sandwich,,,,
+GF-REC-00771,SRC-INDB,BFP470,Cheese open sandwich,,,,
+GF-REC-00772,SRC-INDB,BFP471,Sunset and sunrise open sandwich,,,,
+GF-REC-00773,SRC-INDB,BFP472,Danish luncheon sandwich,,,,
+GF-REC-00774,SRC-INDB,BFP473,Chicken and corn open sandwich,,,,
+GF-REC-00775,SRC-INDB,BFP476,Chocolate sponge cake,,,,
+GF-REC-00776,SRC-INDB,BFP478,Chocolate swiss roll,,,,
+GF-REC-00777,SRC-INDB,BFP479,Lemon curd filling,,,,
+GF-REC-00778,SRC-INDB,BFP480,Jam filling,,,,
+GF-REC-00779,SRC-INDB,BFP482,Chocolate pastry,,,,
+GF-REC-00780,SRC-INDB,BFP483,Assorted pastry,,,,
+GF-REC-00781,SRC-INDB,BFP484,Orange gateau,,,,
+GF-REC-00782,SRC-INDB,BFP485,Black forest gateau,,,,
+GF-REC-00783,SRC-INDB,BFP489,Lemon cake,,,,
+GF-REC-00784,SRC-INDB,BFP491,Dundee cake,,,,
+GF-REC-00785,SRC-INDB,BFP492,Victorian sandwich cake,,,,
+GF-REC-00786,SRC-INDB,BFP495,Chocolate eggless cake,,,,
+GF-REC-00787,SRC-INDB,BFP496,Orange eggless cake,,,,
+GF-REC-00788,SRC-INDB,BFP498,Chocolate glace icing,,,,
+GF-REC-00789,SRC-INDB,BFP499,Butter icing,,,,
+GF-REC-00790,SRC-INDB,BFP500,Chocolate butter icing,,,,
+GF-REC-00791,SRC-INDB,BFP502,Almond biscuit (Badam ke biscuit),,,,
+GF-REC-00792,SRC-INDB,BFP505,Orange biscuit,,,,
+GF-REC-00793,SRC-INDB,BFP506,Gingerman biscuit,,,,
+GF-REC-00794,SRC-INDB,BFP507,Coffee drops,,,,
+GF-REC-00795,SRC-INDB,BFP508,Christmas biscuit,,,,
+GF-REC-00796,SRC-INDB,BFP509,Christmas wreath biscuit,,,,
+GF-REC-00797,SRC-INDB,BFP510,Christmas bell biscuit,,,,
+GF-REC-00798,SRC-INDB,BFP511,Christmas star biscuit,,,,
+GF-REC-00799,SRC-INDB,BFP512,Christmas tree biscuit,,,,
+GF-REC-00800,SRC-INDB,BFP513,Chocolate cream shells,,,,
+GF-REC-00801,SRC-INDB,BFP516,Jelly biscuit,,,,
+GF-REC-00802,SRC-INDB,BFP517,Cherry and walnut cookies,,,,
+GF-REC-00803,SRC-INDB,BFP518,Cheese straws,,,,
+GF-REC-00804,SRC-INDB,BFP519,Butterfly biscuit,,,,
+GF-REC-00805,SRC-INDB,BFP521,Flan pastry,,,,
+GF-REC-00806,SRC-INDB,BFP522,Fruit flan,,,,
+GF-REC-00807,SRC-INDB,BFP523,Orange cream flan,,,,
+GF-REC-00808,SRC-INDB,BFP527,Fruit puree tart,,,,
+GF-REC-00809,SRC-INDB,BFP529,Apple banana pie,,,,
+GF-REC-00810,SRC-INDB,BFP531,Lemon chiffon pie,,,,
+GF-REC-00811,SRC-INDB,BFP532,Orange chiffon pie,,,,
+GF-REC-00812,SRC-INDB,BFP534,Cream buns,,,,
+GF-REC-00813,SRC-INDB,BFP535,Savoury puffs,,,,
+GF-REC-00814,SRC-INDB,BFP536,Choux swans,,,,
+GF-REC-00815,SRC-INDB,BFP539,Potato aigrettes,,,,
+GF-REC-00816,SRC-INDB,BFP541,Cream horns,,,,
+GF-REC-00817,SRC-INDB,BFP542,Savoury cheese horns,,,,
+GF-REC-00818,SRC-INDB,BFP544,Paneer patties,,,,
+GF-REC-00819,SRC-INDB,BFP545,Vegetable patties ,,,,
+GF-REC-00820,SRC-INDB,BFP546,Pearl millet infant food (Bajra shishu aahaar),,,,
+GF-REC-00821,SRC-INDB,BFP547,Sajina,,,,
+GF-REC-00822,SRC-INDB,BFP548,Cereal mix ,,,,
+GF-REC-00823,SRC-INDB,BFP549,Pulse mix,,,,
+GF-REC-00824,SRC-INDB,BFP550,Shishu ahar,,,,
+GF-REC-00825,SRC-INDB,BFP552,Cereal pulse mix with amylase rice flour,,,,
+GF-REC-00826,SRC-INDB,BFP553,Banana groundnut paste/puree,,,,
+GF-REC-00827,SRC-INDB,BFP554,Rice dal porridge (Chawal dal ki khichdi/khichri),,,,
+GF-REC-00828,SRC-INDB,BFP555,Lentils and semolina porridge (Dal suji porridge/daliya),,,,
+GF-REC-00829,SRC-INDB,BFP556,Spinach khichri (Palak khichri/khichdi),,,,
+GF-REC-00830,SRC-INDB,BFP557,Vegetable mix,,,,
+GF-REC-00831,SRC-INDB,BFP558,Lentils and wheat porridge (Dal wheat porridge/daliya ),,,,
+GF-REC-00832,SRC-INDB,BFP559,Maize porridge,,,,
+GF-REC-00833,SRC-INDB,BFP560,Spinach peanut burfi (Palak aur mungfali ki burfi),,,,
+GF-REC-00834,SRC-INDB,BFP561,Split bengal gram burfi/fudge (Channa dal burfi),,,,
+GF-REC-00835,SRC-INDB,BFP563,Chickpea flour cookies (Sweet besan rounds/cookies),,,,
+GF-REC-00836,SRC-INDB,BFP564,Pearl millet mathri (Bajra mathri),,,,
+GF-REC-00837,SRC-INDB,BFP565,Sesame biscuit (Til ke biscuit),,,,
+GF-REC-00838,SRC-INDB,BFP566,Fermented bengal gram vada (Khameerikrit/Ufna hua channa dal ka vada),,,,
+GF-REC-00839,SRC-INDB,BFP568,Poshtik namak paras,,,,
+GF-REC-00840,SRC-INDB,BFP569,Soya chikki,,,,
+GF-REC-00841,SRC-INDB,BFP570,Besan bathua chilla/cheela,,,,
+GF-REC-00842,SRC-INDB,BFP571,Wheat flour and nuts ladoos (Atta nuts ladoos),,,,
+GF-REC-00843,SRC-INDB,BFP573,Gram flour and semolina dhokla (Besan suji dhokla),,,,
+GF-REC-00844,SRC-INDB,BFP574,Atta dal burfi ,,,,
+GF-REC-00845,SRC-INDB,BFP575,Soya roti,,,,
+GF-REC-00846,SRC-INDB,BFP576,Poshtik khichdi/khichri,,,,
+GF-REC-00847,SRC-INDB,BFP577,Namkeen daliya,,,,
+GF-REC-00848,SRC-INDB,BFP578,Sprouts upma ,,,,
+GF-REC-00849,SRC-INDB,BFP579,Semolina idli (Suji/Rava idli),,,,
+GF-REC-00850,SRC-INDB,BFP580,Poshtik chilla/cheela,,,,
+GF-REC-00851,SRC-INDB,BFP583,Apple jelly (Seb ki jelly),,,,
+GF-REC-00852,SRC-INDB,BFP585,Marmalade (Murabba),,,,
+GF-REC-00853,SRC-INDB,BFP589,Plum squash (Aloo bukhara squash),,,,
+GF-REC-00854,SRC-INDB,BFP595,Lemon green chilli pickle (Nimboo aur hari mirch ka achaar),,,,
+GF-REC-00855,SRC-INDB,BFP597,Brinjal pickle (Baingan ka achaar),,,,
+GF-REC-00856,SRC-INDB,BFP598,Sweet and sour tomato pickle (Khatta meetha tamatar ka achaar),,,,
+GF-REC-00857,SRC-INDB,BFP599,Jhatpat achar with carrot (Jhatpat achaar gajar ke saath),,,,
+GF-REC-00858,SRC-INDB,BFP601,Tomato chutney (Tamatar ki chutney),,,,
+GF-REC-00859,SRC-INDB,BFP602,Tomato ketchup,,,,
+GF-REC-00860,SRC-INDB,BFP604,Stuffed bittergourd (dry) (Bharwa karela),,,,
+GF-REC-00861,SRC-INDB,BFP605,Cauliflower potato canjee,,,,
+GF-REC-00862,SRC-INDB,BFP606,Creamed spinach,,,,
+GF-REC-00863,SRC-INDB,BFP607,Mango milkshake with ice cream (Aam milkshake ice cream ke saath),,,,
+GF-REC-00864,SRC-INDB,BFP608,Pineapple milkshake with ice cream (Ananas milkshake ice cream ke saath),,,,
+GF-REC-00865,SRC-INDB,BFP609,Orange milkshake with ice cream (Narangi milkshake ice cream ke saath),,,,
+GF-REC-00866,SRC-INDB,OSR001,Woodapple juice (Bel ka sharbat),,,,
+GF-REC-00867,SRC-INDB,OSR002,Sattu drink,,,,
+GF-REC-00868,SRC-INDB,OSR004,Apple and honey sorbet (Seb aur shehad ka sharbat),,,,
+GF-REC-00869,SRC-INDB,OSR005,Thandai,,,,
+GF-REC-00870,SRC-INDB,OSR006,Cucumber sharbat (Kheere ka sharbat),,,,
+GF-REC-00871,SRC-INDB,OSR007,Apple oats chia seed smoothie,,,,
+GF-REC-00872,SRC-INDB,OSR008,Nannari sharbat,,,,
+GF-REC-00873,SRC-INDB,OSR009,Semolina milk drink (Thari kanji),,,,
+GF-REC-00874,SRC-INDB,OSR010,Saffron milk (Kesariya doodh),,,,
+GF-REC-00875,SRC-INDB,OSR011,Black rice kheer (Chak-hao kheer),,,,
+GF-REC-00876,SRC-INDB,OSR012,Coconut kheer (Nariyal ki kheer),,,,
+GF-REC-00877,SRC-INDB,OSR013,Apple sago payasam (Seb aur sabudana ki kheer),,,,
+GF-REC-00878,SRC-INDB,OSR014,Kesari bath,,,,
+GF-REC-00879,SRC-INDB,OSR015,Putharekulu,,,,
+GF-REC-00880,SRC-INDB,OSR016,Mango malpua,,,,
+GF-REC-00881,SRC-INDB,OSR017,Mango vanilla custard,,,,
+GF-REC-00882,SRC-INDB,OSR018,Kiwi granola pudding,,,,
+GF-REC-00883,SRC-INDB,OSR019,Oats burfi,,,,
+GF-REC-00884,SRC-INDB,OSR020,Lotus seed halwa (Kamal gattay ka halwa),,,,
+GF-REC-00885,SRC-INDB,OSR021,Amaranth ladoo (Rajgira ladoo),,,,
+GF-REC-00886,SRC-INDB,OSR022,Chhena poda,,,,
+GF-REC-00887,SRC-INDB,OSR023,Sweet couscous dessert,,,,
+GF-REC-00888,SRC-INDB,OSR024,Sweetened yogurt (Shrikhand),,,,
+GF-REC-00889,SRC-INDB,OSR025,Thickened sweetened milk (Rabri),,,,
+GF-REC-00890,SRC-INDB,OSR026,Gram flour halwa (Besan halwa),,,,
+GF-REC-00891,SRC-INDB,OSR027,Prawn sandwich,,,,
+GF-REC-00892,SRC-INDB,OSR028,Watercress sandwich,,,,
+GF-REC-00893,SRC-INDB,OSR029,Fish sandwich ,,,,
+GF-REC-00894,SRC-INDB,OSR030,Kidney bean sandwich with cottage cheese,,,,
+GF-REC-00895,SRC-INDB,OSR031,Finger millet biscuit (Ragi biscuit),,,,
+GF-REC-00896,SRC-INDB,OSR032,Buttermilk biscuit,,,,
+GF-REC-00897,SRC-INDB,OSR033,Lemon cookies,,,,
+GF-REC-00898,SRC-INDB,OSR034,Sweet potato biscuit (Shakarkand ke biscuit),,,,
+GF-REC-00899,SRC-INDB,OSR035,Raspberry shortbread cookies,,,,
+GF-REC-00900,SRC-INDB,OSR036,Pumpkin cookies ,,,,
+GF-REC-00901,SRC-INDB,OSR037,Greenpea cookies,,,,
+GF-REC-00902,SRC-INDB,OSR038,Sunflower cookies,,,,
+GF-REC-00903,SRC-INDB,OSR039,Cardamom cookies (Elaichi cookies),,,,
+GF-REC-00904,SRC-INDB,OSR040,Hazelnut cookies,,,,
+GF-REC-00905,SRC-INDB,OSR041,Milk cookies,,,,
+GF-REC-00906,SRC-INDB,OSR042,Cranberry cookies,,,,
+GF-REC-00907,SRC-INDB,OSR043,Olive biscuit,,,,
+GF-REC-00908,SRC-INDB,OSR045,Tutti fruitti biscuit,,,,
+GF-REC-00909,SRC-INDB,OSR046,Peach blueberry preserves,,,,
+GF-REC-00910,SRC-INDB,OSR047,Pear preserves (Naashpati ka murabba),,,,
+GF-REC-00911,SRC-INDB,OSR048,Starfruit preserves ,,,,
+GF-REC-00912,SRC-INDB,OSR049,Gooseberry pickle (Amla ka achaar),,,,
+GF-REC-00913,SRC-INDB,OSR050,Lotus stem pickle (Kamal kakdi ka achar),,,,
+GF-REC-00914,SRC-INDB,OSR051,Date pickle (Khajoor ka achaar),,,,
+GF-REC-00915,SRC-INDB,OSR052,Garlic pickle (Lahasun ka achar),,,,
+GF-REC-00916,SRC-INDB,OSR053,Fermented bamboo shoot pickle (Mesu pickle),,,,
+GF-REC-00917,SRC-INDB,OSR054,Sweet peach pickle (Aadoo ka achaar),,,,
+GF-REC-00918,SRC-INDB,OSR055,Pickled mustard greens ,,,,
+GF-REC-00919,SRC-INDB,OSR056,Small onion pickle ,,,,
+GF-REC-00920,SRC-INDB,OSR057,Green tomato pickle (Haray tamatar ka achaar),,,,
+GF-REC-00921,SRC-INDB,OSR058,Pickled cabbage ,,,,
+GF-REC-00922,SRC-INDB,OSR059,Coconut pickle (Nariyal ka aachar),,,,
+GF-REC-00923,SRC-INDB,OSR060,Potato pickle (Aloo ka achaar),,,,
+GF-REC-00924,SRC-INDB,OSR061,Mango murabba candy,,,,
+GF-REC-00925,SRC-INDB,OSR062,Afghani chicken,,,,
+GF-REC-00926,SRC-INDB,OSR063,Fish orly,,,,
+GF-REC-00927,SRC-INDB,OSR064,Hariyali Fish Tikka,,,,
+GF-REC-00928,SRC-INDB,OSR065,Chicken manchurian,,,,
+GF-REC-00929,SRC-INDB,OSR066,Handi chicken,,,,
+GF-REC-00930,SRC-INDB,OSR067,Lemon chicken,,,,
+GF-REC-00931,SRC-INDB,OSR068,Lemon butter fish,,,,
+GF-REC-00932,SRC-INDB,OSR069,Baked eggs in tomato sauce,,,,
+GF-REC-00933,SRC-INDB,OSR070,Egg in a pepper,,,,
+GF-REC-00934,SRC-INDB,OSR071,Spinach mushroom scrambled egg (Palak mushroom bhurji),,,,
+GF-REC-00935,SRC-INDB,OSR072,Corn omelette/omlet,,,,
+GF-REC-00936,SRC-INDB,OSR073,Cajun chicken,,,,
+GF-REC-00937,SRC-INDB,OSR074,Paaner do pyaza,,,,
+GF-REC-00938,SRC-INDB,OSR075,Cabbage manchurian (Pattagobhi manchurian),,,,
+GF-REC-00939,SRC-INDB,OSR076,Gobi 65,,,,
+GF-REC-00940,SRC-INDB,OSR077,Paneer lababdar,,,,
+GF-REC-00941,SRC-INDB,OSR078,Roasted cauliflower steak,,,,
+GF-REC-00942,SRC-INDB,OSR079,Sauteed radishes with green beans,,,,
+GF-REC-00943,SRC-INDB,OSR080,Garlic chutney/Poondu chutney (Lahasun ki chutney),,,,
+GF-REC-00944,SRC-INDB,OSR081,Schezwan chutney,,,,
+GF-REC-00945,SRC-INDB,OSR082,Bengal 5 Spice Blend (Panch Phoran),,,,
+GF-REC-00946,SRC-INDB,OSR083,Onion chutney (Pyaaz ki chutney/Vengaya chutney),,,,
+GF-REC-00947,SRC-INDB,OSR085,Dates chutney (Khajoor ki chutney),,,,
+GF-REC-00948,SRC-INDB,OSR086,Chicken salad,,,,
+GF-REC-00949,SRC-INDB,OSR087,Macaroni salad,,,,
+GF-REC-00950,SRC-INDB,OSR088,Cabbage raita (Pattagobhi raita),,,,
+GF-REC-00951,SRC-INDB,OSR089,Pomegranate raita (Anaar ka raita),,,,
+GF-REC-00952,SRC-INDB,OSR090,Onion raita (Pyaaz ka raita),,,,
+GF-REC-00953,SRC-INDB,OSR091,Green chilli raita (Hari mirch ka raita),,,,
+GF-REC-00954,SRC-INDB,OSR092,Kale salad,,,,
+GF-REC-00955,SRC-INDB,OSR093,Spinach and paneer souffle ,,,,
+GF-REC-00956,SRC-INDB,OSR094,Masala souffle ,,,,
+GF-REC-00957,SRC-INDB,OSR095,Chicken and cheese souffle,,,,
+GF-REC-00958,SRC-INDB,OSR096,Tamarind chutney (Chintapandu pachadi/Puli chutney),,,,
+GF-REC-00959,SRC-INDB,OSR097,Pav bhaji masala,,,,
+GF-REC-00960,SRC-INDB,OSR098,Green chutney,,,,
+GF-REC-00961,SRC-INDB,OSR099,Sago khitchdi/khichri (Sabudana khitchdi/khichri),,,,
+GF-REC-00962,SRC-INDB,OSR100,Gram flour chilla/cheela (Besan chilla/cheela),,,,
+GF-REC-00963,SRC-INDB,OSR101,Vegetable namkeen jave,,,,
+GF-REC-00964,SRC-INDB,OSR102,Khakhra,,,,
+GF-REC-00965,SRC-INDB,OSR103,Moong bean dosa (Pesarattu),,,,
+GF-REC-00966,SRC-INDB,OSR104,Methi thepla,,,,
+GF-REC-00967,SRC-INDB,OSR105,Rice puttu (Ari puttu),,,,
+GF-REC-00968,SRC-INDB,OSR106,Buckwheat pancake (Khura),,,,
+GF-REC-00969,SRC-INDB,OSR107,Quinoa khichdi/khichri,,,,
+GF-REC-00970,SRC-INDB,OSR108,Khakhra chaat,,,,
+GF-REC-00971,SRC-INDB,OSR110,Banana appam,,,,
+GF-REC-00972,SRC-INDB,OSR111,Veg manchurian,,,,
+GF-REC-00973,SRC-INDB,OSR112,Pav bhaji,,,,
+GF-REC-00974,SRC-INDB,OSR113,Rice murukku,,,,
+GF-REC-00975,SRC-INDB,OSR114,Bhel puri ,,,,
+GF-REC-00976,SRC-INDB,OSR115,Semolina dhokla (Suji/Rava dhokla),,,,
+GF-REC-00977,SRC-INDB,OSR116,Spicy corn chaat ,,,,
+GF-REC-00978,SRC-INDB,OSR118,Jackfruit fritters (Ponsa mulik/Kathal ka pakora),,,,
+GF-REC-00979,SRC-INDB,OSR119,Banana chips (Kele ke chips),,,,
+GF-REC-00980,SRC-INDB,OSR120,Wheat cake,,,,
+GF-REC-00981,SRC-INDB,OSR121,Mango cheesecake,,,,
+GF-REC-00982,SRC-INDB,OSR122,Carrot cake (Gajar ka cake),,,,
+GF-REC-00983,SRC-INDB,OSR123,Semolina cake (Suji/Rava cake),,,,
+GF-REC-00984,SRC-INDB,OSR124,Finger millet cake (Ragi cake),,,,
+GF-REC-00985,SRC-INDB,OSR125,Honey cake,,,,
+GF-REC-00986,SRC-INDB,OSR126,Almond cardamom cake (Badam elaichi cake),,,,
+GF-REC-00987,SRC-INDB,OSR127,Tutti frutti cake,,,,
+GF-REC-00988,SRC-INDB,OSR128,Ham and Bean soup,,,,
+GF-REC-00989,SRC-INDB,OSR129,Whey soup,,,,
+GF-REC-00990,SRC-INDB,OSR130,Bottle gourd soup (Ghiya/Lauki soup),,,,
+GF-REC-00991,SRC-INDB,OSR131,Baked potato soup,,,,
+GF-REC-00992,SRC-INDB,OSR132,Pumpkin soup,,,,
+GF-REC-00993,SRC-INDB,OSR133,Sweet corn soup,,,,
+GF-REC-00994,SRC-INDB,OSR134,Paneer soup,,,,
+GF-REC-00995,SRC-INDB,OSR135,Curried Cauliflower soup,,,,
+GF-REC-00996,SRC-INDB,OSR136,Millet soup,,,,
+GF-REC-00997,SRC-INDB,OSR137,Lemon coriander soup,,,,
+GF-REC-00998,SRC-INDB,OSR138,Garlic soup,,,,
+GF-REC-00999,SRC-INDB,OSR139,Dal makhani,,,,
+GF-REC-01000,SRC-INDB,OSR141,Dalma,,,,
+GF-REC-01001,SRC-INDB,OSR142,Split bengal gram dal (Channa dal),,,,
+GF-REC-01002,SRC-INDB,OSR143,Horsegram dal (Kulthi dal) ,,,,
+GF-REC-01003,SRC-INDB,OSR144,Panchmel dal,,,,
+GF-REC-01004,SRC-INDB,OSR145,Dal dhokli,,,,
+GF-REC-01005,SRC-INDB,OSR146,Gujarati handvo ,,,,
+GF-REC-01006,SRC-INDB,OSR147,Sev (Omapodi/Karapusa),,,,
+GF-REC-01007,SRC-INDB,OSR148,Papdi,,,,
+GF-REC-01008,SRC-INDB,OSR151,Jowar dosa,,,,
+GF-REC-01009,SRC-INDB,OSR152,Bread roll,,,,
+GF-REC-01010,SRC-INDB,OSR153,Soya seekh kebab,,,,
+GF-REC-01011,SRC-INDB,OSR154,Classic seasoned black beans,,,,
+GF-REC-01012,SRC-INDB,OSR155,Maa chaane ki dal,,,,
+GF-REC-01013,SRC-INDB,OSR156,Garlic chickpea soup (Lahasun aur chane ka shoraba),,,,
+GF-REC-01014,SRC-INDB,ASC239,Shepherd's pie (with minced meat),,,,

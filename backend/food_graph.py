@@ -169,6 +169,9 @@ def init_db() -> None:
         renamed = _apply_display_name_overrides(c)
         if renamed:
             log.info("food_graph: applied %d curated display-name override(s)", renamed)
+        fixed = _fix_source_citation_display_names(c)
+        if fixed:
+            log.info("food_graph: fixed %d entity/entities with a source-citation display_name", fixed)
 
 
 def _apply_display_name_overrides(c) -> int:
@@ -192,6 +195,30 @@ def _apply_display_name_overrides(c) -> int:
         if row is not None and row["display_name"] != name:
             c.execute("UPDATE gofit_food_entities SET display_name=? WHERE food_key=?", (name, key))
             n += 1
+    return n
+
+
+_SOURCE_CITATION_MARKERS = ("COFID", "McCance", "IFCT", "USDA", "INDB")
+
+
+def _fix_source_citation_display_names(c) -> int:
+    """Some entities were seeded with `source_name` populated with a source
+    citation string (e.g. "COFID 2021 (UK Public Health England / McCance &
+    Widdowson's)") instead of the food's actual name, which
+    `_seed_from_current_foods` then used verbatim as `display_name` --
+    surfacing the citation instead of the food name everywhere in the app
+    (search, logs, etc). `food_key` always holds the real, readable name, so
+    repair any row whose display_name still looks like a bare citation by
+    deriving a proper name from it. Idempotent: once fixed, display_name no
+    longer matches the marker set, so re-running this is a cheap no-op."""
+    n = 0
+    for row in c.execute("SELECT id, food_key, display_name FROM gofit_food_entities").fetchall():
+        name = row["display_name"] or ""
+        if not any(marker in name for marker in _SOURCE_CITATION_MARKERS):
+            continue
+        fixed_name = row["food_key"].replace("_", " ").title()
+        c.execute("UPDATE gofit_food_entities SET display_name=? WHERE id=?", (fixed_name, row["id"]))
+        n += 1
     return n
 
 

@@ -1,0 +1,14 @@
+food_or_class,portion,grams,unit,source,source_ref,status
+cooked rice,quarter cup,60,g,NHM/JSSK,turn0search38,green_source_backed
+medium chapatti,1,30,g,NHM/JSSK,turn0search38,green_source_backed
+small parantha,1,30,g,NHM/JSSK,turn0search38,green_source_backed
+small idli,2,30,g,NHM/JSSK,turn0search38,green_source_backed
+cooked upma,quarter cup,60,g,NHM/JSSK,turn0search38,green_source_backed
+cooked poha,quarter cup,60,g,NHM/JSSK,turn0search38,green_source_backed
+cooked dal,quarter cup,90,g,NHM/JSSK,turn0search38,green_source_backed
+curd,1 cup,240,g,NHM/JSSK,turn0search38,green_source_backed
+paneer,4 big slices,40,g,NHM/JSSK,turn0search38,green_source_backed
+banana,1,50,g,NHM/JSSK,turn0search38,green_source_backed
+mango/guava/pear/orange,1,100,g,NHM/JSSK,turn0search38,green_source_backed
+other vegetables,1 portion,100,g,NHM/JSSK,turn0search38,green_source_backed
+roots/tubers,1 portion,100,g,NHM/JSSK,turn0search38,green_source_backed

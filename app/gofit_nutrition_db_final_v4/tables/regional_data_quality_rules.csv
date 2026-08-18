@@ -1,0 +1,9 @@
+item,flag,rule
+Bagara Rice,ADDED_EXACT_RECIPE,Exact recipe source with 4 servings and quantities; canonical nutrition not adopted from auto-generated publisher value.
+Cooked Rice,DISTINCT_PREPARATION,Keep cooked/boiled rice separate from raw rice; never resolve cooked rice to raw nutrition.
+Pakhala Bhata,DISTINCT_PREPARATION,"Cooked rice soaked/fermented with curd/water is a prepared dish, not generic cooked rice."
+Neer Dosa,VARIANT_SEPARATION,Rice-only and rice+coconut recipes are separate variants.
+Chicken,CUT_REQUIRED,Do not use one generic chicken nutrient record when cut/skin/preparation is known.
+Mutton/Goat,CUT_REQUIRED,Do not use one generic mutton record when cut/fat/preparation is known.
+Regional dishes,NO_DUMMY_NUTRITION,Name-only/recipe-family records remain non-canonical until source quantities and nutrient mappings are complete.
+Source nutrition,PROVENANCE,Publisher-reported calories are stored separately and are not used as canonical nutrition unless source quality is appropriate.

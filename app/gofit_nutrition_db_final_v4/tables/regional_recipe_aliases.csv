@@ -1,0 +1,111 @@
+recipe_id,alias,language,alias_type
+GF-REG-00001,Bagara Rice,English,canonical
+GF-REG-00001,Bagara Annam,regional/common,regional_or_common_alias
+GF-REG-00001,Bagara Khana,regional/common,regional_or_common_alias
+GF-REG-00001,Bagara Chawal,regional/common,regional_or_common_alias
+GF-REG-00001,Baghara Rice,regional/common,regional_or_common_alias
+GF-REG-00001,Baghara Pulao,regional/common,regional_or_common_alias
+GF-REG-00002,Andhra Pulihora,English,canonical
+GF-REG-00002,Pulihora,regional/common,regional_or_common_alias
+GF-REG-00002,Chintapandu Pulihora,regional/common,regional_or_common_alias
+GF-REG-00002,Puliyogare,regional/common,regional_or_common_alias
+GF-REG-00002,Puli Sadam,regional/common,regional_or_common_alias
+GF-REG-00002,Tamarind Rice,regional/common,regional_or_common_alias
+GF-REG-00003,Pesarattu,English,canonical
+GF-REG-00003,Pesarattu,regional/common,regional_or_common_alias
+GF-REG-00003,Green Moong Dosa,regional/common,regional_or_common_alias
+GF-REG-00003,Pesara Dosa,regional/common,regional_or_common_alias
+GF-REG-00004,Gutti Vankaya Curry,English,canonical
+GF-REG-00004,Gutti Vankaya Kura,regional/common,regional_or_common_alias
+GF-REG-00004,Stuffed Brinjal Curry,regional/common,regional_or_common_alias
+GF-REG-00005,Gongura Chicken,English,canonical
+GF-REG-00005,Gongura Kodi,regional/common,regional_or_common_alias
+GF-REG-00005,Gongura Chicken Curry,regional/common,regional_or_common_alias
+GF-REG-00006,Ulavacharu,English,canonical
+GF-REG-00006,Ulavalu Charu,regional/common,regional_or_common_alias
+GF-REG-00006,Horse Gram Rasam,regional/common,regional_or_common_alias
+GF-REG-00006,Kollu Rasam,regional/common,regional_or_common_alias
+GF-REG-00007,Bisi Bele Bath,English,canonical
+GF-REG-00007,Bisi Bele Huliyanna,regional/common,regional_or_common_alias
+GF-REG-00007,Bisi Bele Bhaat,regional/common,regional_or_common_alias
+GF-REG-00007,Hot Lentil Rice,regional/common,regional_or_common_alias
+GF-REG-00008,Akki Rotti,English,canonical
+GF-REG-00008,Akki Roti,regional/common,regional_or_common_alias
+GF-REG-00008,Akki Dose,regional/common,regional_or_common_alias
+GF-REG-00008,Rice Roti,regional/common,regional_or_common_alias
+GF-REG-00009,Neer Dosa,English,canonical
+GF-REG-00009,Neer Dose,regional/common,regional_or_common_alias
+GF-REG-00009,Thellin Dose,regional/common,regional_or_common_alias
+GF-REG-00009,Bari Akki Dose,regional/common,regional_or_common_alias
+GF-REG-00010,Puttu and Kadala Curry,English,canonical
+GF-REG-00010,Puttu Kadala,regional/common,regional_or_common_alias
+GF-REG-00010,Puttu with Kadala Curry,regional/common,regional_or_common_alias
+GF-REG-00011,Kerala Vegetable Stew,English,canonical
+GF-REG-00011,Vegetable Stew,regional/common,regional_or_common_alias
+GF-REG-00011,Ishtu,regional/common,regional_or_common_alias
+GF-REG-00011,Kerala Ishtu,regional/common,regional_or_common_alias
+GF-REG-00012,Kerala Appam,English,canonical
+GF-REG-00012,Appam,regional/common,regional_or_common_alias
+GF-REG-00012,Palappam,regional/common,regional_or_common_alias
+GF-REG-00012,Vellayappam,regional/common,regional_or_common_alias
+GF-REG-00013,Chole Bhature,English,canonical
+GF-REG-00013,Chana Bhatura,regional/common,regional_or_common_alias
+GF-REG-00013,Chole Bhatura,regional/common,regional_or_common_alias
+GF-REG-00013,Chola Bhatura,regional/common,regional_or_common_alias
+GF-REG-00014,Rajma Chawal,English,canonical
+GF-REG-00014,Rajma Rice,regional/common,regional_or_common_alias
+GF-REG-00014,Rajma Bhaat,regional/common,regional_or_common_alias
+GF-REG-00015,Dal Makhani,English,canonical
+GF-REG-00015,Dal Makhni,regional/common,regional_or_common_alias
+GF-REG-00015,Maa Ki Dal,regional/common,regional_or_common_alias
+GF-REG-00016,Aloo Paratha,English,canonical
+GF-REG-00016,Aloo Parantha,regional/common,regional_or_common_alias
+GF-REG-00016,Potato Paratha,regional/common,regional_or_common_alias
+GF-REG-00017,Pav Bhaji,English,canonical
+GF-REG-00017,Mumbai Pav Bhaji,regional/common,regional_or_common_alias
+GF-REG-00017,Pav Bhaji,regional/common,regional_or_common_alias
+GF-REG-00018,Misal Pav,English,canonical
+GF-REG-00018,Misal,regional/common,regional_or_common_alias
+GF-REG-00018,Misal Pav,regional/common,regional_or_common_alias
+GF-REG-00019,Dhokla,English,canonical
+GF-REG-00019,Khaman Dhokla,regional/common,regional_or_common_alias
+GF-REG-00019,Khaman,regional/common,regional_or_common_alias
+GF-REG-00019,Dhokla,regional/common,regional_or_common_alias
+GF-REG-00020,Undhiyu,English,canonical
+GF-REG-00020,Surti Undhiyu,regional/common,regional_or_common_alias
+GF-REG-00020,Gujarati Undhiyu,regional/common,regional_or_common_alias
+GF-REG-00020,Undhiyu,regional/common,regional_or_common_alias
+GF-REG-00021,Pakhala Bhata,English,canonical
+GF-REG-00021,Pakhala,regional/common,regional_or_common_alias
+GF-REG-00021,Dahi Pakhala,regional/common,regional_or_common_alias
+GF-REG-00021,Pakhala Bhaat,regional/common,regional_or_common_alias
+GF-REG-00022,Macher Jhol,English,canonical
+GF-REG-00022,Machher Jhol,regional/common,regional_or_common_alias
+GF-REG-00022,Fish Jhol,regional/common,regional_or_common_alias
+GF-REG-00023,Dalma,English,canonical
+GF-REG-00023,Dalma,regional/common,regional_or_common_alias
+GF-REG-00023,Dalma Tarkari,regional/common,regional_or_common_alias
+GF-REG-00024,Litti Chokha,English,canonical
+GF-REG-00024,Litti Chokha,regional/common,regional_or_common_alias
+GF-REG-00024,Litti,regional/common,regional_or_common_alias
+GF-REG-00025,Gongura Mutton,English,canonical
+GF-REG-00025,Gongura Mamsam,regional/common,regional_or_common_alias
+GF-REG-00025,Gongura Mutton,regional/common,regional_or_common_alias
+GF-REG-00026,Bagara Baingan,English,canonical
+GF-REG-00026,Bagara Baingan,regional/common,regional_or_common_alias
+GF-REG-00026,Bagara Vankaya,regional/common,regional_or_common_alias
+GF-REG-00027,Tomato Rice,English,canonical
+GF-REG-00027,Thakkali Sadam,regional/common,regional_or_common_alias
+GF-REG-00027,Tomato Bath,regional/common,regional_or_common_alias
+GF-REG-00027,Tomato Rice,regional/common,regional_or_common_alias
+GF-REG-00028,Curd Rice,English,canonical
+GF-REG-00028,Thayir Sadam,regional/common,regional_or_common_alias
+GF-REG-00028,Mosaranna,regional/common,regional_or_common_alias
+GF-REG-00028,Daddojanam,regional/common,regional_or_common_alias
+GF-REG-00029,Ven Pongal,English,canonical
+GF-REG-00029,Pongal,regional/common,regional_or_common_alias
+GF-REG-00029,Ven Pongal,regional/common,regional_or_common_alias
+GF-REG-00029,Khara Pongal,regional/common,regional_or_common_alias
+GF-REG-00030,Kothu Parotta,English,canonical
+GF-REG-00030,Kothu Parotta,regional/common,regional_or_common_alias
+GF-REG-00030,Koththu Parotta,regional/common,regional_or_common_alias

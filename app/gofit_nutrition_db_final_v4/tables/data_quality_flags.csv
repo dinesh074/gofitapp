@@ -1,0 +1,91 @@
+food_id,source_id,source_record_id,flag_type,severity,value_a,value_b,relative_difference,notes
+GF-ING-00194,SRC-IFCT2017,E033,energy_macro_mismatch,high,36.5678776290631,8.39,3.358507464727425,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00330,SRC-IFCT2017,N001,energy_macro_mismatch,high,383.604206500956,191.52,1.0029459403767544,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00504,SRC-IFCT2017,Q001,energy_macro_mismatch,medium,81.97896749521988,53.61,0.5291730553109472,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00504,SRC-IFCT2017,S007,energy_macro_mismatch,medium,78.1548757170172,60.93,0.28269942092593475,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00527,SRC-IFCT2017,T001,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00528,SRC-IFCT2017,T002,energy_macro_mismatch,high,0.0,900.09,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00529,SRC-IFCT2017,T003,energy_macro_mismatch,high,0.0,899.91,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00530,SRC-IFCT2017,T004,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00531,SRC-IFCT2017,T005,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00532,SRC-IFCT2017,T006,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00533,SRC-IFCT2017,T007,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00534,SRC-IFCT2017,T008,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00535,SRC-IFCT2017,T009,energy_macro_mismatch,high,0.0,900.09,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00536,SRC-IFCT2017,T010,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00537,SRC-IFCT2017,T011,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00538,SRC-IFCT2017,T012,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00539,SRC-IFCT2017,T013,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00540,SRC-IFCT2017,T014,energy_macro_mismatch,high,0.0,900.0,1.0,Source value preserved; verify record/units before using for calorie tracking.
+GF-ING-00011,SRC-IFCT2017,A011,explicit_preparation_or_cut,info,flakes,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00012,SRC-IFCT2017,A012,explicit_preparation_or_cut,info,puffed,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00013,SRC-IFCT2017,A013,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00014,SRC-IFCT2017,A014,explicit_preparation_or_cut,info,boiled;parboiled,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00015,SRC-IFCT2017,A015,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00020,SRC-IFCT2017,A020,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00024,SRC-IFCT2017,A024,explicit_preparation_or_cut,info,roasted,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00026,SRC-IFCT2017,B002,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00028,SRC-IFCT2017,B004,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00035,SRC-IFCT2017,B011,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00036,SRC-IFCT2017,B012,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00038,SRC-IFCT2017,B014,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00039,SRC-IFCT2017,B015,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00046,SRC-IFCT2017,B022,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00134,SRC-IFCT2017,D051,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00140,SRC-IFCT2017,D057,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00142,SRC-IFCT2017,D059,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00224,SRC-IFCT2017,E063,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00281,SRC-IFCT2017,G033,explicit_preparation_or_cut,info,powder,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00311,SRC-IFCT2017,L001,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00312,SRC-IFCT2017,L002,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00315,SRC-IFCT2017,M001,explicit_preparation_or_cut,info,raw;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00316,SRC-IFCT2017,M002,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00317,SRC-IFCT2017,M003,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00318,SRC-IFCT2017,M004,explicit_preparation_or_cut,info,boiled;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00319,SRC-IFCT2017,M005,explicit_preparation_or_cut,info,boiled,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00320,SRC-IFCT2017,M006,explicit_preparation_or_cut,info,boiled,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00322,SRC-IFCT2017,M008,explicit_preparation_or_cut,info,raw;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00323,SRC-IFCT2017,M009,explicit_preparation_or_cut,info,boiled;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00325,SRC-IFCT2017,M011,explicit_preparation_or_cut,info,boiled;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00326,SRC-IFCT2017,M012,explicit_preparation_or_cut,info,raw;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00327,SRC-IFCT2017,M013,explicit_preparation_or_cut,info,whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00328,SRC-IFCT2017,M014,explicit_preparation_or_cut,info,raw;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00329,SRC-IFCT2017,M015,explicit_preparation_or_cut,info,boiled;whole,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00330,SRC-IFCT2017,N001,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00331,SRC-IFCT2017,N002,explicit_preparation_or_cut,info,thigh,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00332,SRC-IFCT2017,N003,explicit_preparation_or_cut,info,breast,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00333,SRC-IFCT2017,N004,explicit_preparation_or_cut,info,wing,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00334,SRC-IFCT2017,N005,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00336,SRC-IFCT2017,N007,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00337,SRC-IFCT2017,N008,explicit_preparation_or_cut,info,thigh,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00338,SRC-IFCT2017,N009,explicit_preparation_or_cut,info,breast,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00339,SRC-IFCT2017,N010,explicit_preparation_or_cut,info,wing,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00345,SRC-IFCT2017,N016,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00346,SRC-IFCT2017,N017,explicit_preparation_or_cut,info,thigh,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00347,SRC-IFCT2017,N018,explicit_preparation_or_cut,info,breast,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00348,SRC-IFCT2017,N019,explicit_preparation_or_cut,info,wing,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00350,SRC-IFCT2017,O002,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00351,SRC-IFCT2017,O003,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00356,SRC-IFCT2017,O008,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00363,SRC-IFCT2017,O015,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00364,SRC-IFCT2017,O016,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00369,SRC-IFCT2017,O021,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00374,SRC-IFCT2017,O026,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00375,SRC-IFCT2017,O027,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00380,SRC-IFCT2017,O032,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00385,SRC-IFCT2017,O037,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00386,SRC-IFCT2017,O038,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00390,SRC-IFCT2017,O042,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00394,SRC-IFCT2017,O046,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00395,SRC-IFCT2017,O047,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00397,SRC-IFCT2017,O049,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00401,SRC-IFCT2017,O053,explicit_preparation_or_cut,info,liver,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00407,SRC-IFCT2017,O059,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00408,SRC-IFCT2017,O060,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00410,SRC-IFCT2017,O062,explicit_preparation_or_cut,info,chops,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00411,SRC-IFCT2017,O063,explicit_preparation_or_cut,info,leg,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00510,SRC-IFCT2017,Q007,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00511,SRC-IFCT2017,Q008,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00524,SRC-IFCT2017,S008,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00525,SRC-IFCT2017,S009,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.
+GF-ING-00526,SRC-IFCT2017,S010,explicit_preparation_or_cut,info,raw,,,Keep distinct; recognition should preserve preparation/cut.

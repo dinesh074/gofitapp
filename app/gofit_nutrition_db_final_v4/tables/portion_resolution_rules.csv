@@ -1,0 +1,13 @@
+input_type,resolution,status,implementation
+grams,direct grams,green,Use exactly.
+pieces,food-specific piece weight/edible weight,green_when_source_backed,Never use a universal piece weight.
+small/medium/large,food-specific size conversion,green_when_source_backed,Size must map to a source-backed weight.
+cup,240 ml standard; grams food-specific,green_when_density_or_food_weight_exists,Do not assume all foods have same grams per cup.
+bowl/katori,200 ml vessel; grams food-specific,green_when_density_or_food_weight_exists,Katori is a volume standard.
+plate,recipe/food-specific serving,green_when_source_defined,Never define a universal plate weight.
+handi,recipe yield / source servings / calibrated container,green_when_recipe_or_calibrated,"Handi is a container, not a universal mass."
+glass,250 ml standard; grams food-specific,green_when_density_or_food_weight_exists,Use food-specific density/weight.
+joint/cut,source-backed edible weight,green_when_source_backed,"Preserve species, cut, bone and skin."
+1/2 serving,fraction of source-defined serving,green,Scale source serving nutrition by 0.5.
+1/4 serving,fraction of source-defined serving,green,Scale source serving nutrition by 0.25.
+2 servings,multiple of source-defined serving,green,Scale source serving nutrition by 2.

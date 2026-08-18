@@ -1,0 +1,1015 @@
+food_id,recipe_code,recipe_name,recipe_source_type,source_id,source_record_id
+GF-REC-00001,ASC001,Hot tea (Garam Chai),asc_manual,SRC-INDB,ASC001
+GF-REC-00002,ASC002,Instant coffee,asc_manual,SRC-INDB,ASC002
+GF-REC-00003,ASC003,Espreso coffee,asc_manual,SRC-INDB,ASC003
+GF-REC-00004,ASC004,Iced tea,asc_manual,SRC-INDB,ASC004
+GF-REC-00005,ASC005,Raw mango drink (Aam panna),asc_manual,SRC-INDB,ASC005
+GF-REC-00006,ASC006,Fruit Punch (with fresh juices),asc_manual,SRC-INDB,ASC006
+GF-REC-00007,ASC007,Fruit Punch (with squashes),asc_manual,SRC-INDB,ASC007
+GF-REC-00008,ASC008,Lemonade,asc_manual,SRC-INDB,ASC008
+GF-REC-00009,ASC009,Lem-o-gin,asc_manual,SRC-INDB,ASC009
+GF-REC-00010,ASC010,Cumin infused water (Jeere/Zeere ka pani),asc_manual,SRC-INDB,ASC010
+GF-REC-00011,ASC011,Coco pine cooler,asc_manual,SRC-INDB,ASC011
+GF-REC-00012,ASC012,Summer cooler,asc_manual,SRC-INDB,ASC012
+GF-REC-00013,ASC014,Hot cocoa,asc_manual,SRC-INDB,ASC014
+GF-REC-00014,ASC015,Cold coffee with ice cream,asc_manual,SRC-INDB,ASC015
+GF-REC-00015,ASC016,Banana milkshake (Kele milkshake),asc_manual,SRC-INDB,ASC016
+GF-REC-00016,ASC017,Mango milkshake (Aam milkshake),asc_manual,SRC-INDB,ASC017
+GF-REC-00017,ASC018,Pineapple milkshake (Ananas milkshake),asc_manual,SRC-INDB,ASC018
+GF-REC-00018,ASC019,Orange milkshake (Narangi milkshake),asc_manual,SRC-INDB,ASC019
+GF-REC-00019,ASC020,Egg nog,asc_manual,SRC-INDB,ASC020
+GF-REC-00020,ASC021,Sweet Lassi (Meethi lassi),asc_manual,SRC-INDB,ASC021
+GF-REC-00021,ASC022,Lassi (salted),asc_manual,SRC-INDB,ASC022
+GF-REC-00022,ASC023,Cheese and chilli sandwich ,asc_manual,SRC-INDB,ASC023
+GF-REC-00023,ASC024,Egg sandwich (Ande ka sandwich),asc_manual,SRC-INDB,ASC024
+GF-REC-00024,ASC025,Cucumber sandwich (Kheere ka sandwich),asc_manual,SRC-INDB,ASC025
+GF-REC-00025,ASC026,Cheese and pineapple sandwich (Cheese aur ananas ka sandwich),asc_manual,SRC-INDB,ASC026
+GF-REC-00026,ASC027,Cheese and tomato sandwich (Cheese aur tamatar ke sandwich),asc_manual,SRC-INDB,ASC027
+GF-REC-00027,ASC028,Chicken sandwich,asc_manual,SRC-INDB,ASC028
+GF-REC-00028,ASC029,Peanut and tomato sandwich (Moongfali aur tamatar ka sandwich),asc_manual,SRC-INDB,ASC029
+GF-REC-00029,ASC030,Rainbow sandwich,asc_manual,SRC-INDB,ASC030
+GF-REC-00030,ASC031,Club sandwich ,asc_manual,SRC-INDB,ASC031
+GF-REC-00031,ASC032,Vegetarian club sandwich,asc_manual,SRC-INDB,ASC032
+GF-REC-00032,ASC033,Pin wheel sandwich,asc_manual,SRC-INDB,ASC033
+GF-REC-00033,ASC034,Carrot apple sandwich (Gajar aur seb ka sandwich),asc_manual,SRC-INDB,ASC034
+GF-REC-00034,ASC035,Salami sandwich,asc_manual,SRC-INDB,ASC035
+GF-REC-00035,ASC036,Vegetable and mayonnaise sandwich,asc_manual,SRC-INDB,ASC036
+GF-REC-00036,ASC037,Egg and tomato sandwich (Ande aur tamatar ka sandwich),asc_manual,SRC-INDB,ASC037
+GF-REC-00037,ASC038,Sweet open sandwich,asc_manual,SRC-INDB,ASC038
+GF-REC-00038,ASC039,Mushroom and cheese sandwich (toasted),asc_manual,SRC-INDB,ASC039
+GF-REC-00039,ASC040,Cheese and tomato sandwich (toasted) (Cheese aur tamatar ke sandwich (toasted)),asc_manual,SRC-INDB,ASC040
+GF-REC-00040,ASC041,Pea potato sandwich (toasted) (Matar aloo ka sandwich),asc_manual,SRC-INDB,ASC041
+GF-REC-00041,ASC042,Paneer pea sandwich (toasted) (Paneer matar ka sandwich),asc_manual,SRC-INDB,ASC042
+GF-REC-00042,ASC043,Chicken sandwich (toasted),asc_manual,SRC-INDB,ASC043
+GF-REC-00043,ASC044,Pea keema sandwich (toasted) (Matar aur keema ka sandwich),asc_manual,SRC-INDB,ASC044
+GF-REC-00044,ASC045,Classic club sandwich,asc_manual,SRC-INDB,ASC045
+GF-REC-00045,ASC046,Sesame toast,asc_manual,SRC-INDB,ASC046
+GF-REC-00046,ASC047,Cracked wheat porridge (Meetha daliya),asc_manual,SRC-INDB,ASC047
+GF-REC-00047,ASC048,Semolina porridge (Suji/Rava daliya),asc_manual,SRC-INDB,ASC048
+GF-REC-00048,ASC050,Oatmeal Porridge,asc_manual,SRC-INDB,ASC050
+GF-REC-00049,ASC051,Cornflakes with milk,asc_manual,SRC-INDB,ASC051
+GF-REC-00050,ASC052,Rice flakes (Chiwda/Aval),asc_manual,SRC-INDB,ASC052
+GF-REC-00051,ASC053,Wheat flakes,asc_manual,SRC-INDB,ASC053
+GF-REC-00052,ASC054,Murmura (Puffed rice),asc_manual,SRC-INDB,ASC054
+GF-REC-00053,ASC055,Puffed wheat (Murmure/Moori),asc_manual,SRC-INDB,ASC055
+GF-REC-00054,ASC056,Boiled egg (Ubla anda),asc_manual,SRC-INDB,ASC056
+GF-REC-00055,ASC057,Fried Egg ,asc_manual,SRC-INDB,ASC057
+GF-REC-00056,ASC058,Poached egg,asc_manual,SRC-INDB,ASC058
+GF-REC-00057,ASC059,Scrambled egg (Ande ki bhurji),asc_manual,SRC-INDB,ASC059
+GF-REC-00058,ASC060,Baked egg ,asc_manual,SRC-INDB,ASC060
+GF-REC-00059,ASC061,Plain omelette/omlet,asc_manual,SRC-INDB,ASC061
+GF-REC-00060,ASC062,Stuffed egg omelette/omlet,asc_manual,SRC-INDB,ASC062
+GF-REC-00061,ASC063,Pancake,asc_manual,SRC-INDB,ASC063
+GF-REC-00062,ASC064,Keema pancake,asc_manual,SRC-INDB,ASC064
+GF-REC-00063,ASC065,Vegetable pancake,asc_manual,SRC-INDB,ASC065
+GF-REC-00064,ASC066,Jam and fruit pancake,asc_manual,SRC-INDB,ASC066
+GF-REC-00065,ASC067,Khoa and coconut pancake,asc_manual,SRC-INDB,ASC067
+GF-REC-00066,ASC068,Brown stock,asc_manual,SRC-INDB,ASC068
+GF-REC-00067,ASC069,Vegetable stock,asc_manual,SRC-INDB,ASC069
+GF-REC-00068,ASC070,Chicken stock,asc_manual,SRC-INDB,ASC070
+GF-REC-00069,ASC071,White sauce (thin),asc_manual,SRC-INDB,ASC071
+GF-REC-00070,ASC072,White sauce (medium),asc_manual,SRC-INDB,ASC072
+GF-REC-00071,ASC073,White sauce (thick),asc_manual,SRC-INDB,ASC073
+GF-REC-00072,ASC074,Cheese sauce,asc_manual,SRC-INDB,ASC074
+GF-REC-00073,ASC075,Egg sauce,asc_manual,SRC-INDB,ASC075
+GF-REC-00074,ASC076,Mushroom sauce,asc_manual,SRC-INDB,ASC076
+GF-REC-00075,ASC077,Mustard sauce,asc_manual,SRC-INDB,ASC077
+GF-REC-00076,ASC078,Brown sauce,asc_manual,SRC-INDB,ASC078
+GF-REC-00077,ASC079,Clear tomato soup (Tamatar ka soup),asc_manual,SRC-INDB,ASC079
+GF-REC-00078,ASC080,Lentil soup,asc_manual,SRC-INDB,ASC080
+GF-REC-00079,ASC081,Chicken consomme (Clear chicken soup),asc_manual,SRC-INDB,ASC081
+GF-REC-00080,ASC082,Cream of tomato soup,asc_manual,SRC-INDB,ASC082
+GF-REC-00081,ASC083,Cream of green peas soup,asc_manual,SRC-INDB,ASC083
+GF-REC-00082,ASC084,Cream of spinach soup,asc_manual,SRC-INDB,ASC084
+GF-REC-00083,ASC085,Cream of mixed vegetable soup,asc_manual,SRC-INDB,ASC085
+GF-REC-00084,ASC086,Cream of mushroom soup,asc_manual,SRC-INDB,ASC086
+GF-REC-00085,ASC087,Chicken sweet corn soup,asc_manual,SRC-INDB,ASC087
+GF-REC-00086,ASC088,Minestrone soup,asc_manual,SRC-INDB,ASC088
+GF-REC-00087,ASC089,Egg drop soup,asc_manual,SRC-INDB,ASC089
+GF-REC-00088,ASC090,Chinese cabbage and meat ball soup,asc_manual,SRC-INDB,ASC090
+GF-REC-00089,ASC091,French onion soup,asc_manual,SRC-INDB,ASC091
+GF-REC-00090,ASC092,Hot and sour soup,asc_manual,SRC-INDB,ASC092
+GF-REC-00091,ASC093,Talaumein soup,asc_manual,SRC-INDB,ASC093
+GF-REC-00092,ASC094,Cold cucumber soup (Thanda kheere ka soup),asc_manual,SRC-INDB,ASC094
+GF-REC-00093,ASC095,Cold summer garden soup,asc_manual,SRC-INDB,ASC095
+GF-REC-00094,ASC096,Chapati/Roti,asc_manual,SRC-INDB,ASC096
+GF-REC-00095,ASC097,Plain parantha/paratha,asc_manual,SRC-INDB,ASC097
+GF-REC-00096,ASC098,Potato parantha/paratha (Aloo ka parantha/paratha),asc_manual,SRC-INDB,ASC098
+GF-REC-00097,ASC099,Radish parantha/paratha (Mooli ka parantha/paratha),asc_manual,SRC-INDB,ASC099
+GF-REC-00098,ASC100,Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha),asc_manual,SRC-INDB,ASC100
+GF-REC-00099,ASC101,Dal parantha/paratha,asc_manual,SRC-INDB,ASC101
+GF-REC-00100,ASC102,Sprouted moong parantha/paratha,asc_manual,SRC-INDB,ASC102
+GF-REC-00101,ASC103,Pea parantha/paratha (Matar ka parantha/paratha),asc_manual,SRC-INDB,ASC103
+GF-REC-00102,ASC104,Keema parantha/paratha,asc_manual,SRC-INDB,ASC104
+GF-REC-00103,ASC105,Paneer parantha/paratha,asc_manual,SRC-INDB,ASC105
+GF-REC-00104,ASC106,Besan and spinach parantha/paratha (Besan aur palak ka parantha/paratha),asc_manual,SRC-INDB,ASC106
+GF-REC-00105,ASC107,Poori,asc_manual,SRC-INDB,ASC107
+GF-REC-00106,ASC108,Spinach poori (Palak poori),asc_manual,SRC-INDB,ASC108
+GF-REC-00107,ASC109,Methi poori,asc_manual,SRC-INDB,ASC109
+GF-REC-00108,ASC110,Dal stuffed poori,asc_manual,SRC-INDB,ASC110
+GF-REC-00109,ASC111,Potato stuffed poori (Aloo ki poori),asc_manual,SRC-INDB,ASC111
+GF-REC-00110,ASC112,Tandoori parantha/paratha,asc_manual,SRC-INDB,ASC112
+GF-REC-00111,ASC113,Boiled rice (Uble chawal),asc_manual,SRC-INDB,ASC113
+GF-REC-00112,ASC114,Plain pulao,asc_manual,SRC-INDB,ASC114
+GF-REC-00113,ASC115,Mixed vegetable pulao,asc_manual,SRC-INDB,ASC115
+GF-REC-00114,ASC116,Mushroom pulao,asc_manual,SRC-INDB,ASC116
+GF-REC-00115,ASC117,Sprouted moong pulao,asc_manual,SRC-INDB,ASC117
+GF-REC-00116,ASC118,Paneer pulao,asc_manual,SRC-INDB,ASC118
+GF-REC-00117,ASC119,Peanut pulao ,asc_manual,SRC-INDB,ASC119
+GF-REC-00118,ASC120,Navratan pulao,asc_manual,SRC-INDB,ASC120
+GF-REC-00119,ASC121,Green chickpeas pulao (Choliya pulao/Hare chane ka pulao),asc_manual,SRC-INDB,ASC121
+GF-REC-00120,ASC122,Mutton biryani/biriyani,asc_manual,SRC-INDB,ASC122
+GF-REC-00121,ASC123,Vegetable biryani/biriyani,asc_manual,SRC-INDB,ASC123
+GF-REC-00122,ASC124,"Lemon rice (Pulihora, Elumichai sadam, Chitranna)",asc_manual,SRC-INDB,ASC124
+GF-REC-00123,ASC125,Sweet rice (Meethe chawal),asc_manual,SRC-INDB,ASC125
+GF-REC-00124,ASC126,Curd rice (Dahi bhaat/Dahi chawal/ Perugu annam/Daddojanam/Thayir saadam),asc_manual,SRC-INDB,ASC126
+GF-REC-00125,ASC127,Tamarind rice (Chintapandu pulihora/Puliyodharai/Puli sadam/Huli anna),asc_manual,SRC-INDB,ASC127
+GF-REC-00126,ASC128,Spanish rice,asc_manual,SRC-INDB,ASC128
+GF-REC-00127,ASC129,Chinese fried rice,asc_manual,SRC-INDB,ASC129
+GF-REC-00128,ASC130,Classic italian pasta,asc_manual,SRC-INDB,ASC130
+GF-REC-00129,ASC131,Pasta spinach sauce,asc_manual,SRC-INDB,ASC131
+GF-REC-00130,ASC132,Pasta cheese sauce,asc_manual,SRC-INDB,ASC132
+GF-REC-00131,ASC133,Macroni cheese pie,asc_manual,SRC-INDB,ASC133
+GF-REC-00132,ASC134,Vegetable chowmein,asc_manual,SRC-INDB,ASC134
+GF-REC-00133,ASC135,Chicken chowmein,asc_manual,SRC-INDB,ASC135
+GF-REC-00134,ASC136,Cheese noodle ring,asc_manual,SRC-INDB,ASC136
+GF-REC-00135,ASC137,Spaghetti and cheese balls in tomato sauce,asc_manual,SRC-INDB,ASC137
+GF-REC-00136,ASC138,Penne platter,asc_manual,SRC-INDB,ASC138
+GF-REC-00137,ASC139,Pasta hot pot,asc_manual,SRC-INDB,ASC139
+GF-REC-00138,ASC140,Chicken lasagne,asc_manual,SRC-INDB,ASC140
+GF-REC-00139,ASC141,Fettuccine with spinach sauce,asc_manual,SRC-INDB,ASC141
+GF-REC-00140,ASC142,Naan,asc_manual,SRC-INDB,ASC142
+GF-REC-00141,ASC143,Bhatura,asc_manual,SRC-INDB,ASC143
+GF-REC-00142,ASC144,Idli,asc_manual,SRC-INDB,ASC144
+GF-REC-00143,ASC146,Masala dosa,asc_manual,SRC-INDB,ASC146
+GF-REC-00144,ASC147,Semolina dosa (Suji/Rava dosa),asc_manual,SRC-INDB,ASC147
+GF-REC-00145,ASC148,Onion tomato uttapam,asc_manual,SRC-INDB,ASC148
+GF-REC-00146,ASC149,Paneer kaathi roll,asc_manual,SRC-INDB,ASC149
+GF-REC-00147,ASC150,Makki ki roti,asc_manual,SRC-INDB,ASC150
+GF-REC-00148,ASC151,Washed moong dal (Dhuli moong ki dal),asc_manual,SRC-INDB,ASC151
+GF-REC-00149,ASC152,Washed urad dal (Dhuli urad ki dal),asc_manual,SRC-INDB,ASC152
+GF-REC-00150,ASC153,Split bengal gram with bottle gourd (Channa dal with ghiya/lauki),asc_manual,SRC-INDB,ASC153
+GF-REC-00151,ASC154,Dry washed urad,asc_manual,SRC-INDB,ASC154
+GF-REC-00152,ASC155,Mixed dal,asc_manual,SRC-INDB,ASC155
+GF-REC-00153,ASC156,Whole moong (Moong ki dal),asc_manual,SRC-INDB,ASC156
+GF-REC-00154,ASC157,Whole masoor (Masoor ki dal),asc_manual,SRC-INDB,ASC157
+GF-REC-00155,ASC158,Whole moth (Moth ki dal),asc_manual,SRC-INDB,ASC158
+GF-REC-00156,ASC159,Whole urad (Urad ki dal),asc_manual,SRC-INDB,ASC159
+GF-REC-00157,ASC160,Moti mahal dal (Urad rajmah mix dal),asc_manual,SRC-INDB,ASC160
+GF-REC-00158,ASC161,Black channa curry/Bengal gram curry (Kale chane ki curry),asc_manual,SRC-INDB,ASC161
+GF-REC-00159,ASC162,Chickpeas curry (Safed channa curry),asc_manual,SRC-INDB,ASC162
+GF-REC-00160,ASC163,Lobia curry,asc_manual,SRC-INDB,ASC163
+GF-REC-00161,ASC164,Soyabean curry,asc_manual,SRC-INDB,ASC164
+GF-REC-00162,ASC165,Kidney bean curry (Rajmah curry),asc_manual,SRC-INDB,ASC165
+GF-REC-00163,ASC167,Sambar,asc_manual,SRC-INDB,ASC167
+GF-REC-00164,ASC168,Besan kadhi with pakodies,asc_manual,SRC-INDB,ASC168
+GF-REC-00165,ASC169,Khatta channa,asc_manual,SRC-INDB,ASC169
+GF-REC-00166,ASC170,Sprouted moong dal chat,asc_manual,SRC-INDB,ASC170
+GF-REC-00167,ASC171,Potato cauliflower (Aloo gobhi),asc_manual,SRC-INDB,ASC171
+GF-REC-00168,ASC172,Potato capsicum (Shimla mirch aloo),asc_manual,SRC-INDB,ASC172
+GF-REC-00169,ASC173,Cabbage and peas (Pattagobhi aur matar),asc_manual,SRC-INDB,ASC173
+GF-REC-00170,ASC174,Carrot and fenugreek leaves (Gajar methi),asc_manual,SRC-INDB,ASC174
+GF-REC-00171,ASC175,Potato fenugreek (Aloo methi),asc_manual,SRC-INDB,ASC175
+GF-REC-00172,ASC177,Brinjal bhartha (Baingan ka bhartha),asc_manual,SRC-INDB,ASC177
+GF-REC-00173,ASC178,Dry potato (Sookhe aloo),asc_manual,SRC-INDB,ASC178
+GF-REC-00174,ASC179,Beans with coconut (Nariyal aur sem/phali; Beans thoran),asc_manual,SRC-INDB,ASC179
+GF-REC-00175,ASC180,Cauliflower with coconut (Nariyal ke saath phoolgobhi),asc_manual,SRC-INDB,ASC180
+GF-REC-00176,ASC181,Carrot and cabbage with coconut (Nariyal ke saath pattagobhi aur gajar),asc_manual,SRC-INDB,ASC181
+GF-REC-00177,ASC182,Raw turnip with coconut ,asc_manual,SRC-INDB,ASC182
+GF-REC-00178,ASC183,Raw papaya with coconut (Papaya thoran),asc_manual,SRC-INDB,ASC183
+GF-REC-00179,ASC184,Stuffed okra (Bharwa bhindi),asc_manual,SRC-INDB,ASC184
+GF-REC-00180,ASC185,Stuffed round gourd (Bharwa tinde),asc_manual,SRC-INDB,ASC185
+GF-REC-00181,ASC186,Stuffed capsicum (Bharwa shimla mirch),asc_manual,SRC-INDB,ASC186
+GF-REC-00182,ASC187,Stuffed brinjal (Bharwa baingan),asc_manual,SRC-INDB,ASC187
+GF-REC-00183,ASC189,Stuffed tomatoes (Bharwa tamatar),asc_manual,SRC-INDB,ASC189
+GF-REC-00184,ASC190,Pea potato curry (Aloo matar),asc_manual,SRC-INDB,ASC190
+GF-REC-00185,ASC191,Pea paneer curry (Matar paneer),asc_manual,SRC-INDB,ASC191
+GF-REC-00186,ASC192,Pea mushroom curry (Matar mushroom),asc_manual,SRC-INDB,ASC192
+GF-REC-00187,ASC193,Pea curry (Matar ki sabzi),asc_manual,SRC-INDB,ASC193
+GF-REC-00188,ASC194,Pea vadi curry,asc_manual,SRC-INDB,ASC194
+GF-REC-00189,ASC195,Paneer curry,asc_manual,SRC-INDB,ASC195
+GF-REC-00190,ASC196,Lotus stem curry (Kamal kakdi curry),asc_manual,SRC-INDB,ASC196
+GF-REC-00191,ASC197,Gravy for kofta,asc_manual,SRC-INDB,ASC197
+GF-REC-00192,ASC198,Pea kofta curry (Matar kofta curry),asc_manual,SRC-INDB,ASC198
+GF-REC-00193,ASC199,Spinach kofta curry (Palak kofta curry),asc_manual,SRC-INDB,ASC199
+GF-REC-00194,ASC200,Paneer kofta curry,asc_manual,SRC-INDB,ASC200
+GF-REC-00195,ASC201,Lotus stem kofta curry (Kamal kakdi kofta curry),asc_manual,SRC-INDB,ASC201
+GF-REC-00196,ASC202,Raw banana kofta curry (Kela kofta curry),asc_manual,SRC-INDB,ASC202
+GF-REC-00197,ASC203,Cauliflower kofta curry (Phoolgobhi kofta curry),asc_manual,SRC-INDB,ASC203
+GF-REC-00198,ASC204,Cabbage kofta curry (Pattagobhi kofta curry),asc_manual,SRC-INDB,ASC204
+GF-REC-00199,ASC205,Ghiya/Lauki Kofta Curry,asc_manual,SRC-INDB,ASC205
+GF-REC-00200,ASC206,Spinach paneer kofta curry (Palak paneer kofta curry),asc_manual,SRC-INDB,ASC206
+GF-REC-00201,ASC207,Vegetarian egg kofta curry,asc_manual,SRC-INDB,ASC207
+GF-REC-00202,ASC208,Baked vegetables,asc_manual,SRC-INDB,ASC208
+GF-REC-00203,ASC209,Cauliflower musallam (Phoolgobhi musallam),asc_manual,SRC-INDB,ASC209
+GF-REC-00204,ASC210,Baked vegetables with spinach ,asc_manual,SRC-INDB,ASC210
+GF-REC-00205,ASC211,Baked potato with skin ,asc_manual,SRC-INDB,ASC211
+GF-REC-00206,ASC212,Shepherd's pie (vegetarian),asc_manual,SRC-INDB,ASC212
+GF-REC-00207,ASC213,Baked brinjal in tomato sauce,asc_manual,SRC-INDB,ASC213
+GF-REC-00208,ASC214,Dum aloo,asc_manual,SRC-INDB,ASC214
+GF-REC-00209,ASC215,Spinach paneer (Palak paneer),asc_manual,SRC-INDB,ASC215
+GF-REC-00210,ASC216,Methi chaman,asc_manual,SRC-INDB,ASC216
+GF-REC-00211,ASC217,Sarson ka saag,asc_manual,SRC-INDB,ASC217
+GF-REC-00212,ASC218,Jackfruit sabzi (Kathal ki sabzi),asc_manual,SRC-INDB,ASC218
+GF-REC-00213,ASC219,Avial,asc_manual,SRC-INDB,ASC219
+GF-REC-00214,ASC220,Al yakhani,asc_manual,SRC-INDB,ASC220
+GF-REC-00215,ASC221,Shahi paneer,asc_manual,SRC-INDB,ASC221
+GF-REC-00216,ASC222,Paneer in butter sauce,asc_manual,SRC-INDB,ASC222
+GF-REC-00217,ASC223,Methi malai paneer,asc_manual,SRC-INDB,ASC223
+GF-REC-00218,ASC224,Chilli paneer,asc_manual,SRC-INDB,ASC224
+GF-REC-00219,ASC225,Paneer makhana korma,asc_manual,SRC-INDB,ASC225
+GF-REC-00220,ASC226,Kadhai Paneer,asc_manual,SRC-INDB,ASC226
+GF-REC-00221,ASC227,Roghan josh,asc_manual,SRC-INDB,ASC227
+GF-REC-00222,ASC228,Spinach mutton (Palak mutton),asc_manual,SRC-INDB,ASC228
+GF-REC-00223,ASC229,Pea keema curry (Matar keema ki sabzi),asc_manual,SRC-INDB,ASC229
+GF-REC-00224,ASC230,Keema kofta curry,asc_manual,SRC-INDB,ASC230
+GF-REC-00225,ASC231,Kashmiri mutton koftas (Gushtaba),asc_manual,SRC-INDB,ASC231
+GF-REC-00226,ASC232,Mutton yakhni,asc_manual,SRC-INDB,ASC232
+GF-REC-00227,ASC233,Chicken yakhni,asc_manual,SRC-INDB,ASC233
+GF-REC-00228,ASC234,Mutton do piaza,asc_manual,SRC-INDB,ASC234
+GF-REC-00229,ASC236,Mutton chops,asc_manual,SRC-INDB,ASC236
+GF-REC-00230,ASC237,Shammi kebab,asc_manual,SRC-INDB,ASC237
+GF-REC-00231,ASC238,Scotch egg,asc_manual,SRC-INDB,ASC238
+GF-REC-00232,ASC240,Chicken curry,asc_manual,SRC-INDB,ASC240
+GF-REC-00233,ASC241,Tandoori chicken,asc_manual,SRC-INDB,ASC241
+GF-REC-00234,ASC242,Butter chicken,asc_manual,SRC-INDB,ASC242
+GF-REC-00235,ASC243,Chicken kebab,asc_manual,SRC-INDB,ASC243
+GF-REC-00236,ASC244,Chilli chicken,asc_manual,SRC-INDB,ASC244
+GF-REC-00237,ASC245,Fried chicken with tomato sauce (Fried chicken tamatar ki chutney kay saath),asc_manual,SRC-INDB,ASC245
+GF-REC-00238,ASC246,Fish curry (Machli curry),asc_manual,SRC-INDB,ASC246
+GF-REC-00239,ASC247,Fried fish (Indian style) (Tali hui machli),asc_manual,SRC-INDB,ASC247
+GF-REC-00240,ASC248,Fried fish and Chips (English Style) (Tali hui machli aur chips),asc_manual,SRC-INDB,ASC248
+GF-REC-00241,ASC249,Tomato fish,asc_manual,SRC-INDB,ASC249
+GF-REC-00242,ASC250,Baked fish with cheese sauce,asc_manual,SRC-INDB,ASC250
+GF-REC-00243,ASC251,Fish tikka,asc_manual,SRC-INDB,ASC251
+GF-REC-00244,ASC252,Tandoori fish,asc_manual,SRC-INDB,ASC252
+GF-REC-00245,ASC253,"Paneer, apple and pineapple salad",asc_manual,SRC-INDB,ASC253
+GF-REC-00246,ASC254,Russian salad,asc_manual,SRC-INDB,ASC254
+GF-REC-00247,ASC255,Pasta salad,asc_manual,SRC-INDB,ASC255
+GF-REC-00248,ASC256,Deviled egg,asc_manual,SRC-INDB,ASC256
+GF-REC-00249,ASC257,Hawain salad,asc_manual,SRC-INDB,ASC257
+GF-REC-00250,ASC258,Mixed pulse and vegetable salad,asc_manual,SRC-INDB,ASC258
+GF-REC-00251,ASC259,Sprouted moong salad ,asc_manual,SRC-INDB,ASC259
+GF-REC-00252,ASC260,Tossed salad,asc_manual,SRC-INDB,ASC260
+GF-REC-00253,ASC261,Mixed vegetable salad with curd sauce,asc_manual,SRC-INDB,ASC261
+GF-REC-00254,ASC262,Potato salad (Aloo ka salaad),asc_manual,SRC-INDB,ASC262
+GF-REC-00255,ASC263,Waldroff salad,asc_manual,SRC-INDB,ASC263
+GF-REC-00256,ASC264,Coleslaw,asc_manual,SRC-INDB,ASC264
+GF-REC-00257,ASC265,Fruit salad (Phalon ka salaad),asc_manual,SRC-INDB,ASC265
+GF-REC-00258,ASC266,Mayonnaise,asc_manual,SRC-INDB,ASC266
+GF-REC-00259,ASC267,Low calorie quick mayonnaise,asc_manual,SRC-INDB,ASC267
+GF-REC-00260,ASC268,Thousand island dressing,asc_manual,SRC-INDB,ASC268
+GF-REC-00261,ASC269,Tomato onion raita (Tamatar aur pyaaz ka raita),asc_manual,SRC-INDB,ASC269
+GF-REC-00262,ASC270,Peanut raita (Mungfali ka raita),asc_manual,SRC-INDB,ASC270
+GF-REC-00263,ASC271,Sprouted moong raita ,asc_manual,SRC-INDB,ASC271
+GF-REC-00264,ASC272,Bottle gourd raita (Ghiya/Lauki ka raita),asc_manual,SRC-INDB,ASC272
+GF-REC-00265,ASC273,Cucumber raita (Kheere ka raita),asc_manual,SRC-INDB,ASC273
+GF-REC-00266,ASC274,Carrot and spinach raita (Gajar aur palak ka raita),asc_manual,SRC-INDB,ASC274
+GF-REC-00267,ASC275,Mint raita (Pudinay ka raita),asc_manual,SRC-INDB,ASC275
+GF-REC-00268,ASC276,Potato raita (Aloo ka raita),asc_manual,SRC-INDB,ASC276
+GF-REC-00269,ASC277,Boondi raita,asc_manual,SRC-INDB,ASC277
+GF-REC-00270,ASC278,Sweet raita (Meetha raita),asc_manual,SRC-INDB,ASC278
+GF-REC-00271,ASC279,Dahi vadas/Dahi bhalla,asc_manual,SRC-INDB,ASC279
+GF-REC-00272,ASC280,Gunjia,asc_manual,SRC-INDB,ASC280
+GF-REC-00273,ASC281,Saunth/Sonth chutney with tamarind/imli,asc_manual,SRC-INDB,ASC281
+GF-REC-00274,ASC282,Rice kheer (Chawal ki kheer),asc_manual,SRC-INDB,ASC282
+GF-REC-00275,ASC283,Makhana kheer,asc_manual,SRC-INDB,ASC283
+GF-REC-00276,ASC285,Vermicelli kheer (Semiya/Seviyan ki kheer),asc_manual,SRC-INDB,ASC285
+GF-REC-00277,ASC286,Semolina kheer (Suji/Rava kheer),asc_manual,SRC-INDB,ASC286
+GF-REC-00278,ASC287,Paneer kheer,asc_manual,SRC-INDB,ASC287
+GF-REC-00279,ASC288,Cabbage kheer (Pattagobhi ki kheer),asc_manual,SRC-INDB,ASC288
+GF-REC-00280,ASC289,Carrot kheer (Gajar ki kheer),asc_manual,SRC-INDB,ASC289
+GF-REC-00281,ASC290,Cauliflower kheer (Phoolgobhi ki kheer),asc_manual,SRC-INDB,ASC290
+GF-REC-00282,ASC291,Moong dal kheer,asc_manual,SRC-INDB,ASC291
+GF-REC-00283,ASC292,Phirni,asc_manual,SRC-INDB,ASC292
+GF-REC-00284,ASC293,Semolina halwa (Suji ka halwa),asc_manual,SRC-INDB,ASC293
+GF-REC-00285,ASC294,Shahi suji halwa,asc_manual,SRC-INDB,ASC294
+GF-REC-00286,ASC295,Carrot halwa (Gajar ka halwa),asc_manual,SRC-INDB,ASC295
+GF-REC-00287,ASC296,Egg halwa (Ande ka halwa),asc_manual,SRC-INDB,ASC296
+GF-REC-00288,ASC297,Potato halwa (Aloo ka halwa),asc_manual,SRC-INDB,ASC297
+GF-REC-00289,ASC298,Pumpkin halwa (Kaddu ka halwa),asc_manual,SRC-INDB,ASC298
+GF-REC-00290,ASC299,Moong dal halwa,asc_manual,SRC-INDB,ASC299
+GF-REC-00291,ASC300,Caramel custard (steamed),asc_manual,SRC-INDB,ASC300
+GF-REC-00292,ASC301,Baked custard,asc_manual,SRC-INDB,ASC301
+GF-REC-00293,ASC302,Soft Custard (stirred),asc_manual,SRC-INDB,ASC302
+GF-REC-00294,ASC304,Chocolate ice cream,asc_manual,SRC-INDB,ASC304
+GF-REC-00295,ASC305,Mango ice cream,asc_manual,SRC-INDB,ASC305
+GF-REC-00296,ASC307,Fruit Ice cream (Phalon ka Ice cream),asc_manual,SRC-INDB,ASC307
+GF-REC-00297,ASC308,Caramel ice cream,asc_manual,SRC-INDB,ASC308
+GF-REC-00298,ASC309,Lemon souffle,asc_manual,SRC-INDB,ASC309
+GF-REC-00299,ASC310,Orange souffle,asc_manual,SRC-INDB,ASC310
+GF-REC-00300,ASC311,Vanilla souffle,asc_manual,SRC-INDB,ASC311
+GF-REC-00301,ASC312,Chocolate souffle,asc_manual,SRC-INDB,ASC312
+GF-REC-00302,ASC313,Pineapple souffle ,asc_manual,SRC-INDB,ASC313
+GF-REC-00303,ASC314,Apple mousse,asc_manual,SRC-INDB,ASC314
+GF-REC-00304,ASC315,Rich chocolate mousse,asc_manual,SRC-INDB,ASC315
+GF-REC-00305,ASC316,Mango mousse,asc_manual,SRC-INDB,ASC316
+GF-REC-00306,ASC317,Orange and pineapple cream,asc_manual,SRC-INDB,ASC317
+GF-REC-00307,ASC318,Charlotte rousse,asc_manual,SRC-INDB,ASC318
+GF-REC-00308,ASC319,Triffle pudding,asc_manual,SRC-INDB,ASC319
+GF-REC-00309,ASC320,Snow flakes pudding,asc_manual,SRC-INDB,ASC320
+GF-REC-00310,ASC321,Kulfi,asc_manual,SRC-INDB,ASC321
+GF-REC-00311,ASC322,Steamed orange pudding,asc_manual,SRC-INDB,ASC322
+GF-REC-00312,ASC323,Meringue and rice pudding,asc_manual,SRC-INDB,ASC323
+GF-REC-00313,ASC324,Cheese pudding,asc_manual,SRC-INDB,ASC324
+GF-REC-00314,ASC325,Chocolate pudding,asc_manual,SRC-INDB,ASC325
+GF-REC-00315,ASC326,Bread and butter pudding ,asc_manual,SRC-INDB,ASC326
+GF-REC-00316,ASC327,Queen of pudding,asc_manual,SRC-INDB,ASC327
+GF-REC-00317,ASC328,Pineapple upside down pudding,asc_manual,SRC-INDB,ASC328
+GF-REC-00318,ASC329,Date and nut pie,asc_manual,SRC-INDB,ASC329
+GF-REC-00319,ASC330,Stewed apple with custard,asc_manual,SRC-INDB,ASC330
+GF-REC-00320,ASC331,Apple snowballs,asc_manual,SRC-INDB,ASC331
+GF-REC-00321,ASC332,Hot orange souffle,asc_manual,SRC-INDB,ASC332
+GF-REC-00322,ASC333,Hot chocolate souffle,asc_manual,SRC-INDB,ASC333
+GF-REC-00323,ASC334,Hot vanilla souffle,asc_manual,SRC-INDB,ASC334
+GF-REC-00324,ASC335,Plain burfi (Burfi),asc_manual,SRC-INDB,ASC335
+GF-REC-00325,ASC336,Coconut burfi (Nariyal ki burfi),asc_manual,SRC-INDB,ASC336
+GF-REC-00326,ASC337,Bottle gourd burfi (Ghiya/Lauki burfi),asc_manual,SRC-INDB,ASC337
+GF-REC-00327,ASC338,Chocolate burfi,asc_manual,SRC-INDB,ASC338
+GF-REC-00328,ASC339,Cashewnut burfi (Kaju burfi/Kaju katli),asc_manual,SRC-INDB,ASC339
+GF-REC-00329,ASC340,Gram flour burfi (Besan burfi),asc_manual,SRC-INDB,ASC340
+GF-REC-00330,ASC341,Semolina ladoo with khoya (Suji/Rava aur khoye ke ladoo ),asc_manual,SRC-INDB,ASC341
+GF-REC-00331,ASC342,Semolina ladoo with coconut (Suji/Rava aur nariyal ke ladoo ),asc_manual,SRC-INDB,ASC342
+GF-REC-00332,ASC343,Gram flour ladoo (Besan ladoo),asc_manual,SRC-INDB,ASC343
+GF-REC-00333,ASC344,Sesame ladoo (Til ke ladoo),asc_manual,SRC-INDB,ASC344
+GF-REC-00334,ASC345,Chenna murki,asc_manual,SRC-INDB,ASC345
+GF-REC-00335,ASC346,Milk cake,asc_manual,SRC-INDB,ASC346
+GF-REC-00336,ASC347,Ghujia/Lavang latika,asc_manual,SRC-INDB,ASC347
+GF-REC-00337,ASC348,Gulab Jamun with khoya,asc_manual,SRC-INDB,ASC348
+GF-REC-00338,ASC349,Mal pua,asc_manual,SRC-INDB,ASC349
+GF-REC-00339,ASC350,Shahi tukre,asc_manual,SRC-INDB,ASC350
+GF-REC-00340,ASC351,Potato pakora/pakoda (Aloo pakoda),asc_manual,SRC-INDB,ASC351
+GF-REC-00341,ASC352,Onion pakora/pakoda (Pyaaz ke pakode),asc_manual,SRC-INDB,ASC352
+GF-REC-00342,ASC353,Cauliflower pakora/pakoda (Phoolgobhi ke pakode),asc_manual,SRC-INDB,ASC353
+GF-REC-00343,ASC354,Mixed vegetable pakora/pakoda,asc_manual,SRC-INDB,ASC354
+GF-REC-00344,ASC355,Spinach pakora/pakoda (Palak pakoda),asc_manual,SRC-INDB,ASC355
+GF-REC-00345,ASC356,Methi pakora/pakoda (Methi ke pakode),asc_manual,SRC-INDB,ASC356
+GF-REC-00346,ASC357,Egg pakora/pakoda (Ande ke pakode),asc_manual,SRC-INDB,ASC357
+GF-REC-00347,ASC358,Bread pakora/pakoda,asc_manual,SRC-INDB,ASC358
+GF-REC-00348,ASC359,Paneer pakora/pakoda,asc_manual,SRC-INDB,ASC359
+GF-REC-00349,ASC360,Potato bonda (Aloo bonda),asc_manual,SRC-INDB,ASC360
+GF-REC-00350,ASC361,Potato samosa (Aloo ka samosa),asc_manual,SRC-INDB,ASC361
+GF-REC-00351,ASC362,Minced meat samosa (Keema ka samosa),asc_manual,SRC-INDB,ASC362
+GF-REC-00352,ASC363,Paneer and pea samosa (Paneer matar ka samosa),asc_manual,SRC-INDB,ASC363
+GF-REC-00353,ASC364,Mathri,asc_manual,SRC-INDB,ASC364
+GF-REC-00354,ASC365,Khasta kachori,asc_manual,SRC-INDB,ASC365
+GF-REC-00355,ASC366,Vegetable cutlet,asc_manual,SRC-INDB,ASC366
+GF-REC-00356,ASC367,Flattened rice cutlet (Chirwa cutlet/Chivda cutlet/Poha cutlet),asc_manual,SRC-INDB,ASC367
+GF-REC-00357,ASC368,Peanut cutlet (Mungfali ke cutlet),asc_manual,SRC-INDB,ASC368
+GF-REC-00358,ASC369,Fish cutlet (Machli ka cutlet),asc_manual,SRC-INDB,ASC369
+GF-REC-00359,ASC370,Paneer potato cutlet (Paneer aloo cutlet),asc_manual,SRC-INDB,ASC370
+GF-REC-00360,ASC371,Spinach chickpeas cutlet (Palak channa dal cutlet),asc_manual,SRC-INDB,ASC371
+GF-REC-00361,ASC372,Cheese toast,asc_manual,SRC-INDB,ASC372
+GF-REC-00362,ASC375,Vegetable burger,asc_manual,SRC-INDB,ASC375
+GF-REC-00363,ASC376,Cheese pizza,asc_manual,SRC-INDB,ASC376
+GF-REC-00364,ASC377,Vegetable seekh kebab,asc_manual,SRC-INDB,ASC377
+GF-REC-00365,ASC378,Masala vada,asc_manual,SRC-INDB,ASC378
+GF-REC-00366,ASC379,Peanut sago vada (Sabudana mungfali vada),asc_manual,SRC-INDB,ASC379
+GF-REC-00367,ASC380,Vegeterian scotch egg,asc_manual,SRC-INDB,ASC380
+GF-REC-00368,ASC381,Paneer shaslik/tikka,asc_manual,SRC-INDB,ASC381
+GF-REC-00369,ASC382,Peanut brittle (Moongfali ki chikki),asc_manual,SRC-INDB,ASC382
+GF-REC-00370,ASC383,Spring roll,asc_manual,SRC-INDB,ASC383
+GF-REC-00371,ASC384,Dry mango chutney (Sookhe aam ki chutney),asc_manual,SRC-INDB,ASC384
+GF-REC-00372,ASC385,Peanut chutney (Mungfali ki chutney),asc_manual,SRC-INDB,ASC385
+GF-REC-00373,ASC386,Coconut chutney (Nariyal ki chutney),asc_manual,SRC-INDB,ASC386
+GF-REC-00374,ASC387,Mint and coriander chutney (Pudinay aur dhaniye ki chutney),asc_manual,SRC-INDB,ASC387
+GF-REC-00375,ASC388,Curd dip,asc_manual,SRC-INDB,ASC388
+GF-REC-00376,ASC394,Short crust pastry,asc_manual,SRC-INDB,ASC394
+GF-REC-00377,ASC395,Custard tart,asc_manual,SRC-INDB,ASC395
+GF-REC-00378,ASC396,Lemon tart,asc_manual,SRC-INDB,ASC396
+GF-REC-00379,ASC397,Jam tart,asc_manual,SRC-INDB,ASC397
+GF-REC-00380,ASC398,Orange cream tart,asc_manual,SRC-INDB,ASC398
+GF-REC-00381,ASC399,Pineapple tart,asc_manual,SRC-INDB,ASC399
+GF-REC-00382,ASC400,Cheese and mushroom tart,asc_manual,SRC-INDB,ASC400
+GF-REC-00383,ASC401,Cottage cheese pie,asc_manual,SRC-INDB,ASC401
+GF-REC-00384,ASC402,Minced meat pie,asc_manual,SRC-INDB,ASC402
+GF-REC-00385,ASC403,Apple cinnamon pie,asc_manual,SRC-INDB,ASC403
+GF-REC-00386,ASC404,Lemon meringue pie,asc_manual,SRC-INDB,ASC404
+GF-REC-00387,ASC405,Chocolate meringue pie,asc_manual,SRC-INDB,ASC405
+GF-REC-00388,ASC406,Choux pastry,asc_manual,SRC-INDB,ASC406
+GF-REC-00389,ASC407,Cream puffs,asc_manual,SRC-INDB,ASC407
+GF-REC-00390,ASC408,Chocolate eclairs,asc_manual,SRC-INDB,ASC408
+GF-REC-00391,ASC409,Cheese balls,asc_manual,SRC-INDB,ASC409
+GF-REC-00392,ASC410,Flaky pastry,asc_manual,SRC-INDB,ASC410
+GF-REC-00393,ASC411,Minced meat patties,asc_manual,SRC-INDB,ASC411
+GF-REC-00394,ASC412,Cheese patties,asc_manual,SRC-INDB,ASC412
+GF-REC-00395,ASC413,Hot cheese souffle,asc_manual,SRC-INDB,ASC413
+GF-REC-00396,ASC414,Hot potato souffle,asc_manual,SRC-INDB,ASC414
+GF-REC-00397,ASC415,Hot fish souffle,asc_manual,SRC-INDB,ASC415
+GF-REC-00398,ASC416,Hot spinach souffle,asc_manual,SRC-INDB,ASC416
+GF-REC-00399,ASC417,Plain cream cake,asc_manual,SRC-INDB,ASC417
+GF-REC-00400,ASC418,Apple cake (Seb ka cake),asc_manual,SRC-INDB,ASC418
+GF-REC-00401,ASC419,Marble cake,asc_manual,SRC-INDB,ASC419
+GF-REC-00402,ASC420,Chocolate cake,asc_manual,SRC-INDB,ASC420
+GF-REC-00403,ASC421,Orange cake,asc_manual,SRC-INDB,ASC421
+GF-REC-00404,ASC422,Fruit Loaf ,asc_manual,SRC-INDB,ASC422
+GF-REC-00405,ASC423,Banana cake (Kele ka cake),asc_manual,SRC-INDB,ASC423
+GF-REC-00406,ASC424,Chocolate chiffon cake,asc_manual,SRC-INDB,ASC424
+GF-REC-00407,ASC425,Christmas cake,asc_manual,SRC-INDB,ASC425
+GF-REC-00408,ASC426,Strawberry and vanilla cake with butter icing,asc_manual,SRC-INDB,ASC426
+GF-REC-00409,ASC427,Eggless cake,asc_manual,SRC-INDB,ASC427
+GF-REC-00410,ASC428,Sponge cake ,asc_manual,SRC-INDB,ASC428
+GF-REC-00411,ASC429,Swiss roll,asc_manual,SRC-INDB,ASC429
+GF-REC-00412,ASC430,Pineapple pastry ,asc_manual,SRC-INDB,ASC430
+GF-REC-00413,ASC431,Black forest pastry,asc_manual,SRC-INDB,ASC431
+GF-REC-00414,ASC432,Coconut finger,asc_manual,SRC-INDB,ASC432
+GF-REC-00415,ASC433,Pineapple cake ,asc_manual,SRC-INDB,ASC433
+GF-REC-00416,ASC434,Glace icing,asc_manual,SRC-INDB,ASC434
+GF-REC-00417,ASC436,Royal icing,asc_manual,SRC-INDB,ASC436
+GF-REC-00418,ASC437,American frosting,asc_manual,SRC-INDB,ASC437
+GF-REC-00419,ASC438,Gum icing,asc_manual,SRC-INDB,ASC438
+GF-REC-00420,ASC439,Chocolate walnut cookies (Chocolate aur akhrot ke cookies),asc_manual,SRC-INDB,ASC439
+GF-REC-00421,ASC440,Chocolate chip cookies,asc_manual,SRC-INDB,ASC440
+GF-REC-00422,ASC441,Sweet plain biscuit,asc_manual,SRC-INDB,ASC441
+GF-REC-00423,ASC442,Chocolate biscuit,asc_manual,SRC-INDB,ASC442
+GF-REC-00424,ASC443,Coconut biscuit (Nariyal ke biscuit),asc_manual,SRC-INDB,ASC443
+GF-REC-00425,ASC444,Sweet and salty biscuit (Meethay aur namkeen biscuit),asc_manual,SRC-INDB,ASC444
+GF-REC-00426,ASC445,Peanut biscuit,asc_manual,SRC-INDB,ASC445
+GF-REC-00427,ASC446,Pin wheel biscuit,asc_manual,SRC-INDB,ASC446
+GF-REC-00428,ASC447,Saffron biscuit (Kesar biscuit),asc_manual,SRC-INDB,ASC447
+GF-REC-00429,ASC448,Masala biscuit,asc_manual,SRC-INDB,ASC448
+GF-REC-00430,ASC449,Ice box cookies,asc_manual,SRC-INDB,ASC449
+GF-REC-00431,ASC450,Ginger bread man,asc_manual,SRC-INDB,ASC450
+GF-REC-00432,ASC451,Danish cookies,asc_manual,SRC-INDB,ASC451
+GF-REC-00433,ASC452,Short bread cookies,asc_manual,SRC-INDB,ASC452
+GF-REC-00434,ASC453,Coffee biscuit,asc_manual,SRC-INDB,ASC453
+GF-REC-00435,ASC454,Melting moments,asc_manual,SRC-INDB,ASC454
+GF-REC-00436,ASC455,Ginger biscuit (Adarak ke biscuit),asc_manual,SRC-INDB,ASC455
+GF-REC-00437,ASC456,Soyabean muthias,asc_manual,SRC-INDB,ASC456
+GF-REC-00438,ASC457,Soyabean tikki,asc_manual,SRC-INDB,ASC457
+GF-REC-00439,ASC458,Soyabean namak paras,asc_manual,SRC-INDB,ASC458
+GF-REC-00440,ASC459,Peanut burfi (Moongfali ki burfi),asc_manual,SRC-INDB,ASC459
+GF-REC-00441,ASC460,Spinach peanut namak paras (Palak moongfali namak paras),asc_manual,SRC-INDB,ASC460
+GF-REC-00442,ASC461,Gram flour and semolina chilla/cheela/savory pancake (Besan suji chilla/cheela),asc_manual,SRC-INDB,ASC461
+GF-REC-00443,ASC462,Rice moong dal cheela (Chawal aur moong dal ka cheela),asc_manual,SRC-INDB,ASC462
+GF-REC-00444,ASC463,Split bengal gram sweet rice (Channa dal sweet rice),asc_manual,SRC-INDB,ASC463
+GF-REC-00445,ASC464,Sweet poori (Meethi poori),asc_manual,SRC-INDB,ASC464
+GF-REC-00446,ASC465,Wheat flour and moong dal burfi (Atta aur moong dal ki burfi),asc_manual,SRC-INDB,ASC465
+GF-REC-00447,ASC466,Spinach burfi (Palak burfi),asc_manual,SRC-INDB,ASC466
+GF-REC-00448,ASC467,Sweet split chickpea roti (Sweet channa dal roti/Puranpoli),asc_manual,SRC-INDB,ASC467
+GF-REC-00449,ASC468,Sprouted moong daliya ,asc_manual,SRC-INDB,ASC468
+GF-REC-00450,ASC469,Sprouted moong poha ,asc_manual,SRC-INDB,ASC469
+GF-REC-00451,ASC470,Pearl millet ladoo (Bajra ladoo),asc_manual,SRC-INDB,ASC470
+GF-REC-00452,ASC471,Paushtik ladoo,asc_manual,SRC-INDB,ASC471
+GF-REC-00453,ASC472,Paushtik roti,asc_manual,SRC-INDB,ASC472
+GF-REC-00454,ASC473,Semolina carrot vada (Suji gajar vada),asc_manual,SRC-INDB,ASC473
+GF-REC-00455,ASC474,Dhokla,asc_manual,SRC-INDB,ASC474
+GF-REC-00456,ASC475,Channa murmura premix,asc_manual,SRC-INDB,ASC475
+GF-REC-00457,ASC476,Cracked wheat and green gram dal premix (Dalia moong dal premix),asc_manual,SRC-INDB,ASC476
+GF-REC-00458,ASC477,Rice flakes and roasted channa ,asc_manual,SRC-INDB,ASC477
+GF-REC-00459,ASC479,Spinach soup in milk ,asc_manual,SRC-INDB,ASC479
+GF-REC-00460,ASC480,Vegetable soup,asc_manual,SRC-INDB,ASC480
+GF-REC-00461,ASC481,Mashed banana with milk,asc_manual,SRC-INDB,ASC481
+GF-REC-00462,ASC484,Poha with curd (Poha aur dahi),asc_manual,SRC-INDB,ASC484
+GF-REC-00463,ASC485,Potato with curd,asc_manual,SRC-INDB,ASC485
+GF-REC-00464,ASC486,Sweet wheat porridge (Sweet dalia),asc_manual,SRC-INDB,ASC486
+GF-REC-00465,ASC487,Vegetable khichdi/khichri,asc_manual,SRC-INDB,ASC487
+GF-REC-00466,ASC489,Moong dal mixture,asc_manual,SRC-INDB,ASC489
+GF-REC-00467,ASC490,Cracked wheat khichri/khichdi (Dalia khichri/khichdi),asc_manual,SRC-INDB,ASC490
+GF-REC-00468,ASC492,Stewed apple,asc_manual,SRC-INDB,ASC492
+GF-REC-00469,ASC493,Lemon squash (Nimbu ka squash),asc_manual,SRC-INDB,ASC493
+GF-REC-00470,ASC494,Orange squash (Santre ka squash),asc_manual,SRC-INDB,ASC494
+GF-REC-00471,ASC495,Lichi squash,asc_manual,SRC-INDB,ASC495
+GF-REC-00472,ASC496,Mango squash (Aam ka squash),asc_manual,SRC-INDB,ASC496
+GF-REC-00473,ASC497,Pineapple squash (Ananas ka squash),asc_manual,SRC-INDB,ASC497
+GF-REC-00474,ASC498,Lemon and ginger squash (Nimbu aur adrak ka squash),asc_manual,SRC-INDB,ASC498
+GF-REC-00475,ASC499,Apple jam (Seb ka murabba),asc_manual,SRC-INDB,ASC499
+GF-REC-00476,ASC500,Plum jam (Aloo bukhara jam),asc_manual,SRC-INDB,ASC500
+GF-REC-00477,ASC501,Pineapple jam ,asc_manual,SRC-INDB,ASC501
+GF-REC-00478,ASC502,Guava jelly (Amrood ki jelly),asc_manual,SRC-INDB,ASC502
+GF-REC-00479,ASC503,Orange marmalade (Santray ka murabba),asc_manual,SRC-INDB,ASC503
+GF-REC-00480,ASC504,Carrot murabba (Gajar ka murabba),asc_manual,SRC-INDB,ASC504
+GF-REC-00481,ASC505,Gooseberry marmalade (Amla murabba),asc_manual,SRC-INDB,ASC505
+GF-REC-00482,ASC506,Ginger candy (Adrak ki candy),asc_manual,SRC-INDB,ASC506
+GF-REC-00483,ASC507,Mango pickle (Aam ka achaar),asc_manual,SRC-INDB,ASC507
+GF-REC-00484,ASC509,Mixed vegetable pickle (Sabziyoon ka achaar),asc_manual,SRC-INDB,ASC509
+GF-REC-00485,ASC511,Sweet lemon pickle (Neembu ka meetha achaar),asc_manual,SRC-INDB,ASC511
+GF-REC-00486,ASC512,Plum chutney (Aloo bukhara ki chutney),asc_manual,SRC-INDB,ASC512
+GF-REC-00487,ASC513,Raw mango chutney (Kachhe aam/Kairi ki chutney),asc_manual,SRC-INDB,ASC513
+GF-REC-00488,ASC514,Tomato sauce,asc_manual,SRC-INDB,ASC514
+GF-REC-00489,ASC515,Tomato puree,asc_manual,SRC-INDB,ASC515
+GF-REC-00490,BFP001,Garam masala,bfp_manual,SRC-INDB,BFP001
+GF-REC-00491,BFP002,Chat masala,bfp_manual,SRC-INDB,BFP002
+GF-REC-00492,BFP003,Kashmiri masala,bfp_manual,SRC-INDB,BFP003
+GF-REC-00493,BFP004,Rasam powder (Rasam masala),bfp_manual,SRC-INDB,BFP004
+GF-REC-00494,BFP005,Sambar powder (Sambar masala),bfp_manual,SRC-INDB,BFP005
+GF-REC-00495,BFP007,Kashmiri tea (Kehwa),bfp_manual,SRC-INDB,BFP007
+GF-REC-00496,BFP008,Steeped hot coffee,bfp_manual,SRC-INDB,BFP008
+GF-REC-00497,BFP011,Hot chocolate,bfp_manual,SRC-INDB,BFP011
+GF-REC-00498,BFP013,Cold coffee (with cream),bfp_manual,SRC-INDB,BFP013
+GF-REC-00499,BFP015,Banana milkshake with ice cream (Kele ka milkshake ice cream ke saath),bfp_manual,SRC-INDB,BFP015
+GF-REC-00500,BFP019,Flavoured milkshake,bfp_manual,SRC-INDB,BFP019
+GF-REC-00501,BFP024,Jal jeera,bfp_manual,SRC-INDB,BFP024
+GF-REC-00502,BFP026,Gingo,bfp_manual,SRC-INDB,BFP026
+GF-REC-00503,BFP027,Mintade,bfp_manual,SRC-INDB,BFP027
+GF-REC-00504,BFP029,Canjee,bfp_manual,SRC-INDB,BFP029
+GF-REC-00505,BFP030,Cauliflower canjee (Phoolgobhi ki canjee),bfp_manual,SRC-INDB,BFP030
+GF-REC-00506,BFP031,Potato canjee (Aloo canjee),bfp_manual,SRC-INDB,BFP031
+GF-REC-00507,BFP036,Vermicelli porridge (Semiya/Seviyan porridge),bfp_manual,SRC-INDB,BFP036
+GF-REC-00508,BFP039,Semolina upma (Suji/Rava upma),bfp_manual,SRC-INDB,BFP039
+GF-REC-00509,BFP040,Vermicelli upma (Semiya/Seviyan upma),bfp_manual,SRC-INDB,BFP040
+GF-REC-00510,BFP041,Rice upma,bfp_manual,SRC-INDB,BFP041
+GF-REC-00511,BFP042,Bread upma,bfp_manual,SRC-INDB,BFP042
+GF-REC-00512,BFP043,Vegetable upma,bfp_manual,SRC-INDB,BFP043
+GF-REC-00513,BFP044,Poha,bfp_manual,SRC-INDB,BFP044
+GF-REC-00514,BFP045,Vegetable poha,bfp_manual,SRC-INDB,BFP045
+GF-REC-00515,BFP046,Moong dal stuffed cheela/chilla (Moong dal ka cheela/chilla),bfp_manual,SRC-INDB,BFP046
+GF-REC-00516,BFP047,Paneer stuffed cheela/chilla,bfp_manual,SRC-INDB,BFP047
+GF-REC-00517,BFP052,Indian style egg bhujia (Anda bhujia (Indian style)),bfp_manual,SRC-INDB,BFP052
+GF-REC-00518,BFP054,French omelette/omlet,bfp_manual,SRC-INDB,BFP054
+GF-REC-00519,BFP055,Puffy omelette/omlet,bfp_manual,SRC-INDB,BFP055
+GF-REC-00520,BFP056,Orange omelette/omlet,bfp_manual,SRC-INDB,BFP056
+GF-REC-00521,BFP057,Cheese and mushroom omelette/omlet,bfp_manual,SRC-INDB,BFP057
+GF-REC-00522,BFP058,Spanish omelette/omlet,bfp_manual,SRC-INDB,BFP058
+GF-REC-00523,BFP059,Mixed stock,bfp_manual,SRC-INDB,BFP059
+GF-REC-00524,BFP060,Meat stock,bfp_manual,SRC-INDB,BFP060
+GF-REC-00525,BFP062,White stock,bfp_manual,SRC-INDB,BFP062
+GF-REC-00526,BFP065,Meat consomme (with mutton),bfp_manual,SRC-INDB,BFP065
+GF-REC-00527,BFP066,Consomme au julienne,bfp_manual,SRC-INDB,BFP066
+GF-REC-00528,BFP067,Consomme au vermicelli,bfp_manual,SRC-INDB,BFP067
+GF-REC-00529,BFP072,Green pea soup (Matar ka soup),bfp_manual,SRC-INDB,BFP072
+GF-REC-00530,BFP073,Spinach soup (Palak ka soup),bfp_manual,SRC-INDB,BFP073
+GF-REC-00531,BFP074,Mixed vegetable soup,bfp_manual,SRC-INDB,BFP074
+GF-REC-00532,BFP075,Cheese soup,bfp_manual,SRC-INDB,BFP075
+GF-REC-00533,BFP076,Mulligatawny soup,bfp_manual,SRC-INDB,BFP076
+GF-REC-00534,BFP079,Cream of carrot soup,bfp_manual,SRC-INDB,BFP079
+GF-REC-00535,BFP080,Cream of broccoli soup,bfp_manual,SRC-INDB,BFP080
+GF-REC-00536,BFP082,Cream of potato soup,bfp_manual,SRC-INDB,BFP082
+GF-REC-00537,BFP087,Almond soup (Badam ka soup),bfp_manual,SRC-INDB,BFP087
+GF-REC-00538,BFP088,Cold cucumber cream soup ,bfp_manual,SRC-INDB,BFP088
+GF-REC-00539,BFP089,Cold tomato soup,bfp_manual,SRC-INDB,BFP089
+GF-REC-00540,BFP090,Chicken stew,bfp_manual,SRC-INDB,BFP090
+GF-REC-00541,BFP091,Veg paneer stew,bfp_manual,SRC-INDB,BFP091
+GF-REC-00542,BFP095,Tartare sauce,bfp_manual,SRC-INDB,BFP095
+GF-REC-00543,BFP096,Barbeque sauce,bfp_manual,SRC-INDB,BFP096
+GF-REC-00544,BFP097,Bread sauce,bfp_manual,SRC-INDB,BFP097
+GF-REC-00545,BFP108,Onion-green chilli parantha/paratha (Pyaaz aur hari mirch ka parantha/paratha),bfp_manual,SRC-INDB,BFP108
+GF-REC-00546,BFP110,Methi parantha/paratha,bfp_manual,SRC-INDB,BFP110
+GF-REC-00547,BFP114,Bathua poori,bfp_manual,SRC-INDB,BFP114
+GF-REC-00548,BFP115,Gram flour poori (Besan poori),bfp_manual,SRC-INDB,BFP115
+GF-REC-00549,BFP116,Beetroot poori (Chukandar ki poori),bfp_manual,SRC-INDB,BFP116
+GF-REC-00550,BFP117,Peas poori (Matar ki poori),bfp_manual,SRC-INDB,BFP117
+GF-REC-00551,BFP118,Peas kachori (Matar kachori),bfp_manual,SRC-INDB,BFP118
+GF-REC-00552,BFP122,Pizza,bfp_manual,SRC-INDB,BFP122
+GF-REC-00553,BFP124,Bacon and mushroom pancake,bfp_manual,SRC-INDB,BFP124
+GF-REC-00554,BFP125,Cheese and tomato pancake,bfp_manual,SRC-INDB,BFP125
+GF-REC-00555,BFP127,Minced meat pancake (with chicken),bfp_manual,SRC-INDB,BFP127
+GF-REC-00556,BFP132,Eggplant/Brinjal rice (Vangi bhat),bfp_manual,SRC-INDB,BFP132
+GF-REC-00557,BFP133,Kashmiri 'tahar',bfp_manual,SRC-INDB,BFP133
+GF-REC-00558,BFP134,Cumin pulao (Jeera/Zeera pulao),bfp_manual,SRC-INDB,BFP134
+GF-REC-00559,BFP136,Peas pulao (Matar pulao),bfp_manual,SRC-INDB,BFP136
+GF-REC-00560,BFP137,Split bengal gram dal and vegetable pulao (Channa dal and vegetable pulao),bfp_manual,SRC-INDB,BFP137
+GF-REC-00561,BFP138,Black channa pulao/ Bengal gram pulao (Kale chane ka pulao),bfp_manual,SRC-INDB,BFP138
+GF-REC-00562,BFP141,Mutton pulao,bfp_manual,SRC-INDB,BFP141
+GF-REC-00563,BFP142,Chicken pulao,bfp_manual,SRC-INDB,BFP142
+GF-REC-00564,BFP143,Mexican rice,bfp_manual,SRC-INDB,BFP143
+GF-REC-00565,BFP144,Plain khitchdi (Plain khichri/khichdi),bfp_manual,SRC-INDB,BFP144
+GF-REC-00566,BFP147,Instant idli (with semolina),bfp_manual,SRC-INDB,BFP147
+GF-REC-00567,BFP148,Plain dosa,bfp_manual,SRC-INDB,BFP148
+GF-REC-00568,BFP150,Masala dosa mixed vegetable fillings,bfp_manual,SRC-INDB,BFP150
+GF-REC-00569,BFP151,Masala dosa paneer fillings,bfp_manual,SRC-INDB,BFP151
+GF-REC-00570,BFP152,Uttapam,bfp_manual,SRC-INDB,BFP152
+GF-REC-00571,BFP153,Appam,bfp_manual,SRC-INDB,BFP153
+GF-REC-00572,BFP154,Beans and macaroni,bfp_manual,SRC-INDB,BFP154
+GF-REC-00573,BFP155,Spaghetti bolognese,bfp_manual,SRC-INDB,BFP155
+GF-REC-00574,BFP157,Meat and macaroni casserole,bfp_manual,SRC-INDB,BFP157
+GF-REC-00575,BFP158,Spaghetti with meat balls and tomato sauce,bfp_manual,SRC-INDB,BFP158
+GF-REC-00576,BFP159,Spaghetti with paneer balls and tomato sauce,bfp_manual,SRC-INDB,BFP159
+GF-REC-00577,BFP161,Lasagne with meat sauce,bfp_manual,SRC-INDB,BFP161
+GF-REC-00578,BFP162,Lasagne with vegetables,bfp_manual,SRC-INDB,BFP162
+GF-REC-00579,BFP163,Green chilli sauce,bfp_manual,SRC-INDB,BFP163
+GF-REC-00580,BFP164,Home made plain noodles,bfp_manual,SRC-INDB,BFP164
+GF-REC-00581,BFP165,Home made egg noodles,bfp_manual,SRC-INDB,BFP165
+GF-REC-00582,BFP166,Dal moong,bfp_manual,SRC-INDB,BFP166
+GF-REC-00583,BFP167,Cumin seeds baghar (Jeera baghar/tadka),bfp_manual,SRC-INDB,BFP167
+GF-REC-00584,BFP168,Onion tomato baghar (Pyaaz tamatar ka tadka),bfp_manual,SRC-INDB,BFP168
+GF-REC-00585,BFP169,Mustard seeds baghar (Mustard seed tadka),bfp_manual,SRC-INDB,BFP169
+GF-REC-00586,BFP170,Sour lentils (Khatti dal),bfp_manual,SRC-INDB,BFP170
+GF-REC-00587,BFP171,Urad special dehusked,bfp_manual,SRC-INDB,BFP171
+GF-REC-00588,BFP172,Arhar with spinach (Arhar dal aur palak),bfp_manual,SRC-INDB,BFP172
+GF-REC-00589,BFP174,Moong dal with vadi,bfp_manual,SRC-INDB,BFP174
+GF-REC-00590,BFP176,Rasam with tamarind (Puli rasam/ Chintapandu rasam/ Charu/Saaru),bfp_manual,SRC-INDB,BFP176
+GF-REC-00591,BFP177,Rasam with lemon (Nimmakaya rasam/Nimmakaya charu/Elumichai rasam/Nimbe hannina saaru),bfp_manual,SRC-INDB,BFP177
+GF-REC-00592,BFP178,Green gram whole with baghar (Sabut moong dal with tadka),bfp_manual,SRC-INDB,BFP178
+GF-REC-00593,BFP179,Urad sabut special,bfp_manual,SRC-INDB,BFP179
+GF-REC-00594,BFP185,Kabuli channa curry,bfp_manual,SRC-INDB,BFP185
+GF-REC-00595,BFP187,Besan gatte curry,bfp_manual,SRC-INDB,BFP187
+GF-REC-00596,BFP190,Dry masala chops,bfp_manual,SRC-INDB,BFP190
+GF-REC-00597,BFP194,Mutton korma,bfp_manual,SRC-INDB,BFP194
+GF-REC-00598,BFP196,Shahi keema kofta curry,bfp_manual,SRC-INDB,BFP196
+GF-REC-00599,BFP197,Minced meat ball curry,bfp_manual,SRC-INDB,BFP197
+GF-REC-00600,BFP198,Boti kebab,bfp_manual,SRC-INDB,BFP198
+GF-REC-00601,BFP199,Mutton seekh kebab,bfp_manual,SRC-INDB,BFP199
+GF-REC-00602,BFP201,Indian lamb and egg curry (Nargisi kofta),bfp_manual,SRC-INDB,BFP201
+GF-REC-00603,BFP203,Soya chunks sweet and sour (Nutrinugget sweet and sour),bfp_manual,SRC-INDB,BFP203
+GF-REC-00604,BFP204,Soya chunks korma (Nutrinugget korma),bfp_manual,SRC-INDB,BFP204
+GF-REC-00605,BFP205,Mushroom matar,bfp_manual,SRC-INDB,BFP205
+GF-REC-00606,BFP206,Soya chunks and peas (Nutrinugget matar),bfp_manual,SRC-INDB,BFP206
+GF-REC-00607,BFP207,Vegetable yakhni,bfp_manual,SRC-INDB,BFP207
+GF-REC-00608,BFP208,Spinach mushroom (Palak mushroom),bfp_manual,SRC-INDB,BFP208
+GF-REC-00609,BFP210,Vegetarian nargisi kofta curry,bfp_manual,SRC-INDB,BFP210
+GF-REC-00610,BFP212,Roast chicken,bfp_manual,SRC-INDB,BFP212
+GF-REC-00611,BFP214,Shahi chicken masala,bfp_manual,SRC-INDB,BFP214
+GF-REC-00612,BFP216,Tomato chicken,bfp_manual,SRC-INDB,BFP216
+GF-REC-00613,BFP217,Creamy chicken,bfp_manual,SRC-INDB,BFP217
+GF-REC-00614,BFP218,Broccoli chicken ala king,bfp_manual,SRC-INDB,BFP218
+GF-REC-00615,BFP220,Ginger chicken,bfp_manual,SRC-INDB,BFP220
+GF-REC-00616,BFP221,Chicken sweet and sour,bfp_manual,SRC-INDB,BFP221
+GF-REC-00617,BFP222,Chicken korma,bfp_manual,SRC-INDB,BFP222
+GF-REC-00618,BFP223,Bengal fish curry (Bengali machli curry),bfp_manual,SRC-INDB,BFP223
+GF-REC-00619,BFP226,Fish finger,bfp_manual,SRC-INDB,BFP226
+GF-REC-00620,BFP229,Fish in coconut milk (Nariyal ke doodh ke saath machli),bfp_manual,SRC-INDB,BFP229
+GF-REC-00621,BFP230,Prawn curry (with coconut) (Jhinga curry),bfp_manual,SRC-INDB,BFP230
+GF-REC-00622,BFP231,Baked stuffed fish,bfp_manual,SRC-INDB,BFP231
+GF-REC-00623,BFP232,Fish pie,bfp_manual,SRC-INDB,BFP232
+GF-REC-00624,BFP233,Crispy baked fish,bfp_manual,SRC-INDB,BFP233
+GF-REC-00625,BFP234,Fish souffle,bfp_manual,SRC-INDB,BFP234
+GF-REC-00626,BFP239,Potato curry (Aloo ki sabzi),bfp_manual,SRC-INDB,BFP239
+GF-REC-00627,BFP240,Egg curry (Anda curry),bfp_manual,SRC-INDB,BFP240
+GF-REC-00628,BFP241,Vegetable curry with coconut ,bfp_manual,SRC-INDB,BFP241
+GF-REC-00629,BFP242,Curd with potatoes (Dahi aloo),bfp_manual,SRC-INDB,BFP242
+GF-REC-00630,BFP246,Potato kofta curry (Aloo kofta curry),bfp_manual,SRC-INDB,BFP246
+GF-REC-00631,BFP249,Yam kofta curry (Zimikand/Suran kofta curry),bfp_manual,SRC-INDB,BFP249
+GF-REC-00632,BFP250,Jackfruit kofta curry (Kathal ka kofta curry),bfp_manual,SRC-INDB,BFP250
+GF-REC-00633,BFP257,Spinach and potato (Palak aloo),bfp_manual,SRC-INDB,BFP257
+GF-REC-00634,BFP258,Mooli bhujia,bfp_manual,SRC-INDB,BFP258
+GF-REC-00635,BFP259,Bathua bhujia,bfp_manual,SRC-INDB,BFP259
+GF-REC-00636,BFP261,Cabbage rolls (dry) ((Pattagobhi rolls) (dry)),bfp_manual,SRC-INDB,BFP261
+GF-REC-00637,BFP262,Cabbage rolls (curry) ((Pattagobhi rolls)(curry)),bfp_manual,SRC-INDB,BFP262
+GF-REC-00638,BFP263,Dry arbi (Sookhi arbi),bfp_manual,SRC-INDB,BFP263
+GF-REC-00639,BFP264,Masala arbi,bfp_manual,SRC-INDB,BFP264
+GF-REC-00640,BFP266,Peas brinjal bhartha (Matar baingan bhartha),bfp_manual,SRC-INDB,BFP266
+GF-REC-00641,BFP269,Okra/Lady's fingers fry (Bhindi sabzi/sabji/subji),bfp_manual,SRC-INDB,BFP269
+GF-REC-00642,BFP270,Crispy okra/Crispy lady's fingers (Karare bhindi),bfp_manual,SRC-INDB,BFP270
+GF-REC-00643,BFP272,Beans foogath,bfp_manual,SRC-INDB,BFP272
+GF-REC-00644,BFP273,Stuffed bittergourd (wet) (Bharwa karele),bfp_manual,SRC-INDB,BFP273
+GF-REC-00645,BFP274,Jackfruit/Kathal (dry),bfp_manual,SRC-INDB,BFP274
+GF-REC-00646,BFP275,Yam fried (Zimikand/Suran fried),bfp_manual,SRC-INDB,BFP275
+GF-REC-00647,BFP276,"Cauliflower, pea and potato bhujia (Phoolgobhi, matar aur aloo bhujia)",bfp_manual,SRC-INDB,BFP276
+GF-REC-00648,BFP277,Vegetable jalfrezi,bfp_manual,SRC-INDB,BFP277
+GF-REC-00649,BFP278,Vegetables stir fry ,bfp_manual,SRC-INDB,BFP278
+GF-REC-00650,BFP279,Broccoli delight,bfp_manual,SRC-INDB,BFP279
+GF-REC-00651,BFP280,Dhansak (vegetarian),bfp_manual,SRC-INDB,BFP280
+GF-REC-00652,BFP282,Cauliflower basket,bfp_manual,SRC-INDB,BFP282
+GF-REC-00653,BFP284,Stuffed bottle gourd (Stuffed ghiya/lauki),bfp_manual,SRC-INDB,BFP284
+GF-REC-00654,BFP286,Ducheese potato,bfp_manual,SRC-INDB,BFP286
+GF-REC-00655,BFP287,Roast potatoes ,bfp_manual,SRC-INDB,BFP287
+GF-REC-00656,BFP288,Stuffed baked potatoes ,bfp_manual,SRC-INDB,BFP288
+GF-REC-00657,BFP289,Potato nests,bfp_manual,SRC-INDB,BFP289
+GF-REC-00658,BFP290,Parsley potato,bfp_manual,SRC-INDB,BFP290
+GF-REC-00659,BFP291,Creamed spinach and mushroom,bfp_manual,SRC-INDB,BFP291
+GF-REC-00660,BFP292,Fricassee of Mushroom,bfp_manual,SRC-INDB,BFP292
+GF-REC-00661,BFP293,Cauliflower au gratin,bfp_manual,SRC-INDB,BFP293
+GF-REC-00662,BFP294,Vegetable and cheese pie,bfp_manual,SRC-INDB,BFP294
+GF-REC-00663,BFP296,Spinach souffle ,bfp_manual,SRC-INDB,BFP296
+GF-REC-00664,BFP299,Beetroot and egg salad (Chukandar aur ande ka salad),bfp_manual,SRC-INDB,BFP299
+GF-REC-00665,BFP300,Sour cream potato salad,bfp_manual,SRC-INDB,BFP300
+GF-REC-00666,BFP301,Tossed green salad,bfp_manual,SRC-INDB,BFP301
+GF-REC-00667,BFP302,Spring basket salad,bfp_manual,SRC-INDB,BFP302
+GF-REC-00668,BFP303,Cucumber and yogurt salad (Kheere aur dahi ka salad),bfp_manual,SRC-INDB,BFP303
+GF-REC-00669,BFP305,Chicken and tomato towers,bfp_manual,SRC-INDB,BFP305
+GF-REC-00670,BFP306,Jellied sunshine fruit salad,bfp_manual,SRC-INDB,BFP306
+GF-REC-00671,BFP307,Tomato aspic,bfp_manual,SRC-INDB,BFP307
+GF-REC-00672,BFP308,Frozen frosty fruit salad (Phalon ka salaad),bfp_manual,SRC-INDB,BFP308
+GF-REC-00673,BFP310,French dressing,bfp_manual,SRC-INDB,BFP310
+GF-REC-00674,BFP312,Mayonnaise without eggs,bfp_manual,SRC-INDB,BFP312
+GF-REC-00675,BFP313,Curd dressing ,bfp_manual,SRC-INDB,BFP313
+GF-REC-00676,BFP316,Carrot raita (Gajar ka raita),bfp_manual,SRC-INDB,BFP316
+GF-REC-00677,BFP318,Pumpkin raita (Kaddu ka raita),bfp_manual,SRC-INDB,BFP318
+GF-REC-00678,BFP320,Mint and peanut raita (Pudinay aur moongfali ka raita),bfp_manual,SRC-INDB,BFP320
+GF-REC-00679,BFP321,Spinach raita (Palak ka raita),bfp_manual,SRC-INDB,BFP321
+GF-REC-00680,BFP322,Bathua raita,bfp_manual,SRC-INDB,BFP322
+GF-REC-00681,BFP325,Pineapple raita (Ananas ka raita),bfp_manual,SRC-INDB,BFP325
+GF-REC-00682,BFP326,Banana raita (Kele ka raita),bfp_manual,SRC-INDB,BFP326
+GF-REC-00683,BFP327,Mango raita (Aam ka raita),bfp_manual,SRC-INDB,BFP327
+GF-REC-00684,BFP328,Guava raita (Amarood ka raita),bfp_manual,SRC-INDB,BFP328
+GF-REC-00685,BFP329,Grapes raita (Angoor ka raita),bfp_manual,SRC-INDB,BFP329
+GF-REC-00686,BFP334,Bottle gourd kheer (Ghiya/Lauki kheer),bfp_manual,SRC-INDB,BFP334
+GF-REC-00687,BFP336,Pumpkin kheer (Kaddu ki kheer),bfp_manual,SRC-INDB,BFP336
+GF-REC-00688,BFP338,Apple kheer (Seb ki kheer),bfp_manual,SRC-INDB,BFP338
+GF-REC-00689,BFP345,Caramel custard (baked),bfp_manual,SRC-INDB,BFP345
+GF-REC-00690,BFP346,Vanilla ice cream without egg,bfp_manual,SRC-INDB,BFP346
+GF-REC-00691,BFP347,Vanilla ice cream with egg,bfp_manual,SRC-INDB,BFP347
+GF-REC-00692,BFP348,Strawberry ice cream,bfp_manual,SRC-INDB,BFP348
+GF-REC-00693,BFP350,Chocochip ice cream,bfp_manual,SRC-INDB,BFP350
+GF-REC-00694,BFP351,Choconut ice cream,bfp_manual,SRC-INDB,BFP351
+GF-REC-00695,BFP352,Pear chocholate sunday,bfp_manual,SRC-INDB,BFP352
+GF-REC-00696,BFP353,Chocolate sauce,bfp_manual,SRC-INDB,BFP353
+GF-REC-00697,BFP354,Coffee ice cream,bfp_manual,SRC-INDB,BFP354
+GF-REC-00698,BFP355,Coffee pear alaska,bfp_manual,SRC-INDB,BFP355
+GF-REC-00699,BFP356,Crunchy butterscotch,bfp_manual,SRC-INDB,BFP356
+GF-REC-00700,BFP358,Peach melba ice cream,bfp_manual,SRC-INDB,BFP358
+GF-REC-00701,BFP359,Vanilla ice cream with apples in hot cherry sauce,bfp_manual,SRC-INDB,BFP359
+GF-REC-00702,BFP360,Hot cherry sauce,bfp_manual,SRC-INDB,BFP360
+GF-REC-00703,BFP361,Grape and orange whip,bfp_manual,SRC-INDB,BFP361
+GF-REC-00704,BFP362,Honey banana cream,bfp_manual,SRC-INDB,BFP362
+GF-REC-00705,BFP363,Raspberry bavarian cream,bfp_manual,SRC-INDB,BFP363
+GF-REC-00706,BFP364,Fruit delight,bfp_manual,SRC-INDB,BFP364
+GF-REC-00707,BFP365,Creamy chocolate mousse,bfp_manual,SRC-INDB,BFP365
+GF-REC-00708,BFP366,Cold lemon souffle,bfp_manual,SRC-INDB,BFP366
+GF-REC-00709,BFP367,Cold orange souffle,bfp_manual,SRC-INDB,BFP367
+GF-REC-00710,BFP368,Cold pineapple souffle,bfp_manual,SRC-INDB,BFP368
+GF-REC-00711,BFP369,Cold vanilla souffle,bfp_manual,SRC-INDB,BFP369
+GF-REC-00712,BFP370,Cold chocolate souffle,bfp_manual,SRC-INDB,BFP370
+GF-REC-00713,BFP371,Stewed fruit (with pear),bfp_manual,SRC-INDB,BFP371
+GF-REC-00714,BFP372,Apricot fool,bfp_manual,SRC-INDB,BFP372
+GF-REC-00715,BFP373,Pavlova,bfp_manual,SRC-INDB,BFP373
+GF-REC-00716,BFP379,Apple crumb pudding,bfp_manual,SRC-INDB,BFP379
+GF-REC-00717,BFP380,Steamed cake with chocolate sauce,bfp_manual,SRC-INDB,BFP380
+GF-REC-00718,BFP382,Hot lemon souffle,bfp_manual,SRC-INDB,BFP382
+GF-REC-00719,BFP386,Gulab jamun with milk powder,bfp_manual,SRC-INDB,BFP386
+GF-REC-00720,BFP388,Chum chum,bfp_manual,SRC-INDB,BFP388
+GF-REC-00721,BFP389,Dil bahar,bfp_manual,SRC-INDB,BFP389
+GF-REC-00722,BFP390,Rasbhari,bfp_manual,SRC-INDB,BFP390
+GF-REC-00723,BFP391,Rajbogh,bfp_manual,SRC-INDB,BFP391
+GF-REC-00724,BFP392,Rasgulla,bfp_manual,SRC-INDB,BFP392
+GF-REC-00725,BFP393,Rasmalai,bfp_manual,SRC-INDB,BFP393
+GF-REC-00726,BFP396,Khoa coconut burfi,bfp_manual,SRC-INDB,BFP396
+GF-REC-00727,BFP397,Danedar burfi,bfp_manual,SRC-INDB,BFP397
+GF-REC-00728,BFP401,Semolina burfi (Suji/Rava burfi),bfp_manual,SRC-INDB,BFP401
+GF-REC-00729,BFP403,Pumpkin coconut burfi (Kaddu aur nariyal ki burfi),bfp_manual,SRC-INDB,BFP403
+GF-REC-00730,BFP404,Khoa ladoo,bfp_manual,SRC-INDB,BFP404
+GF-REC-00731,BFP406,Wheat and gram flour ladoo (Atta besan ladoo),bfp_manual,SRC-INDB,BFP406
+GF-REC-00732,BFP407,Semolina ladoo with nuts (Suji/Rava ladoo with nuts),bfp_manual,SRC-INDB,BFP407
+GF-REC-00733,BFP412,Sesame chickpeas brittle (Til aur channe ki chikki),bfp_manual,SRC-INDB,BFP412
+GF-REC-00734,BFP413,Murmura chikki,bfp_manual,SRC-INDB,BFP413
+GF-REC-00735,BFP415,Masala onion pakora/pakoda (Pyaaz ke pakode),bfp_manual,SRC-INDB,BFP415
+GF-REC-00736,BFP416,Masala green chilli pakora/pakoda (Hari mirch kay pakode),bfp_manual,SRC-INDB,BFP416
+GF-REC-00737,BFP420,Chicken pakora/pakoda,bfp_manual,SRC-INDB,BFP420
+GF-REC-00738,BFP421,Fish pakora/pakoda,bfp_manual,SRC-INDB,BFP421
+GF-REC-00739,BFP424,Paneer cutlet,bfp_manual,SRC-INDB,BFP424
+GF-REC-00740,BFP425,Sago cutlet/vadas (Sabudana cutlet/vadas),bfp_manual,SRC-INDB,BFP425
+GF-REC-00741,BFP427,Poshtik cutlet,bfp_manual,SRC-INDB,BFP427
+GF-REC-00742,BFP428,Egg cutlet (Anda cutlet),bfp_manual,SRC-INDB,BFP428
+GF-REC-00743,BFP430,Minced meat cutlet,bfp_manual,SRC-INDB,BFP430
+GF-REC-00744,BFP431,Vegetable samosa,bfp_manual,SRC-INDB,BFP431
+GF-REC-00745,BFP436,Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada),bfp_manual,SRC-INDB,BFP436
+GF-REC-00746,BFP437,Masala urad dal vada,bfp_manual,SRC-INDB,BFP437
+GF-REC-00747,BFP439,Khaman (dhokla),bfp_manual,SRC-INDB,BFP439
+GF-REC-00748,BFP440,Instant dhokla,bfp_manual,SRC-INDB,BFP440
+GF-REC-00749,BFP442,Tomato ginger chutney (Tamatar adarak ki chutney),bfp_manual,SRC-INDB,BFP442
+GF-REC-00750,BFP443,Mint tomato chutney (Pudinay aur tamatar ki chutney),bfp_manual,SRC-INDB,BFP443
+GF-REC-00751,BFP444,Coriander chutney (Hare dhaniye ki chutney),bfp_manual,SRC-INDB,BFP444
+GF-REC-00752,BFP445,Gooseberry chutney (Amla chutney),bfp_manual,SRC-INDB,BFP445
+GF-REC-00753,BFP446,Walnut chutney (Akhrot ki chutney),bfp_manual,SRC-INDB,BFP446
+GF-REC-00754,BFP447,Saunth/Sonth chutney with ginger,bfp_manual,SRC-INDB,BFP447
+GF-REC-00755,BFP448,Gun powder chutney,bfp_manual,SRC-INDB,BFP448
+GF-REC-00756,BFP450,Dessicated coconut chutney (Sookhe kase nariyal ki chutney) ,bfp_manual,SRC-INDB,BFP450
+GF-REC-00757,BFP451,Curd mint dip ,bfp_manual,SRC-INDB,BFP451
+GF-REC-00758,BFP452,Curd vegetable dip,bfp_manual,SRC-INDB,BFP452
+GF-REC-00759,BFP453,Mayonnaise vegetable dip,bfp_manual,SRC-INDB,BFP453
+GF-REC-00760,BFP455,Tomato and cucumber sandwich (Tamatar aur kheere ka sandwich),bfp_manual,SRC-INDB,BFP455
+GF-REC-00761,BFP456,Tomato sandwich (grilled),bfp_manual,SRC-INDB,BFP456
+GF-REC-00762,BFP457,French sandwich (toasted),bfp_manual,SRC-INDB,BFP457
+GF-REC-00763,BFP458,Peanut butter cucumber sandwich,bfp_manual,SRC-INDB,BFP458
+GF-REC-00764,BFP459,Mint and peanut sandwich,bfp_manual,SRC-INDB,BFP459
+GF-REC-00765,BFP460,Spicy chutney sandwich,bfp_manual,SRC-INDB,BFP460
+GF-REC-00766,BFP461,Chicken walnut sandwich (Chicken aur akhrot ke sandwich),bfp_manual,SRC-INDB,BFP461
+GF-REC-00767,BFP463,Rolled sandwich,bfp_manual,SRC-INDB,BFP463
+GF-REC-00768,BFP466,Ribbon sandwich,bfp_manual,SRC-INDB,BFP466
+GF-REC-00769,BFP467,Checker board sandwich,bfp_manual,SRC-INDB,BFP467
+GF-REC-00770,BFP468,Submarine sandwich,bfp_manual,SRC-INDB,BFP468
+GF-REC-00771,BFP470,Cheese open sandwich,bfp_manual,SRC-INDB,BFP470
+GF-REC-00772,BFP471,Sunset and sunrise open sandwich,bfp_manual,SRC-INDB,BFP471
+GF-REC-00773,BFP472,Danish luncheon sandwich,bfp_manual,SRC-INDB,BFP472
+GF-REC-00774,BFP473,Chicken and corn open sandwich,bfp_manual,SRC-INDB,BFP473
+GF-REC-00775,BFP476,Chocolate sponge cake,bfp_manual,SRC-INDB,BFP476
+GF-REC-00776,BFP478,Chocolate swiss roll,bfp_manual,SRC-INDB,BFP478
+GF-REC-00777,BFP479,Lemon curd filling,bfp_manual,SRC-INDB,BFP479
+GF-REC-00778,BFP480,Jam filling,bfp_manual,SRC-INDB,BFP480
+GF-REC-00779,BFP482,Chocolate pastry,bfp_manual,SRC-INDB,BFP482
+GF-REC-00780,BFP483,Assorted pastry,bfp_manual,SRC-INDB,BFP483
+GF-REC-00781,BFP484,Orange gateau,bfp_manual,SRC-INDB,BFP484
+GF-REC-00782,BFP485,Black forest gateau,bfp_manual,SRC-INDB,BFP485
+GF-REC-00783,BFP489,Lemon cake,bfp_manual,SRC-INDB,BFP489
+GF-REC-00784,BFP491,Dundee cake,bfp_manual,SRC-INDB,BFP491
+GF-REC-00785,BFP492,Victorian sandwich cake,bfp_manual,SRC-INDB,BFP492
+GF-REC-00786,BFP495,Chocolate eggless cake,bfp_manual,SRC-INDB,BFP495
+GF-REC-00787,BFP496,Orange eggless cake,bfp_manual,SRC-INDB,BFP496
+GF-REC-00788,BFP498,Chocolate glace icing,bfp_manual,SRC-INDB,BFP498
+GF-REC-00789,BFP499,Butter icing,bfp_manual,SRC-INDB,BFP499
+GF-REC-00790,BFP500,Chocolate butter icing,bfp_manual,SRC-INDB,BFP500
+GF-REC-00791,BFP502,Almond biscuit (Badam ke biscuit),bfp_manual,SRC-INDB,BFP502
+GF-REC-00792,BFP505,Orange biscuit,bfp_manual,SRC-INDB,BFP505
+GF-REC-00793,BFP506,Gingerman biscuit,bfp_manual,SRC-INDB,BFP506
+GF-REC-00794,BFP507,Coffee drops,bfp_manual,SRC-INDB,BFP507
+GF-REC-00795,BFP508,Christmas biscuit,bfp_manual,SRC-INDB,BFP508
+GF-REC-00796,BFP509,Christmas wreath biscuit,bfp_manual,SRC-INDB,BFP509
+GF-REC-00797,BFP510,Christmas bell biscuit,bfp_manual,SRC-INDB,BFP510
+GF-REC-00798,BFP511,Christmas star biscuit,bfp_manual,SRC-INDB,BFP511
+GF-REC-00799,BFP512,Christmas tree biscuit,bfp_manual,SRC-INDB,BFP512
+GF-REC-00800,BFP513,Chocolate cream shells,bfp_manual,SRC-INDB,BFP513
+GF-REC-00801,BFP516,Jelly biscuit,bfp_manual,SRC-INDB,BFP516
+GF-REC-00802,BFP517,Cherry and walnut cookies,bfp_manual,SRC-INDB,BFP517
+GF-REC-00803,BFP518,Cheese straws,bfp_manual,SRC-INDB,BFP518
+GF-REC-00804,BFP519,Butterfly biscuit,bfp_manual,SRC-INDB,BFP519
+GF-REC-00805,BFP521,Flan pastry,bfp_manual,SRC-INDB,BFP521
+GF-REC-00806,BFP522,Fruit flan,bfp_manual,SRC-INDB,BFP522
+GF-REC-00807,BFP523,Orange cream flan,bfp_manual,SRC-INDB,BFP523
+GF-REC-00808,BFP527,Fruit puree tart,bfp_manual,SRC-INDB,BFP527
+GF-REC-00809,BFP529,Apple banana pie,bfp_manual,SRC-INDB,BFP529
+GF-REC-00810,BFP531,Lemon chiffon pie,bfp_manual,SRC-INDB,BFP531
+GF-REC-00811,BFP532,Orange chiffon pie,bfp_manual,SRC-INDB,BFP532
+GF-REC-00812,BFP534,Cream buns,bfp_manual,SRC-INDB,BFP534
+GF-REC-00813,BFP535,Savoury puffs,bfp_manual,SRC-INDB,BFP535
+GF-REC-00814,BFP536,Choux swans,bfp_manual,SRC-INDB,BFP536
+GF-REC-00815,BFP539,Potato aigrettes,bfp_manual,SRC-INDB,BFP539
+GF-REC-00816,BFP541,Cream horns,bfp_manual,SRC-INDB,BFP541
+GF-REC-00817,BFP542,Savoury cheese horns,bfp_manual,SRC-INDB,BFP542
+GF-REC-00818,BFP544,Paneer patties,bfp_manual,SRC-INDB,BFP544
+GF-REC-00819,BFP545,Vegetable patties ,bfp_manual,SRC-INDB,BFP545
+GF-REC-00820,BFP546,Pearl millet infant food (Bajra shishu aahaar),bfp_manual,SRC-INDB,BFP546
+GF-REC-00821,BFP547,Sajina,bfp_manual,SRC-INDB,BFP547
+GF-REC-00822,BFP548,Cereal mix ,bfp_manual,SRC-INDB,BFP548
+GF-REC-00823,BFP549,Pulse mix,bfp_manual,SRC-INDB,BFP549
+GF-REC-00824,BFP550,Shishu ahar,bfp_manual,SRC-INDB,BFP550
+GF-REC-00825,BFP552,Cereal pulse mix with amylase rice flour,bfp_manual,SRC-INDB,BFP552
+GF-REC-00826,BFP553,Banana groundnut paste/puree,bfp_manual,SRC-INDB,BFP553
+GF-REC-00827,BFP554,Rice dal porridge (Chawal dal ki khichdi/khichri),bfp_manual,SRC-INDB,BFP554
+GF-REC-00828,BFP555,Lentils and semolina porridge (Dal suji porridge/daliya),bfp_manual,SRC-INDB,BFP555
+GF-REC-00829,BFP556,Spinach khichri (Palak khichri/khichdi),bfp_manual,SRC-INDB,BFP556
+GF-REC-00830,BFP557,Vegetable mix,bfp_manual,SRC-INDB,BFP557
+GF-REC-00831,BFP558,Lentils and wheat porridge (Dal wheat porridge/daliya ),bfp_manual,SRC-INDB,BFP558
+GF-REC-00832,BFP559,Maize porridge,bfp_manual,SRC-INDB,BFP559
+GF-REC-00833,BFP560,Spinach peanut burfi (Palak aur mungfali ki burfi),bfp_manual,SRC-INDB,BFP560
+GF-REC-00834,BFP561,Split bengal gram burfi/fudge (Channa dal burfi),bfp_manual,SRC-INDB,BFP561
+GF-REC-00835,BFP563,Chickpea flour cookies (Sweet besan rounds/cookies),bfp_manual,SRC-INDB,BFP563
+GF-REC-00836,BFP564,Pearl millet mathri (Bajra mathri),bfp_manual,SRC-INDB,BFP564
+GF-REC-00837,BFP565,Sesame biscuit (Til ke biscuit),bfp_manual,SRC-INDB,BFP565
+GF-REC-00838,BFP566,Fermented bengal gram vada (Khameerikrit/Ufna hua channa dal ka vada),bfp_manual,SRC-INDB,BFP566
+GF-REC-00839,BFP568,Poshtik namak paras,bfp_manual,SRC-INDB,BFP568
+GF-REC-00840,BFP569,Soya chikki,bfp_manual,SRC-INDB,BFP569
+GF-REC-00841,BFP570,Besan bathua chilla/cheela,bfp_manual,SRC-INDB,BFP570
+GF-REC-00842,BFP571,Wheat flour and nuts ladoos (Atta nuts ladoos),bfp_manual,SRC-INDB,BFP571
+GF-REC-00843,BFP573,Gram flour and semolina dhokla (Besan suji dhokla),bfp_manual,SRC-INDB,BFP573
+GF-REC-00844,BFP574,Atta dal burfi ,bfp_manual,SRC-INDB,BFP574
+GF-REC-00845,BFP575,Soya roti,bfp_manual,SRC-INDB,BFP575
+GF-REC-00846,BFP576,Poshtik khichdi/khichri,bfp_manual,SRC-INDB,BFP576
+GF-REC-00847,BFP577,Namkeen daliya,bfp_manual,SRC-INDB,BFP577
+GF-REC-00848,BFP578,Sprouts upma ,bfp_manual,SRC-INDB,BFP578
+GF-REC-00849,BFP579,Semolina idli (Suji/Rava idli),bfp_manual,SRC-INDB,BFP579
+GF-REC-00850,BFP580,Poshtik chilla/cheela,bfp_manual,SRC-INDB,BFP580
+GF-REC-00851,BFP583,Apple jelly (Seb ki jelly),bfp_manual,SRC-INDB,BFP583
+GF-REC-00852,BFP585,Marmalade (Murabba),bfp_manual,SRC-INDB,BFP585
+GF-REC-00853,BFP589,Plum squash (Aloo bukhara squash),bfp_manual,SRC-INDB,BFP589
+GF-REC-00854,BFP595,Lemon green chilli pickle (Nimboo aur hari mirch ka achaar),bfp_manual,SRC-INDB,BFP595
+GF-REC-00855,BFP597,Brinjal pickle (Baingan ka achaar),bfp_manual,SRC-INDB,BFP597
+GF-REC-00856,BFP598,Sweet and sour tomato pickle (Khatta meetha tamatar ka achaar),bfp_manual,SRC-INDB,BFP598
+GF-REC-00857,BFP599,Jhatpat achar with carrot (Jhatpat achaar gajar ke saath),bfp_manual,SRC-INDB,BFP599
+GF-REC-00858,BFP601,Tomato chutney (Tamatar ki chutney),bfp_manual,SRC-INDB,BFP601
+GF-REC-00859,BFP602,Tomato ketchup,bfp_manual,SRC-INDB,BFP602
+GF-REC-00860,BFP604,Stuffed bittergourd (dry) (Bharwa karela),bfp_manual,SRC-INDB,BFP604
+GF-REC-00861,BFP605,Cauliflower potato canjee,bfp_manual,SRC-INDB,BFP605
+GF-REC-00862,BFP606,Creamed spinach,bfp_manual,SRC-INDB,BFP606
+GF-REC-00863,BFP607,Mango milkshake with ice cream (Aam milkshake ice cream ke saath),bfp_manual,SRC-INDB,BFP607
+GF-REC-00864,BFP608,Pineapple milkshake with ice cream (Ananas milkshake ice cream ke saath),bfp_manual,SRC-INDB,BFP608
+GF-REC-00865,BFP609,Orange milkshake with ice cream (Narangi milkshake ice cream ke saath),bfp_manual,SRC-INDB,BFP609
+GF-REC-00866,OSR001,Woodapple juice (Bel ka sharbat),open_source_recipes,SRC-INDB,OSR001
+GF-REC-00867,OSR002,Sattu drink,open_source_recipes,SRC-INDB,OSR002
+GF-REC-00868,OSR004,Apple and honey sorbet (Seb aur shehad ka sharbat),open_source_recipes,SRC-INDB,OSR004
+GF-REC-00869,OSR005,Thandai,open_source_recipes,SRC-INDB,OSR005
+GF-REC-00870,OSR006,Cucumber sharbat (Kheere ka sharbat),open_source_recipes,SRC-INDB,OSR006
+GF-REC-00871,OSR007,Apple oats chia seed smoothie,open_source_recipes,SRC-INDB,OSR007
+GF-REC-00872,OSR008,Nannari sharbat,open_source_recipes,SRC-INDB,OSR008
+GF-REC-00873,OSR009,Semolina milk drink (Thari kanji),open_source_recipes,SRC-INDB,OSR009
+GF-REC-00874,OSR010,Saffron milk (Kesariya doodh),open_source_recipes,SRC-INDB,OSR010
+GF-REC-00875,OSR011,Black rice kheer (Chak-hao kheer),open_source_recipes,SRC-INDB,OSR011
+GF-REC-00876,OSR012,Coconut kheer (Nariyal ki kheer),open_source_recipes,SRC-INDB,OSR012
+GF-REC-00877,OSR013,Apple sago payasam (Seb aur sabudana ki kheer),open_source_recipes,SRC-INDB,OSR013
+GF-REC-00878,OSR014,Kesari bath,open_source_recipes,SRC-INDB,OSR014
+GF-REC-00879,OSR015,Putharekulu,open_source_recipes,SRC-INDB,OSR015
+GF-REC-00880,OSR016,Mango malpua,open_source_recipes,SRC-INDB,OSR016
+GF-REC-00881,OSR017,Mango vanilla custard,open_source_recipes,SRC-INDB,OSR017
+GF-REC-00882,OSR018,Kiwi granola pudding,open_source_recipes,SRC-INDB,OSR018
+GF-REC-00883,OSR019,Oats burfi,open_source_recipes,SRC-INDB,OSR019
+GF-REC-00884,OSR020,Lotus seed halwa (Kamal gattay ka halwa),open_source_recipes,SRC-INDB,OSR020
+GF-REC-00885,OSR021,Amaranth ladoo (Rajgira ladoo),open_source_recipes,SRC-INDB,OSR021
+GF-REC-00886,OSR022,Chhena poda,open_source_recipes,SRC-INDB,OSR022
+GF-REC-00887,OSR023,Sweet couscous dessert,open_source_recipes,SRC-INDB,OSR023
+GF-REC-00888,OSR024,Sweetened yogurt (Shrikhand),open_source_recipes,SRC-INDB,OSR024
+GF-REC-00889,OSR025,Thickened sweetened milk (Rabri),open_source_recipes,SRC-INDB,OSR025
+GF-REC-00890,OSR026,Gram flour halwa (Besan halwa),open_source_recipes,SRC-INDB,OSR026
+GF-REC-00891,OSR027,Prawn sandwich,open_source_recipes,SRC-INDB,OSR027
+GF-REC-00892,OSR028,Watercress sandwich,open_source_recipes,SRC-INDB,OSR028
+GF-REC-00893,OSR029,Fish sandwich ,open_source_recipes,SRC-INDB,OSR029
+GF-REC-00894,OSR030,Kidney bean sandwich with cottage cheese,open_source_recipes,SRC-INDB,OSR030
+GF-REC-00895,OSR031,Finger millet biscuit (Ragi biscuit),open_source_recipes,SRC-INDB,OSR031
+GF-REC-00896,OSR032,Buttermilk biscuit,open_source_recipes,SRC-INDB,OSR032
+GF-REC-00897,OSR033,Lemon cookies,open_source_recipes,SRC-INDB,OSR033
+GF-REC-00898,OSR034,Sweet potato biscuit (Shakarkand ke biscuit),open_source_recipes,SRC-INDB,OSR034
+GF-REC-00899,OSR035,Raspberry shortbread cookies,open_source_recipes,SRC-INDB,OSR035
+GF-REC-00900,OSR036,Pumpkin cookies ,open_source_recipes,SRC-INDB,OSR036
+GF-REC-00901,OSR037,Greenpea cookies,open_source_recipes,SRC-INDB,OSR037
+GF-REC-00902,OSR038,Sunflower cookies,open_source_recipes,SRC-INDB,OSR038
+GF-REC-00903,OSR039,Cardamom cookies (Elaichi cookies),open_source_recipes,SRC-INDB,OSR039
+GF-REC-00904,OSR040,Hazelnut cookies,open_source_recipes,SRC-INDB,OSR040
+GF-REC-00905,OSR041,Milk cookies,open_source_recipes,SRC-INDB,OSR041
+GF-REC-00906,OSR042,Cranberry cookies,open_source_recipes,SRC-INDB,OSR042
+GF-REC-00907,OSR043,Olive biscuit,open_source_recipes,SRC-INDB,OSR043
+GF-REC-00908,OSR045,Tutti fruitti biscuit,open_source_recipes,SRC-INDB,OSR045
+GF-REC-00909,OSR046,Peach blueberry preserves,open_source_recipes,SRC-INDB,OSR046
+GF-REC-00910,OSR047,Pear preserves (Naashpati ka murabba),open_source_recipes,SRC-INDB,OSR047
+GF-REC-00911,OSR048,Starfruit preserves ,open_source_recipes,SRC-INDB,OSR048
+GF-REC-00912,OSR049,Gooseberry pickle (Amla ka achaar),open_source_recipes,SRC-INDB,OSR049
+GF-REC-00913,OSR050,Lotus stem pickle (Kamal kakdi ka achar),open_source_recipes,SRC-INDB,OSR050
+GF-REC-00914,OSR051,Date pickle (Khajoor ka achaar),open_source_recipes,SRC-INDB,OSR051
+GF-REC-00915,OSR052,Garlic pickle (Lahasun ka achar),open_source_recipes,SRC-INDB,OSR052
+GF-REC-00916,OSR053,Fermented bamboo shoot pickle (Mesu pickle),open_source_recipes,SRC-INDB,OSR053
+GF-REC-00917,OSR054,Sweet peach pickle (Aadoo ka achaar),open_source_recipes,SRC-INDB,OSR054
+GF-REC-00918,OSR055,Pickled mustard greens ,open_source_recipes,SRC-INDB,OSR055
+GF-REC-00919,OSR056,Small onion pickle ,open_source_recipes,SRC-INDB,OSR056
+GF-REC-00920,OSR057,Green tomato pickle (Haray tamatar ka achaar),open_source_recipes,SRC-INDB,OSR057
+GF-REC-00921,OSR058,Pickled cabbage ,open_source_recipes,SRC-INDB,OSR058
+GF-REC-00922,OSR059,Coconut pickle (Nariyal ka aachar),open_source_recipes,SRC-INDB,OSR059
+GF-REC-00923,OSR060,Potato pickle (Aloo ka achaar),open_source_recipes,SRC-INDB,OSR060
+GF-REC-00924,OSR061,Mango murabba candy,open_source_recipes,SRC-INDB,OSR061
+GF-REC-00925,OSR062,Afghani chicken,open_source_recipes,SRC-INDB,OSR062
+GF-REC-00926,OSR063,Fish orly,open_source_recipes,SRC-INDB,OSR063
+GF-REC-00927,OSR064,Hariyali Fish Tikka,open_source_recipes,SRC-INDB,OSR064
+GF-REC-00928,OSR065,Chicken manchurian,open_source_recipes,SRC-INDB,OSR065
+GF-REC-00929,OSR066,Handi chicken,open_source_recipes,SRC-INDB,OSR066
+GF-REC-00930,OSR067,Lemon chicken,open_source_recipes,SRC-INDB,OSR067
+GF-REC-00931,OSR068,Lemon butter fish,open_source_recipes,SRC-INDB,OSR068
+GF-REC-00932,OSR069,Baked eggs in tomato sauce,open_source_recipes,SRC-INDB,OSR069
+GF-REC-00933,OSR070,Egg in a pepper,open_source_recipes,SRC-INDB,OSR070
+GF-REC-00934,OSR071,Spinach mushroom scrambled egg (Palak mushroom bhurji),open_source_recipes,SRC-INDB,OSR071
+GF-REC-00935,OSR072,Corn omelette/omlet,open_source_recipes,SRC-INDB,OSR072
+GF-REC-00936,OSR073,Cajun chicken,open_source_recipes,SRC-INDB,OSR073
+GF-REC-00937,OSR074,Paaner do pyaza,open_source_recipes,SRC-INDB,OSR074
+GF-REC-00938,OSR075,Cabbage manchurian (Pattagobhi manchurian),open_source_recipes,SRC-INDB,OSR075
+GF-REC-00939,OSR076,Gobi 65,open_source_recipes,SRC-INDB,OSR076
+GF-REC-00940,OSR077,Paneer lababdar,open_source_recipes,SRC-INDB,OSR077
+GF-REC-00941,OSR078,Roasted cauliflower steak,open_source_recipes,SRC-INDB,OSR078
+GF-REC-00942,OSR079,Sauteed radishes with green beans,open_source_recipes,SRC-INDB,OSR079
+GF-REC-00943,OSR080,Garlic chutney/Poondu chutney (Lahasun ki chutney),open_source_recipes,SRC-INDB,OSR080
+GF-REC-00944,OSR081,Schezwan chutney,open_source_recipes,SRC-INDB,OSR081
+GF-REC-00945,OSR082,Bengal 5 Spice Blend (Panch Phoran),open_source_recipes,SRC-INDB,OSR082
+GF-REC-00946,OSR083,Onion chutney (Pyaaz ki chutney/Vengaya chutney),open_source_recipes,SRC-INDB,OSR083
+GF-REC-00947,OSR085,Dates chutney (Khajoor ki chutney),open_source_recipes,SRC-INDB,OSR085
+GF-REC-00948,OSR086,Chicken salad,open_source_recipes,SRC-INDB,OSR086
+GF-REC-00949,OSR087,Macaroni salad,open_source_recipes,SRC-INDB,OSR087
+GF-REC-00950,OSR088,Cabbage raita (Pattagobhi raita),open_source_recipes,SRC-INDB,OSR088
+GF-REC-00951,OSR089,Pomegranate raita (Anaar ka raita),open_source_recipes,SRC-INDB,OSR089
+GF-REC-00952,OSR090,Onion raita (Pyaaz ka raita),open_source_recipes,SRC-INDB,OSR090
+GF-REC-00953,OSR091,Green chilli raita (Hari mirch ka raita),open_source_recipes,SRC-INDB,OSR091
+GF-REC-00954,OSR092,Kale salad,open_source_recipes,SRC-INDB,OSR092
+GF-REC-00955,OSR093,Spinach and paneer souffle ,open_source_recipes,SRC-INDB,OSR093
+GF-REC-00956,OSR094,Masala souffle ,open_source_recipes,SRC-INDB,OSR094
+GF-REC-00957,OSR095,Chicken and cheese souffle,open_source_recipes,SRC-INDB,OSR095
+GF-REC-00958,OSR096,Tamarind chutney (Chintapandu pachadi/Puli chutney),open_source_recipes,SRC-INDB,OSR096
+GF-REC-00959,OSR097,Pav bhaji masala,open_source_recipes,SRC-INDB,OSR097
+GF-REC-00960,OSR098,Green chutney,open_source_recipes,SRC-INDB,OSR098
+GF-REC-00961,OSR099,Sago khitchdi/khichri (Sabudana khitchdi/khichri),open_source_recipes,SRC-INDB,OSR099
+GF-REC-00962,OSR100,Gram flour chilla/cheela (Besan chilla/cheela),open_source_recipes,SRC-INDB,OSR100
+GF-REC-00963,OSR101,Vegetable namkeen jave,open_source_recipes,SRC-INDB,OSR101
+GF-REC-00964,OSR102,Khakhra,open_source_recipes,SRC-INDB,OSR102
+GF-REC-00965,OSR103,Moong bean dosa (Pesarattu),open_source_recipes,SRC-INDB,OSR103
+GF-REC-00966,OSR104,Methi thepla,open_source_recipes,SRC-INDB,OSR104
+GF-REC-00967,OSR105,Rice puttu (Ari puttu),open_source_recipes,SRC-INDB,OSR105
+GF-REC-00968,OSR106,Buckwheat pancake (Khura),open_source_recipes,SRC-INDB,OSR106
+GF-REC-00969,OSR107,Quinoa khichdi/khichri,open_source_recipes,SRC-INDB,OSR107
+GF-REC-00970,OSR108,Khakhra chaat,open_source_recipes,SRC-INDB,OSR108
+GF-REC-00971,OSR110,Banana appam,open_source_recipes,SRC-INDB,OSR110
+GF-REC-00972,OSR111,Veg manchurian,open_source_recipes,SRC-INDB,OSR111
+GF-REC-00973,OSR112,Pav bhaji,open_source_recipes,SRC-INDB,OSR112
+GF-REC-00974,OSR113,Rice murukku,open_source_recipes,SRC-INDB,OSR113
+GF-REC-00975,OSR114,Bhel puri ,open_source_recipes,SRC-INDB,OSR114
+GF-REC-00976,OSR115,Semolina dhokla (Suji/Rava dhokla),open_source_recipes,SRC-INDB,OSR115
+GF-REC-00977,OSR116,Spicy corn chaat ,open_source_recipes,SRC-INDB,OSR116
+GF-REC-00978,OSR118,Jackfruit fritters (Ponsa mulik/Kathal ka pakora),open_source_recipes,SRC-INDB,OSR118
+GF-REC-00979,OSR119,Banana chips (Kele ke chips),open_source_recipes,SRC-INDB,OSR119
+GF-REC-00980,OSR120,Wheat cake,open_source_recipes,SRC-INDB,OSR120
+GF-REC-00981,OSR121,Mango cheesecake,open_source_recipes,SRC-INDB,OSR121
+GF-REC-00982,OSR122,Carrot cake (Gajar ka cake),open_source_recipes,SRC-INDB,OSR122
+GF-REC-00983,OSR123,Semolina cake (Suji/Rava cake),open_source_recipes,SRC-INDB,OSR123
+GF-REC-00984,OSR124,Finger millet cake (Ragi cake),open_source_recipes,SRC-INDB,OSR124
+GF-REC-00985,OSR125,Honey cake,open_source_recipes,SRC-INDB,OSR125
+GF-REC-00986,OSR126,Almond cardamom cake (Badam elaichi cake),open_source_recipes,SRC-INDB,OSR126
+GF-REC-00987,OSR127,Tutti frutti cake,open_source_recipes,SRC-INDB,OSR127
+GF-REC-00988,OSR128,Ham and Bean soup,open_source_recipes,SRC-INDB,OSR128
+GF-REC-00989,OSR129,Whey soup,open_source_recipes,SRC-INDB,OSR129
+GF-REC-00990,OSR130,Bottle gourd soup (Ghiya/Lauki soup),open_source_recipes,SRC-INDB,OSR130
+GF-REC-00991,OSR131,Baked potato soup,open_source_recipes,SRC-INDB,OSR131
+GF-REC-00992,OSR132,Pumpkin soup,open_source_recipes,SRC-INDB,OSR132
+GF-REC-00993,OSR133,Sweet corn soup,open_source_recipes,SRC-INDB,OSR133
+GF-REC-00994,OSR134,Paneer soup,open_source_recipes,SRC-INDB,OSR134
+GF-REC-00995,OSR135,Curried Cauliflower soup,open_source_recipes,SRC-INDB,OSR135
+GF-REC-00996,OSR136,Millet soup,open_source_recipes,SRC-INDB,OSR136
+GF-REC-00997,OSR137,Lemon coriander soup,open_source_recipes,SRC-INDB,OSR137
+GF-REC-00998,OSR138,Garlic soup,open_source_recipes,SRC-INDB,OSR138
+GF-REC-00999,OSR139,Dal makhani,open_source_recipes,SRC-INDB,OSR139
+GF-REC-01000,OSR141,Dalma,open_source_recipes,SRC-INDB,OSR141
+GF-REC-01001,OSR142,Split bengal gram dal (Channa dal),open_source_recipes,SRC-INDB,OSR142
+GF-REC-01002,OSR143,Horsegram dal (Kulthi dal) ,open_source_recipes,SRC-INDB,OSR143
+GF-REC-01003,OSR144,Panchmel dal,open_source_recipes,SRC-INDB,OSR144
+GF-REC-01004,OSR145,Dal dhokli,open_source_recipes,SRC-INDB,OSR145
+GF-REC-01005,OSR146,Gujarati handvo ,open_source_recipes,SRC-INDB,OSR146
+GF-REC-01006,OSR147,Sev (Omapodi/Karapusa),open_source_recipes,SRC-INDB,OSR147
+GF-REC-01007,OSR148,Papdi,open_source_recipes,SRC-INDB,OSR148
+GF-REC-01008,OSR151,Jowar dosa,open_source_recipes,SRC-INDB,OSR151
+GF-REC-01009,OSR152,Bread roll,open_source_recipes,SRC-INDB,OSR152
+GF-REC-01010,OSR153,Soya seekh kebab,open_source_recipes,SRC-INDB,OSR153
+GF-REC-01011,OSR154,Classic seasoned black beans,open_source_recipes,SRC-INDB,OSR154
+GF-REC-01012,OSR155,Maa chaane ki dal,open_source_recipes,SRC-INDB,OSR155
+GF-REC-01013,OSR156,Garlic chickpea soup (Lahasun aur chane ka shoraba),open_source_recipes,SRC-INDB,OSR156
+GF-REC-01014,ASC239,Shepherd's pie (with minced meat),asc_manual,SRC-INDB,ASC239

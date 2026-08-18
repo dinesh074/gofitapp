@@ -1,0 +1,22 @@
+{
+  "ifct_source_records": 542,
+  "indb_recipe_records": 1014,
+  "indb_ingredient_references": 333,
+  "uk_source_records": 144,
+  "usda_source_records": 54,
+  "unique_canonical_foods": 1752,
+  "canonical_ingredients": 738,
+  "canonical_recipes": 1014,
+  "alias_rows": 9361,
+  "core_nutrient_rows": 19041,
+  "portion_rows": 1556,
+  "recipe_ingredient_rows": 10271,
+  "energy_macro_mismatch_flags": 18,
+  "source_energy_conflict_flags": 0,
+  "explicit_variant_flags": 72,
+  "dummy_values_added": 0,
+  "estimated_values_added": 0,
+  "indb_ingredient_reference_mapped": 328,
+  "indb_ingredient_reference_unresolved": 5,
+  "full_ifct_nutrient_rows": 112194
+}

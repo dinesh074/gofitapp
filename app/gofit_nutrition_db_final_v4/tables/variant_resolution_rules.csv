@@ -1,0 +1,9 @@
+family,rule
+Rice dishes,Do not map Bagara Rice/Pulihora/Bisi Bele Bath to raw rice nutrition; use recipe nutrition.
+Cooked rice,Resolve cooked/boiled/steamed/parboiled states separately when source records distinguish them.
+Chicken,"Preserve cut, skin status, raw/cooked state and recipe preparation."
+Mutton/goat,"Preserve species terminology, cut, raw/cooked state and recipe preparation."
+Naan,"Plain, butter, garlic, cheese, keema, peshawari, methi etc. are separate recipe variants."
+Paratha,Stuffing and cooking fat change nutrition; each distinct filling/variant requires its own recipe record.
+Parotta,"Malabar, veechu, bun, Ceylon and kothu are not interchangeable with North Indian paratha."
+Aliases,Store language/region/source; do not use unverified translations as authoritative aliases.
