@@ -750,6 +750,29 @@ FOOD_DB = _load_db()
 FOOD_BY_KEY = {f["key"]: f for f in FOOD_DB}
 
 
+def _build_alias_word_index(foods) -> dict:
+    """Inverted index: word -> [(food, alias_norm), ...] for every word that
+    appears in any food's normalized alias. match_food()'s word-boundary regex
+    for a multi-word alias (e.g. "mutton biryani") can only ever match if that
+    alias's words are literally present in the item name -- so an item name
+    sharing NONE of an alias's words can never match it. Pre-filtering
+    candidates this way is lossless (no true match is ever excluded) but lets
+    match_food skip regex-checking the ~1000+ DB entries that share no words
+    with the current item, which was previously the single biggest per-item
+    CPU cost in the scan pipeline for unmatched/loosely-matched item names."""
+    index: dict = {}
+    for food in foods:
+        for alias in food.get("_aliases_norm") or ():
+            if not alias:
+                continue
+            for word in set(alias.split()):
+                index.setdefault(word, []).append((food, alias))
+    return index
+
+
+ALIAS_WORD_INDEX = _build_alias_word_index(FOOD_DB)
+
+
 # --- Meal combinations (accompaniment pairings) ------------------------------
 # Indian dishes are rarely eaten alone (idli+sambar+chutney, dal+rice, chole+
 # puri). food_combos.json holds curated dish -> typical sides so the app can
@@ -842,10 +865,19 @@ def match_food(name: str):
         return canonical
     best = None
     best_len = 0
-    for food in FOOD_DB:
-        for alias in food.get("_aliases_norm") or food["_aliases"]:
-            if alias and re.search(r"\b" + re.escape(alias) + r"\b", n) and len(alias) > best_len:
-                best, best_len = food, len(alias)
+    n_words = set(n.split())
+    candidates = []
+    seen_pairs = set()
+    for word in n_words:
+        for food, alias in ALIAS_WORD_INDEX.get(word, ()):
+            pair_key = (id(food), alias)
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+            candidates.append((food, alias))
+    for food, alias in candidates:
+        if re.search(r"\b" + re.escape(alias) + r"\b", n) and len(alias) > best_len:
+            best, best_len = food, len(alias)
     return best
 
 
@@ -3191,7 +3223,14 @@ def _sanitize_macro_estimate(it: dict) -> None:
             it["kcal_per_unit"] = round(macro_kcal)
 
 
-def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix: str, cache_key: str | None = None) -> dict:
+def _run_gemini_analysis(
+    account: dict,
+    prompt: str,
+    media,
+    error_detail_prefix: str,
+    cache_key: str | None = None,
+    background_tasks: Optional[BackgroundTasks] = None,
+) -> dict:
     """Shared retry/anchor/usage/scan-history plumbing for both the image and
     text analysis paths -- media is either a PIL.Image (photo) or omitted
     (text-only prompt already has the description baked in).
@@ -3201,14 +3240,34 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
     same input exists, skip the (non-deterministic) Gemini call entirely and
     return the cached result with freshly-stamped usage -- guarantees the
     same input always yields the same numbers.
-    """
+
+    background_tasks: when provided, the analytics-only writes (scan-history
+    logging, cache-put) are deferred to run AFTER the response is already on
+    its way back to the client -- they're write-only bookkeeping that nothing
+    in this response depends on, so there's no reason to make the user's
+    scan wait on them. food_graph.record_scan_result() stays synchronous
+    because its return value (scan_result_id) IS part of the response the
+    client uses (e.g. for scan feedback)."""
+
+    def _log_scan(*args, **kwargs):
+        if background_tasks is not None:
+            background_tasks.add_task(progress.record_scan, *args, **kwargs)
+        else:
+            progress.record_scan(*args, **kwargs)
+
+    def _cache_put(*args, **kwargs):
+        if background_tasks is not None:
+            background_tasks.add_task(_analyze_cache_put, *args, **kwargs)
+        else:
+            _analyze_cache_put(*args, **kwargs)
+
     if cache_key:
         cached = _analyze_cache_get(cache_key)
         if cached is not None:
             data = dict(cached)
             data["usage"] = auth.usage_for(account["id"])
             data["from_cache"] = True
-            progress.record_scan(
+            _log_scan(
                 account["id"], success=True, item_count=len(data.get("items", [])),
                 total_kcal=data.get("calories_kcal"),
             )
@@ -3235,7 +3294,7 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
             data["questions"] = _sanitize_questions(data)
             data = anchor_items(data)
             if cache_key:
-                _analyze_cache_put(cache_key, data)
+                _cache_put(cache_key, data)
             data["usage"] = auth.usage_for(account["id"])
             scan_result_id = food_graph.record_scan_result(
                 account["id"],
@@ -3247,7 +3306,7 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
             if scan_result_id:
                 data["scan_result_id"] = scan_result_id
             items = data.get("items", [])
-            progress.record_scan(
+            _log_scan(
                 account["id"], success=True, item_count=len(items),
                 total_kcal=data.get("calories_kcal"),
             )
@@ -3260,7 +3319,7 @@ def _run_gemini_analysis(account: dict, prompt: str, media, error_detail_prefix:
     # Every retry failed -- refund the reserved slot so a failed request
     # (not the user's fault) doesn't cost them a real scan.
     auth.release_scan(account["id"])
-    progress.record_scan(account["id"], success=False, error_detail=str(last)[:500] if last else None)
+    _log_scan(account["id"], success=False, error_detail=str(last)[:500] if last else None)
     raise HTTPException(status_code=502, detail=f"Could not analyze the {error_detail_prefix}. Please try again.")
 
 
@@ -3302,7 +3361,7 @@ async def analyze(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid or unreadable image")
 
-    data = _run_gemini_analysis(account, PROMPT, img, "photo", cache_key=image_hash)
+    data = _run_gemini_analysis(account, PROMPT, img, "photo", cache_key=image_hash, background_tasks=background_tasks)
     # Best-effort photo upload -- hash-based path means the exact same photo
     # re-scanned by the same user just overwrites, never duplicates storage.
     # A storage hiccup must never break the (already-successful) analysis.
@@ -3329,7 +3388,7 @@ class TextAnalyzeBody(BaseModel):
 
 
 @app.post("/analyze/text")
-def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guard)):
+def analyze_text(body: TextAnalyzeBody, request: Request, background_tasks: BackgroundTasks, _: None = Depends(guard)):
     """Text (or voice-transcribed-to-text) meal logging -- same free-scan
     gate, same DB-anchoring, same response shape as the photo path, just
     without an image. Lets you log a meal by describing it when a photo
@@ -3338,7 +3397,7 @@ def analyze_text(body: TextAnalyzeBody, request: Request, _: None = Depends(guar
     normalized = re.sub(r"\s+", " ", body.description.strip().lower())
     text_hash = "text:" + hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     prompt = f'{TEXT_PROMPT}\n\nUser\'s description: "{body.description.strip()}"'
-    return _run_gemini_analysis(account, prompt, None, "description", cache_key=text_hash)
+    return _run_gemini_analysis(account, prompt, None, "description", cache_key=text_hash, background_tasks=background_tasks)
 
 
 # --------------------------------------------------------------------------- #
