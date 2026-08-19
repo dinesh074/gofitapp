@@ -58,16 +58,22 @@ class GeminiProvider(AIProvider):
         #
         # http_options.timeout: without this the SDK has no client-side
         # cutoff at all -- a slow/stuck Gemini backend could hang the request
-        # (and the user's spinner) indefinitely. 9s is generous versus the
-        # ~1.7s typical case above but still keeps a single stuck attempt
-        # from blowing well past the "3 second rule" scan budget, especially
-        # since _run_gemini_analysis retries up to 3x on failure/timeout.
+        # (and the user's spinner) indefinitely. The Gemini API itself now
+        # rejects any deadline below 10s with a 400 INVALID_ARGUMENT ("Manually
+        # set deadline Xs is too short. Minimum allowed deadline is 10s.") --
+        # this used to be unenforced (9s worked fine) until Google tightened
+        # it, which silently broke every single photo/text scan (all 3 retries
+        # failed identically since it's a hard validation error, not a
+        # transient one). 12s keeps a safety margin above the new 10s floor
+        # while still keeping a single stuck attempt from blowing too far past
+        # the "3 second rule" scan budget, especially since _run_gemini_analysis
+        # retries up to 3x on failure/timeout.
         self.gen_config = types.GenerateContentConfig(
             temperature=0,
             top_p=1,
             response_mime_type="application/json",
             thinking_config=types.ThinkingConfig(thinking_level="low"),
-            http_options=types.HttpOptions(timeout=9000),  # ms
+            http_options=types.HttpOptions(timeout=12000),  # ms
         )
 
     def _client_lazy(self):
