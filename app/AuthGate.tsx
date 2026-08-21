@@ -34,7 +34,7 @@ import {
 import Icon, { IconName } from "./Icon";
 import Logo from "./Logo";
 import { initGoogleWeb, renderGoogleButton } from "./googleWeb";
-import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
+import { openLegal, privacyUrl, termsUrl, downloadUrl } from "./legalLinks";
 
 type Props = {
   onAuthed: (state: AuthState) => void;
@@ -511,6 +511,11 @@ export default function AuthGate({ onAuthed }: Props) {
               <PressScale style={styles.heroCta} onPress={() => setShowSignIn(true)}>
                 <Text style={styles.heroCtaText}>Get started — it's free</Text>
               </PressScale>
+              {isWeb && (
+                <Text style={styles.ctaBannerSub} onPress={() => void openLegal(downloadUrl())}>
+                  Prefer the app? <Text style={styles.ctaBannerLink}>Download for Android</Text>
+                </Text>
+              )}
             </LinearGradient>
           </View>
 
@@ -857,6 +862,7 @@ const styles = StyleSheet.create({
   ctaBannerInner: { padding: 30, alignItems: "center" },
   ctaBannerTitle: { color: "#fff", fontSize: 19, fontWeight: "900", textAlign: "center" },
   ctaBannerSub: { color: "rgba(255,255,255,0.85)", fontSize: 13, textAlign: "center", marginTop: 8, lineHeight: 18 },
+  ctaBannerLink: { color: "#fff", fontWeight: "800", textDecorationLine: "underline" },
 
   stickyBar: {
     backgroundColor: colors.card,

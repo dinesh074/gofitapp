@@ -14,6 +14,10 @@ export function termsUrl(): string {
   return Platform.OS === "web" ? "/terms.html" : `${PROD_ORIGIN}/terms.html`;
 }
 
+export function downloadUrl(): string {
+  return Platform.OS === "web" ? "/download.html" : `${PROD_ORIGIN}/download.html`;
+}
+
 export async function openLegal(url: string): Promise<void> {
   if (Platform.OS === "web") {
     // Same tab is fine -- these are simple static pages, not a lost-work risk.

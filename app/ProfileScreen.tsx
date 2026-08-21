@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { APP_NAME } from "./config";
 import {
   ACTIVITY_LABELS,
@@ -20,7 +20,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon, { IconName } from "./Icon";
 import Avatar from "./Avatar";
 import Feedback from "./Feedback";
-import { openLegal, privacyUrl, termsUrl } from "./legalLinks";
+import { openLegal, privacyUrl, termsUrl, downloadUrl } from "./legalLinks";
 
 type Props = {
   profile: Profile;
@@ -194,7 +194,10 @@ export default function ProfileScreen({
         <View style={styles.card}>
           <MenuItem icon="star" label="Subscription & Pro" onPress={onOpenSubscription} />
           <MenuItem icon="group" label="Community" onPress={onOpenCommunity} />
-          <MenuItem icon="settings" label="Edit profile, settings & data" onPress={onEditProfile} last />
+          <MenuItem icon="settings" label="Edit profile, settings & data" onPress={onEditProfile} last={Platform.OS !== "web"} />
+          {Platform.OS === "web" && (
+            <MenuItem icon="download" label="Get the Android app" onPress={() => void openLegal(downloadUrl())} last />
+          )}
         </View>
 
         <Text style={styles.section}>Help us improve</Text>

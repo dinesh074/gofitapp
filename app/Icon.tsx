@@ -34,6 +34,7 @@ export const ICONS = {
   playCircle: "play-circle-outline",
   settings: "settings-outline",
   logout: "log-out-outline",
+  download: "download-outline",
   check: "checkmark-circle",
   checkOutline: "checkmark-circle-outline",
   plus: "add",
