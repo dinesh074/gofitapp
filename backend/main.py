@@ -3273,7 +3273,21 @@ def _run_gemini_analysis(
             )
             return data
     last = None
-    for attempt in range(3):
+    # Wall-clock budget for the whole retry loop -- a single Gemini call can
+    # legitimately take 2-7s (measured directly against the live API), and
+    # the SDK now enforces a 10s minimum per-call timeout (see ai_provider.py),
+    # so blindly doing all 3 attempts back-to-back could previously stack up
+    # to ~36s of worst-case wait. Capping attempts at 2 and bailing out early
+    # if the first attempt already ate most of the budget keeps the worst
+    # case close to a single slow call (~7-10s) instead of multiplying it,
+    # while still giving one real retry for a genuine transient hiccup.
+    loop_start = time.time()
+    max_attempts = 2
+    retry_budget_s = 9.0
+    for attempt in range(max_attempts):
+        if attempt > 0 and (time.time() - loop_start) > retry_budget_s:
+            log.warning("%s: skipping retry, already %.1fs into request", error_detail_prefix, time.time() - loop_start)
+            break
         try:
             parts = [prompt, media] if media is not None else [prompt]
             resp = _generate(parts)

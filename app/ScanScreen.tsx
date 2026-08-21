@@ -88,6 +88,19 @@ export default function ScanScreen() {
   const [portionIndex, setPortionIndex] = useState<number | null>(null);
   const [added, setAdded] = useState(false);
   const captureBusy = useRef(false);
+  // Cosmetic-only, cycling through the real steps the backend actually
+  // performs (vision call -> DB match -> totals) so the wait feels
+  // purposeful instead of a static spinner. Purely perceived-speed: the
+  // underlying network call still takes the same 2-7s (see ai_provider.py),
+  // this doesn't change that -- it just gives the user something to read
+  // instead of staring at an unchanging "Analyzing..." label the whole time.
+  const LOADING_STEPS = [
+    "Looking at your plate…",
+    "Identifying each item…",
+    "Matching to the food database…",
+    "Calculating calories & macros…",
+  ];
+  const [loadingStep, setLoadingStep] = useState(0);
   // Auto-guessed from the clock the moment the photo lands, but shown as a
   // row of tappable chips (not silently applied) since "morning snack" vs
   // "lunch" right at the boundary is exactly the kind of guess a real user
@@ -134,6 +147,7 @@ export default function ScanScreen() {
       setResult(null);
       setPairings([]);
       setLoading(true);
+      setLoadingStep(0);
       try {
         // Real network call to the backend's Gemini-backed /analyze -- this
         // spinner reflects actual analysis time (typically 2-6s), not a fake
@@ -162,6 +176,14 @@ export default function ScanScreen() {
     },
     [account?.scansLeft, isPro, loading, requireAuth]
   );
+
+  useEffect(() => {
+    if (!loading) return;
+    const id = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+    }, 1300);
+    return () => clearInterval(id);
+  }, [loading]);
 
   useEffect(() => {
     if (!presetResult) return;
@@ -409,7 +431,7 @@ export default function ScanScreen() {
         {loading && (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={colors.green} />
-            <Text style={styles.muted}>Analyzing your plate…</Text>
+            <Text style={styles.muted}>{LOADING_STEPS[loadingStep]}</Text>
             <Text style={styles.mutedSmall}>Real AI call — usually 2–6s.</Text>
           </View>
         )}
