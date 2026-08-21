@@ -131,6 +131,29 @@ export class BarcodeNotFoundError extends Error {
   }
 }
 
+// Plain fetch() has no built-in timeout -- if the backend (or a Render
+// cold-start, or a dropped mobile connection) never sends a response, the
+// returned promise just sits forever, and since withScanRetry only retries
+// on a REJECTED promise, a hang here means the UI's spinner never resolves
+// either. This wraps fetch with an AbortController so every scan-path
+// request settles (success or a retryable error) within ANALYZE_TIMEOUT_MS
+// no matter what the network/server does.
+const ANALYZE_TIMEOUT_MS = 25_000;
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = ANALYZE_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (e: any) {
+    if (e?.name === "AbortError") {
+      throw new Error("This is taking too long. Please try again.");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Uploads an image (local uri) to the backend /analyze endpoint.
 async function analyzeImageOnce(uri: string): Promise<AnalysisResult> {
   const form = new FormData();
@@ -154,14 +177,16 @@ async function analyzeImageOnce(uri: string): Promise<AnalysisResult> {
 
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/analyze`, {
+    res = await fetchWithTimeout(`${API_BASE}/analyze`, {
       method: "POST",
       body: form,
       headers,
     });
-  } catch {
-    // Network-level failure (server down, wrong API_BASE, no connectivity).
-    throw new Error(
+  } catch (e: any) {
+    // Network-level failure (server down, wrong API_BASE, no connectivity)
+    // or the fetchWithTimeout abort -- either way, surface something the
+    // user can act on instead of leaving the spinner running forever.
+    throw e instanceof Error && e.message ? e : new Error(
       "Can't reach the server. Check your connection and that the backend is running."
     );
   }
@@ -217,13 +242,13 @@ async function analyzeTextOnce(description: string): Promise<AnalysisResult> {
 
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/analyze/text`, {
+    res = await fetchWithTimeout(`${API_BASE}/analyze/text`, {
       method: "POST",
       headers,
       body: JSON.stringify({ description }),
     });
-  } catch {
-    throw new Error(
+  } catch (e: any) {
+    throw e instanceof Error && e.message ? e : new Error(
       "Can't reach the server. Check your connection and that the backend is running."
     );
   }
@@ -288,13 +313,13 @@ export async function analyzeBarcode(code: string): Promise<AnalysisResult> {
 
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/analyze/barcode`, {
+    res = await fetchWithTimeout(`${API_BASE}/analyze/barcode`, {
       method: "POST",
       headers,
       body: JSON.stringify({ code }),
     });
-  } catch {
-    throw new Error(
+  } catch (e: any) {
+    throw e instanceof Error && e.message ? e : new Error(
       "Can't reach the server. Check your connection and that the backend is running."
     );
   }
