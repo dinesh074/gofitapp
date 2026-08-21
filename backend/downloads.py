@@ -51,7 +51,13 @@ async def admin_upload_apk(request: Request, file: UploadFile = File(...)):
     unlike EAS's own build-artifact links, which expire after ~2 weeks on the
     free plan. Gated by X-Admin-Key exactly like the other /admin/* endpoints
     -- 404s (not 401) when ADMIN_KEY is unset, so its existence isn't
-    advertised."""
+    advertised.
+
+    Only good for files that fit in a single request -- Render's free-tier
+    proxy in front of this service was measured (directly, with dummy files)
+    to hard-fail requests somewhere between 60MB and 90MB (fast 502, not a
+    slow timeout), well under the real APK's ~103MB. For anything that big,
+    use the chunked endpoints below instead."""
     if not audit.ADMIN_KEY:
         raise HTTPException(status_code=404, detail="Not found")
     if request.headers.get("x-admin-key", "").strip() != audit.ADMIN_KEY:
@@ -59,6 +65,11 @@ async def admin_upload_apk(request: Request, file: UploadFile = File(...)):
     data = await file.read()
     if not data:
         raise HTTPException(status_code=400, detail="Empty file")
+    _store("gofit-today.apk", data, "application/vnd.android.package-archive")
+    return {"bytes": len(data), "url": "/download/apk"}
+
+
+def _store(name: str, data: bytes, content_type: str) -> None:
     with db.write_lock(), db.connect() as c:
         c.execute(
             """
@@ -68,9 +79,57 @@ async def admin_upload_apk(request: Request, file: UploadFile = File(...)):
                 content=excluded.content, content_type=excluded.content_type,
                 bytes=excluded.bytes, updated_at=excluded.updated_at
             """,
-            ("gofit-today.apk", data, "application/vnd.android.package-archive", len(data), time.time()),
+            (name, data, content_type, len(data), time.time()),
         )
-    return {"bytes": len(data), "url": "/download/apk"}
+
+
+def _require_admin(request: Request) -> None:
+    if not audit.ADMIN_KEY:
+        raise HTTPException(status_code=404, detail="Not found")
+    if request.headers.get("x-admin-key", "").strip() != audit.ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+
+
+@router.post("/admin/upload-apk-chunk")
+async def admin_upload_apk_chunk(
+    request: Request, index: int, total: int, file: UploadFile = File(...)
+):
+    """Upload one piece of a large APK (each piece well under the ~60-90MB
+    proxy ceiling above). Pieces are stashed as their own rows
+    (`gofit-today.apk.part000`, `.part001`, ...) and only assembled into the
+    real `gofit-today.apk` row by /admin/upload-apk-finalize once every piece
+    has arrived -- so a half-finished upload never makes a broken file
+    briefly downloadable."""
+    _require_admin(request)
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty chunk")
+    _store(f"gofit-today.apk.part{index:04d}", data, "application/octet-stream")
+    return {"index": index, "total": total, "bytes": len(data)}
+
+
+@router.post("/admin/upload-apk-finalize")
+def admin_upload_apk_finalize(request: Request, total: int):
+    """Concatenate the `total` chunks uploaded via /admin/upload-apk-chunk
+    (in order) into the real `gofit-today.apk` row, then delete the parts."""
+    _require_admin(request)
+    parts: list[bytes] = []
+    with db.connect() as c:
+        for i in range(total):
+            row = c.execute(
+                "SELECT content FROM app_downloads WHERE name = ?",
+                (f"gofit-today.apk.part{i:04d}",),
+            ).fetchone()
+            if not row:
+                raise HTTPException(status_code=400, detail=f"Missing chunk {i} of {total}")
+            content = row["content"]
+            parts.append(content if isinstance(content, (bytes, bytearray)) else bytes(content))
+    full = b"".join(parts)
+    _store("gofit-today.apk", full, "application/vnd.android.package-archive")
+    with db.write_lock(), db.connect() as c:
+        for i in range(total):
+            c.execute("DELETE FROM app_downloads WHERE name = ?", (f"gofit-today.apk.part{i:04d}",))
+    return {"bytes": len(full), "url": "/download/apk"}
 
 
 @router.get("/download/apk")
