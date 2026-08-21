@@ -18,7 +18,7 @@ import time
 import logging
 
 from fastapi import APIRouter, HTTPException, Request, UploadFile, File
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 
 import db
 import audit
@@ -145,25 +145,47 @@ def admin_upload_apk_finalize(request: Request, total: int):
     return {"bytes": total_bytes, "url": "/download/apk"}
 
 
+_STREAM_CHUNK_BYTES = 4 * 1024 * 1024  # 4MB per DB round-trip
+
+
+def _stream_blob(name: str, total_bytes: int):
+    """Yield a large BYTEA/BLOB column in small pieces via `substring`/`substr`
+    so the full file is never held in the app process's memory at once --
+    reading it as one row (row["content"]) is exactly what OOM-crashed
+    Render's free-tier instance when serving the ~103MB APK directly."""
+    substr_fn = "substring" if db.IS_POSTGRES else "substr"
+    offset = 1  # SQL string/blob functions are 1-indexed
+    while offset <= total_bytes:
+        length = min(_STREAM_CHUNK_BYTES, total_bytes - offset + 1)
+        with db.connect() as c:
+            row = c.execute(
+                f"SELECT {substr_fn}(content, ?, ?) AS chunk FROM app_downloads WHERE name = ?",
+                (offset, length, name),
+            ).fetchone()
+        chunk = row["chunk"] if row else None
+        if not chunk:
+            break
+        if not isinstance(chunk, (bytes, bytearray)):
+            chunk = bytes(chunk)
+        yield chunk
+        offset += length
+
+
 @router.get("/download/apk")
 def download_apk():
     """Public, unauthenticated -- this is the actual link the landing page's
     "Download for Android" button points to. Plain download, no scan credit
-    or account involvement."""
+    or account involvement. Streams the file in small pieces (see
+    _stream_blob) instead of loading the whole ~103MB into memory at once."""
     with db.connect() as c:
         row = c.execute(
-            "SELECT content, content_type, bytes FROM app_downloads WHERE name = ?",
+            "SELECT content_type, bytes FROM app_downloads WHERE name = ?",
             ("gofit-today.apk",),
         ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="APK not uploaded yet")
-    content = row["content"]
-    # psycopg hands back a Postgres memoryview for BYTEA; sqlite3 hands back
-    # bytes directly -- normalize so Response() always gets plain bytes.
-    if not isinstance(content, (bytes, bytearray)):
-        content = bytes(content)
-    return Response(
-        content=content,
+    return StreamingResponse(
+        _stream_blob("gofit-today.apk", row["bytes"]),
         media_type=row["content_type"],
         headers={
             "Content-Disposition": 'attachment; filename="gofit-today.apk"',
