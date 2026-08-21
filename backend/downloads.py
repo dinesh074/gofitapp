@@ -110,26 +110,39 @@ async def admin_upload_apk_chunk(
 
 @router.post("/admin/upload-apk-finalize")
 def admin_upload_apk_finalize(request: Request, total: int):
-    """Concatenate the `total` chunks uploaded via /admin/upload-apk-chunk
-    (in order) into the real `gofit-today.apk` row, then delete the parts."""
+    """Concatenate the `total` chunks uploaded via /admin/upload-apk-chunk (in
+    order) into the real `gofit-today.apk` row, then delete the parts.
+
+    Does the concatenation with a single SQL statement (bytea/BLOB `||`)
+    instead of reading every chunk into Python and joining them here -- the
+    first version did that and OOM-crashed Render's small free-tier instance
+    trying to hold ~103MB in process memory at once. This way the ~103MB
+    only ever exists inside Postgres itself; the app process just sends one
+    query and gets back a row count."""
     _require_admin(request)
-    parts: list[bytes] = []
+    part_names = [f"gofit-today.apk.part{i:04d}" for i in range(total)]
     with db.connect() as c:
-        for i in range(total):
-            row = c.execute(
-                "SELECT content FROM app_downloads WHERE name = ?",
-                (f"gofit-today.apk.part{i:04d}",),
-            ).fetchone()
+        total_bytes = 0
+        for name in part_names:
+            row = c.execute("SELECT bytes FROM app_downloads WHERE name = ?", (name,)).fetchone()
             if not row:
-                raise HTTPException(status_code=400, detail=f"Missing chunk {i} of {total}")
-            content = row["content"]
-            parts.append(content if isinstance(content, (bytes, bytearray)) else bytes(content))
-    full = b"".join(parts)
-    _store("gofit-today.apk", full, "application/vnd.android.package-archive")
+                raise HTTPException(status_code=400, detail=f"Missing chunk {name}")
+            total_bytes += row["bytes"]
+    concat_expr = " || ".join("(SELECT content FROM app_downloads WHERE name = ?)" for _ in part_names)
     with db.write_lock(), db.connect() as c:
-        for i in range(total):
-            c.execute("DELETE FROM app_downloads WHERE name = ?", (f"gofit-today.apk.part{i:04d}",))
-    return {"bytes": len(full), "url": "/download/apk"}
+        c.execute(
+            f"""
+            INSERT INTO app_downloads (name, content, content_type, bytes, updated_at)
+            VALUES (?, {concat_expr}, ?, ?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                content=excluded.content, content_type=excluded.content_type,
+                bytes=excluded.bytes, updated_at=excluded.updated_at
+            """,
+            ("gofit-today.apk", *part_names, "application/vnd.android.package-archive", total_bytes, time.time()),
+        )
+        for name in part_names:
+            c.execute("DELETE FROM app_downloads WHERE name = ?", (name,))
+    return {"bytes": total_bytes, "url": "/download/apk"}
 
 
 @router.get("/download/apk")
