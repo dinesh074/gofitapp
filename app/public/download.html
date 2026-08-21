@@ -37,12 +37,11 @@
   <a class="btn btn-primary" href="/">Open the web app</a>
   <p class="note">Works right in your browser — nothing to install.</p>
 
-  <!-- Swapped from disabled -> a real href once the APK is hosted somewhere
-       permanent (see backend/main.py's admin upload endpoint / README note
-       for the current hosting decision). Left disabled rather than pointing
-       at a broken link. -->
-  <a class="btn btn-secondary disabled" href="#" id="apk-link">Download for Android (APK)</a>
-  <p class="note">Android download coming very soon — the web app works today.</p>
+  <!-- Points straight at the backend (Render), which now serves the APK
+       directly from Postgres storage -- see backend/downloads.py. Enabled
+       once an APK has actually been uploaded via /admin/upload-apk. -->
+  <a class="btn btn-secondary" href="https://gofit-backend-xnik.onrender.com/download/apk" id="apk-link">Download for Android (APK)</a>
+  <p class="note">~100MB · Android 8+ · you may need to allow "install unknown apps" once.</p>
 
   <div class="features">
     <h2>What it does</h2>
