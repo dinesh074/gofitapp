@@ -153,6 +153,9 @@ export default function ScanScreen() {
         // spinner reflects actual analysis time (typically 2-6s), not a fake
         // delay. The same exact photo is now cached server-side, so retaking
         // this screen with the identical file returns identical numbers.
+        // analyzeImage() itself silently retries a transient failure a
+        // couple more times (see api.ts's withScanRetry) before this ever
+        // throws, so the loading state above just keeps cycling through it.
         const data = await analyzeImage(uri);
         setResult(data);
         const names = data.items.map((it) => it.item).filter(Boolean);
@@ -180,7 +183,7 @@ export default function ScanScreen() {
   useEffect(() => {
     if (!loading) return;
     const id = setInterval(() => {
-      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+      setLoadingStep((s) => (s + 1) % LOADING_STEPS.length);
     }, 1300);
     return () => clearInterval(id);
   }, [loading]);

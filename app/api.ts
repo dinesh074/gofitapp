@@ -132,7 +132,7 @@ export class BarcodeNotFoundError extends Error {
 }
 
 // Uploads an image (local uri) to the backend /analyze endpoint.
-export async function analyzeImage(uri: string): Promise<AnalysisResult> {
+async function analyzeImageOnce(uri: string): Promise<AnalysisResult> {
   const form = new FormData();
   const name = uri.split("/").pop() || "photo.jpg";
   const match = /\.(\w+)$/.exec(name);
@@ -175,11 +175,38 @@ export async function analyzeImage(uri: string): Promise<AnalysisResult> {
   return (await res.json()) as AnalysisResult;
 }
 
+// Retries a scan a few extra times, client-side, on top of the backend's own
+// internal retry -- an occasional Gemini hiccup can still exhaust those and
+// surface as a hard failure. Rather than making the user notice an error and
+// tap "Try again" themselves, this silently retries the exact same request
+// so a transient failure just looks like "still analyzing" a bit longer.
+// PaywallError/AuthRequiredError are account-state issues, not transient --
+// those are never retried, they propagate on the first attempt.
+async function withScanRetry<T>(run: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await run();
+    } catch (e) {
+      if (e instanceof PaywallError || e instanceof AuthRequiredError) throw e;
+      lastErr = e;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+    }
+  }
+  throw lastErr;
+}
+
+export function analyzeImage(uri: string): Promise<AnalysisResult> {
+  return withScanRetry(() => analyzeImageOnce(uri));
+}
+
 // Text (or voice-transcribed) meal logging -- same free-scan gate and
 // response shape as analyzeImage(), just describing the meal in words
 // instead of a photo. Useful when a photo isn't practical, and doubles as
 // the pipeline voice logging feeds into (speech -> text -> this call).
-export async function analyzeText(description: string): Promise<AnalysisResult> {
+async function analyzeTextOnce(description: string): Promise<AnalysisResult> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -207,6 +234,10 @@ export async function analyzeText(description: string): Promise<AnalysisResult> 
     throw new Error(msg);
   }
   return (await res.json()) as AnalysisResult;
+}
+
+export function analyzeText(description: string): Promise<AnalysisResult> {
+  return withScanRetry(() => analyzeTextOnce(description));
 }
 
 export async function listScanResults(limit = 50): Promise<Array<{ id: number; confidence: number; status: string; created_at: number }>> {
