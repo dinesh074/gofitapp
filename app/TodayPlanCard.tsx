@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { colors, elevation } from "./theme";
 import Icon from "./Icon";
 import { fetchTodayPlan, DayPlan, PlanMacros, PlannerProfileContext } from "./api";
+import { PlanCardSkeleton } from "./Skeleton";
 import { Diet, GoalTargets } from "./nutrition";
 import { Account } from "./auth";
 
@@ -150,10 +151,13 @@ export default function TodayPlanCard({
           </Text>
         </Pressable>
       ) : loading && !plan ? (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color={colors.green} />
-          <Text style={styles.loadingText}>Building your plan…</Text>
-        </View>
+        <>
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={colors.green} />
+            <Text style={styles.loadingText}>Building your plan…</Text>
+          </View>
+          <PlanCardSkeleton />
+        </>
       ) : failed && !plan ? (
         <Pressable onPress={() => load(false)}>
           <Text style={styles.empty}>Couldn&apos;t build your plan just now. Tap to try again.</Text>

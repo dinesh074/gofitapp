@@ -27,6 +27,7 @@ import { inferMealType, Meal, MEAL_TYPES, MEAL_TYPE_LABEL, MealType } from "./st
 import { colors, radius, elevation, type as T } from "./theme";
 import Icon from "./Icon";
 import Screen from "./Screen";
+import { ScanResultSkeleton } from "./Skeleton";
 import { useApp } from "./AppContext";
 import FoodSearchSheet from "./FoodSearchSheet";
 import PortionPicker from "./PortionPicker";
@@ -432,11 +433,18 @@ export default function ScanScreen() {
         {photo && <Image source={{ uri: photo }} style={styles.preview} />}
 
         {loading && (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={colors.green} />
-            <Text style={styles.muted}>{LOADING_STEPS[loadingStep]}</Text>
-            <Text style={styles.mutedSmall}>Real AI call — usually 2–6s.</Text>
-          </View>
+          <>
+            {/* Optimistic UI: the result card's shape appears immediately
+                (skeleton) instead of a blank blocking spinner, so the screen
+                looks "already working" from frame one. The tiny status line
+                below is the only thing that changes while the real AI call
+                (2-6s) runs underneath. */}
+            <View style={styles.centerCompact}>
+              <ActivityIndicator size="small" color={colors.green} />
+              <Text style={styles.mutedSmall}>{LOADING_STEPS[loadingStep]}</Text>
+            </View>
+            <ScanResultSkeleton />
+          </>
         )}
 
         {error && (
@@ -621,6 +629,7 @@ const styles = StyleSheet.create({
 
   preview: { width: "100%", height: 220, borderRadius: radius.lg, marginBottom: 16, backgroundColor: colors.cardMuted },
   center: { alignItems: "center", paddingVertical: 32, gap: 8 },
+  centerCompact: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingTop: 16 },
   muted: { color: colors.mute, fontWeight: "700", fontSize: 14 },
   mutedSmall: { color: colors.faint, fontWeight: "600", fontSize: 12 },
 

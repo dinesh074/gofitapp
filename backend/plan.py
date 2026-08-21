@@ -40,6 +40,7 @@ import time
 import random
 import logging
 import threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Callable, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -555,14 +556,33 @@ def build_plan(
         "slots": slots,
         "generated_at": time.time(),
     }
-    note = ""
-    if _ai_note is not None:
-        try:
-            note = (_ai_note(plan, diet, goal) or "").strip()
-        except Exception as ex:  # never let the AI note break the plan
-            log.info("plan: AI note failed (%s) -- using deterministic note", ex)
-    plan["coach_note"] = note or _deterministic_note(plan)
+    plan["coach_note"] = _ai_note_or_fallback(plan, diet, goal)
     return plan
+
+
+# The AI coach note is one decorative sentence layered on top of an already-
+# complete, already-fast (deterministic, <1s) plan -- it should never be the
+# reason a user waits. Gemini's own SDK timeout is 12s (see ai_provider.py),
+# which used to mean the whole /plan/today request could take that long. This
+# gives it a much tighter 2.5s budget on a background thread: if it isn't
+# back by then, we just use the deterministic note immediately and move on.
+_ai_note_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ai-note")
+_AI_NOTE_BUDGET_S = 2.5
+
+
+def _ai_note_or_fallback(plan: dict, diet: str, goal: str) -> str:
+    if _ai_note is None:
+        return _deterministic_note(plan)
+    try:
+        future = _ai_note_pool.submit(_ai_note, plan, diet, goal)
+        note = (future.result(timeout=_AI_NOTE_BUDGET_S) or "").strip()
+        if note:
+            return note
+    except FuturesTimeoutError:
+        log.info("plan: AI note skipped -- exceeded %.1fs budget, using deterministic note", _AI_NOTE_BUDGET_S)
+    except Exception as ex:  # never let the AI note break the plan
+        log.info("plan: AI note failed (%s) -- using deterministic note", ex)
+    return _deterministic_note(plan)
 
 
 def _load_saved(account_id: int, date_key: str) -> Optional[dict]:

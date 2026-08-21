@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Download gofit.today</title>
+<style>
+  html, body { background: #F6F8F7; color: #141A17; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 560px; margin: 0 auto; padding: 48px 20px 80px;
+    line-height: 1.55; text-align: center;
+  }
+  .logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; }
+  h1 { font-size: 26px; margin: 0 0 6px; color: #0f1b15; }
+  .tag { color: #5a6b62; font-size: 15px; margin-bottom: 32px; }
+  .btn {
+    display: block; text-decoration: none; font-weight: 800; font-size: 16px;
+    padding: 16px 20px; border-radius: 14px; margin: 12px 0;
+  }
+  .btn-primary { background: #0B7A4B; color: #fff; }
+  .btn-secondary { background: #fff; color: #0B7A4B; border: 1.5px solid #0B7A4B; }
+  .btn.disabled { opacity: 0.5; pointer-events: none; }
+  .note { color: #8A938E; font-size: 12.5px; margin-top: 8px; }
+  .features { text-align: left; background: #fff; border-radius: 14px; padding: 20px 24px; margin-top: 36px; border: 1px solid #ECEFEE; }
+  .features h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.4px; color: #3C4844; margin-top: 0; }
+  .features li { margin-bottom: 8px; color: #141A17; }
+  footer { margin-top: 40px; font-size: 12.5px; color: #AEB6B1; }
+  footer a { color: #8A938E; }
+</style>
+</head>
+<body>
+  <img class="logo" src="/assets/icon.png" alt="gofit.today" onerror="this.style.display='none'" />
+  <h1>gofit.today</h1>
+  <p class="tag">Scan your plate. Know your calories. Indian food, done right.</p>
+
+  <a class="btn btn-primary" href="/">Open the web app</a>
+  <p class="note">Works right in your browser — nothing to install.</p>
+
+  <!-- Swapped from disabled -> a real href once the APK is hosted somewhere
+       permanent (see backend/main.py's admin upload endpoint / README note
+       for the current hosting decision). Left disabled rather than pointing
+       at a broken link. -->
+  <a class="btn btn-secondary disabled" href="#" id="apk-link">Download for Android (APK)</a>
+  <p class="note">Android download coming very soon — the web app works today.</p>
+
+  <div class="features">
+    <h2>What it does</h2>
+    <ul>
+      <li>📸 Snap a photo of your meal — get calories, protein, carbs &amp; fat in seconds</li>
+      <li>🇮🇳 Built for Indian food — thousands of dishes recognised, not guessed</li>
+      <li>📅 A daily plan tuned to your goal, diet and what you've already eaten</li>
+      <li>💊 GLP-1 mode — gentler portions, symptom check-ins, muscle-preservation nudges</li>
+    </ul>
+  </div>
+
+  <footer>
+    <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms</a>
+  </footer>
+</body>
+</html>
