@@ -145,7 +145,11 @@ def admin_upload_apk_finalize(request: Request, total: int):
     return {"bytes": total_bytes, "url": "/download/apk"}
 
 
-_STREAM_CHUNK_BYTES = 4 * 1024 * 1024  # 4MB per DB round-trip
+_STREAM_CHUNK_BYTES = 16 * 1024 * 1024  # 16MB per DB round-trip -- big enough
+# to cut a ~103MB download from ~26 DB round-trips down to ~7 (each round-trip
+# costs a fixed network-latency hit to Supabase, on top of the actual transfer
+# time, so fewer/bigger chunks is a real speed win here), still comfortably
+# below the ~60-90MB ceiling that made single-shot uploads/downloads OOM/502.
 
 
 def _stream_blob(name: str, total_bytes: int):
